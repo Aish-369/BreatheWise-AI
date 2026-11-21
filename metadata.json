@@ -1,0 +1,6 @@
+{
+  "name": "BreatheWise AI",
+  "description": "Understand Your Air. Protect Your Family. Breathe Better. Family Air Protection Intelligence Platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
