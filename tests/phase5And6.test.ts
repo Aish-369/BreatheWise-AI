@@ -330,7 +330,9 @@ describe('Phase 5 & 6 — Provenance Tiers, Intelligence v2, Adapters, DB & Loca
     }) as typeof fetch;
 
     const first = await fetchCpcbSnapshots('Ahilyanagar');
-    expect(requestedUrl).toContain('filters[city]=Ahmednagar');
+    const parsedCpcbUrl = new URL(requestedUrl);
+    expect(parsedCpcbUrl.searchParams.get('filters[city]')).toBe('Ahmednagar');
+    expect(parsedCpcbUrl.searchParams.get('filters[state]')).toBe('Maharashtra');
     expect(first.status.status).toBe('live');
     expect(first.snapshots).toHaveLength(1);
     expect(first.snapshots[0].city).toBe('Ahilyanagar');
