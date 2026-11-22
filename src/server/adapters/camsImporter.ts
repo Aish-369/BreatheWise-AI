@@ -33,12 +33,30 @@ const VALID_WINDOWS = new Set<TimeWindow>([
 ]);
 
 const FORMULA_PREFIX_PATTERN = /^[=+\-@\t\r]/;
+const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const ISO_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/;
 
 function hasFormulaInjection(value: string): boolean {
   return FORMULA_PREFIX_PATTERN.test(value.trim());
 }
 
-const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+function isValidIsoDate(value: string): boolean {
+  if (!ISO_DATE_PATTERN.test(value)) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+function isValidIssuedAt(value: string): boolean {
+  return (
+    ISO_TIMESTAMP_PATTERN.test(value) &&
+    Number.isFinite(Date.parse(value)) &&
+    Date.parse(value) <= Date.now()
+  );
+}
+
+function validateForecastDate(forecastDate: string, issuedAt: string): boolean {
+  return isValidIsoDate(forecastDate) && forecastDate >= issuedAt.slice(0, 10);
+}
 
 export function parseCamsImport(rawText: string): {
   ok: boolean;
@@ -47,49 +65,49 @@ export function parseCamsImport(rawText: string): {
   error?: string;
 } {
   const trimmed = rawText.trim();
-  if (!trimmed) {
-    return { ok: false, error: 'Import payload is empty.' };
-  }
+  if (!trimmed) return { ok: false, error: 'Import payload is empty.' };
 
-  // Try JSON first
   if (trimmed.startsWith('{')) {
     try {
-      const json = JSON.parse(trimmed);
-      const parsed = CamsImportPayloadSchema.safeParse(json);
+      const parsed = CamsImportPayloadSchema.safeParse(JSON.parse(trimmed));
       if (!parsed.success) {
         return {
           ok: false,
           error: parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '),
         };
       }
-      if (!isValidIssuedAt(parsed.data.issuedAt)) {\n        return { ok: false, error: 'issuedAt must be a valid ISO-8601 timestamp with timezone and cannot be in the future.' };\n      }\n      if (hasFormulaInjection(parsed.data.city) || hasFormulaInjection(parsed.data.gridId)) {
+      if (!isValidIssuedAt(parsed.data.issuedAt)) {
         return {
           ok: false,
-          error: 'Rejected unsafe formula prefix in city or gridId.',
+          error: 'issuedAt must be a valid ISO-8601 timestamp with timezone and cannot be in the future.',
         };
       }
+      if (hasFormulaInjection(parsed.data.city) || hasFormulaInjection(parsed.data.gridId)) {
+        return { ok: false, error: 'Rejected unsafe formula prefix in city or gridId.' };
+      }
+
       const canonicalCity = normalizeCityCanonicalName(parsed.data.city);
       const slots: ForecastSlot[] = [];
-      for (const s of parsed.data.slots) {
-        if (!isValidIsoDate(s.forecastDate) || s.forecastDate < parsed.data.issuedAt.slice(0, 10)) {
+      for (const [index, slot] of parsed.data.slots.entries()) {
+        if (!validateForecastDate(slot.forecastDate, parsed.data.issuedAt)) {
           return {
             ok: false,
-            error: `Invalid forecastDate "${s.forecastDate}". It must be a real YYYY-MM-DD date on or after the forecast issue date.`,
+            error: `Invalid forecastDate "${slot.forecastDate}". It must be a real YYYY-MM-DD date on or after the forecast issue date.`,
           };
         }
         const derived = deriveAqiFromPollutants({
-          pm25: s.expectedPm25,
-          pm10: s.expectedPm10 ?? null,
+          pm25: slot.expectedPm25,
+          pm10: slot.expectedPm10 ?? null,
         });
         slots.push({
-          id: `cams-${canonicalCity.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${s.timeWindow}-${Date.now()}`,
+          id: `cams-${canonicalCity.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${slot.timeWindow}-${Date.now()}-${index}`,
           city: canonicalCity,
-          timeWindow: s.timeWindow,
-          forecastDate: s.forecastDate,
-          expectedPm25: s.expectedPm25,
-          expectedPm10: s.expectedPm10 ?? null,
-          expectedAqiIndia: s.expectedAqiIndia ?? derived.aqi,
-          trend: s.trend,
+          timeWindow: slot.timeWindow,
+          forecastDate: slot.forecastDate,
+          expectedPm25: slot.expectedPm25,
+          expectedPm10: slot.expectedPm10 ?? null,
+          expectedAqiIndia: slot.expectedAqiIndia ?? derived.aqi,
+          trend: slot.trend,
           dataType: 'forecast',
           providerLabel: `Copernicus CAMS (${parsed.data.gridId})`,
           gridResolutionNote:
@@ -100,92 +118,96 @@ export function parseCamsImport(rawText: string): {
         });
       }
       return { ok: true, slots, city: canonicalCity };
-    } catch (e) {
-      return { ok: false, error: `Invalid JSON format: ${e instanceof Error ? e.message : 'Parse error'}` };
+    } catch (error) {
+      return { ok: false, error: `Invalid JSON format: ${error instanceof Error ? error.message : 'Parse error'}` };
     }
   }
 
-  // Parse CSV: header -> city,grid_id,forecast_date,time_window,expected_pm25,expected_pm10,trend
-  const lines = trimmed.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const lines = trimmed.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   if (lines.length < 2) {
     return {
       ok: false,
-      error:
-        'CSV requires a header row and at least one forecast row (city,grid_id,forecast_date,time_window,expected_pm25,expected_pm10,trend).',
+      error: 'CSV requires a header row and at least one forecast row.',
     };
   }
 
-  const header = lines[0].split(',').map((h) => h.trim().toLowerCase());
-  const idx = (col: string) => header.indexOf(col);
-  if (idx('city') < 0 || idx('time_window') < 0 || idx('expected_pm25') < 0) {
-    return {
-      ok: false,
-      error: 'CSV header must contain at least: city, time_window, expected_pm25.',
-    };
+  const header = lines[0].split(',').map((cell) => cell.trim().toLowerCase());
+  const idx = (column: string) => header.indexOf(column);
+  const requiredColumns = ['city', 'grid_id', 'issued_at', 'forecast_date', 'time_window', 'expected_pm25'];
+  const missingColumns = requiredColumns.filter((column) => idx(column) < 0);
+  if (missingColumns.length > 0) {
+    return { ok: false, error: `CSV is missing required columns: ${missingColumns.join(', ')}.` };
   }
 
   const slots: ForecastSlot[] = [];
   let detectedCity = '';
-  const nowIso = new Date().toISOString();
 
-  for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(',').map((c) => c.trim());
-    for (const cell of cols) {
+  for (let rowIndex = 1; rowIndex < lines.length; rowIndex++) {
+    const columns = lines[rowIndex].split(',').map((cell) => cell.trim());
+    for (const cell of columns) {
       if (cell && hasFormulaInjection(cell)) {
-        return {
-          ok: false,
-          error: `Row ${i + 1}: unsafe formula prefix detected in cell "${cell}".`,
-        };
+        return { ok: false, error: `Row ${rowIndex + 1}: unsafe formula prefix detected.` };
       }
     }
 
-    const rawCity = cols[idx('city')];
-    if (rawCity.length > 60) {
-      return { ok: false, error: `Row ${i + 1}: city name exceeds 60 characters.` };
+    const rawCity = columns[idx('city')] ?? '';
+    const gridId = columns[idx('grid_id')] ?? '';
+    const issuedAt = columns[idx('issued_at')] ?? '';
+    if (!rawCity || rawCity.length > 60 || !gridId || gridId.length > 100) {
+      return { ok: false, error: `Row ${rowIndex + 1}: valid city and grid_id are required.` };
     }
+    if (!isValidIssuedAt(issuedAt)) {
+      return { ok: false, error: `Row ${rowIndex + 1}: issued_at must be a valid past ISO-8601 timestamp with timezone.` };
+    }
+
     const city = normalizeCityCanonicalName(rawCity);
+    if (detectedCity && city !== detectedCity) {
+      return { ok: false, error: 'A single CAMS import file must contain forecasts for one city only.' };
+    }
     detectedCity = city;
 
-    const gridId = idx('grid_id') >= 0 ? cols[idx('grid_id')] || 'CAMS-GLOBAL-0.4DEG' : 'CAMS-GLOBAL-0.4DEG';
-    const forecastDate =
-      idx('forecast_date') >= 0 ? cols[idx('forecast_date')] || nowIso.slice(0, 10) : nowIso.slice(0, 10);
-    if (!ISO_DATE_PATTERN.test(forecastDate)) {
+    const forecastDate = columns[idx('forecast_date')] ?? '';
+    if (!validateForecastDate(forecastDate, issuedAt)) {
       return {
         ok: false,
-        error: `Row ${i + 1}: invalid forecast_date "${forecastDate}". It must be a real YYYY-MM-DD date on or after issued_at.`,
+        error: `Row ${rowIndex + 1}: forecast_date must be a real YYYY-MM-DD date on or after issued_at.`,
       };
     }
 
-    const tw = cols[idx('time_window')] as TimeWindow;
-    if (!VALID_WINDOWS.has(tw)) {
+    const timeWindow = columns[idx('time_window')] as TimeWindow;
+    if (!VALID_WINDOWS.has(timeWindow)) {
       return {
         ok: false,
-        error: `Row ${i + 1}: invalid time_window "${tw}". Expected one of 06:00-09:00, 09:00-12:00, 12:00-16:00, 16:00-19:00, 19:00-22:00.`,
+        error: `Row ${rowIndex + 1}: invalid time_window. Expected one of ${Array.from(VALID_WINDOWS).join(', ')}.`,
       };
     }
-    const pm25 = Number(cols[idx('expected_pm25')]);
-    if (!Number.isFinite(pm25) || pm25 < 0 || pm25 > 2000) {
-      return { ok: false, error: `Row ${i + 1}: invalid expected_pm25 value.` };
+
+    const pm25Raw = columns[idx('expected_pm25')] ?? '';
+    const pm25 = Number(pm25Raw);
+    if (!pm25Raw || !Number.isFinite(pm25) || pm25 < 0 || pm25 > 2000) {
+      return { ok: false, error: `Row ${rowIndex + 1}: invalid expected_pm25 value.` };
     }
+
     let pm10: number | null = null;
-    if (idx('expected_pm10') >= 0 && cols[idx('expected_pm10')] !== '') {
-      const pm10Raw = Number(cols[idx('expected_pm10')]);
+    if (idx('expected_pm10') >= 0 && (columns[idx('expected_pm10')] ?? '') !== '') {
+      const pm10Raw = Number(columns[idx('expected_pm10')]);
       if (!Number.isFinite(pm10Raw) || pm10Raw < 0 || pm10Raw > 3000) {
-        return { ok: false, error: `Row ${i + 1}: invalid expected_pm10 value.` };
+        return { ok: false, error: `Row ${rowIndex + 1}: invalid expected_pm10 value.` };
       }
       pm10 = pm10Raw;
     }
-    const trendRaw = idx('trend') >= 0 ? cols[idx('trend')] : 'stable';
+
+    const trendRaw = idx('trend') >= 0 ? columns[idx('trend')] : '';
     const trend =
       trendRaw === 'improving' || trendRaw === 'worsening' || trendRaw === 'stable'
         ? trendRaw
-        : 'stable';
-
+        : 'unknown';
     const derived = deriveAqiFromPollutants({ pm25, pm10 });
+
     slots.push({
-      id: `cams-csv-${city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${tw}-${Date.now()}-${i}`,
+      id: `cams-csv-${city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${timeWindow}-${Date.now()}-${rowIndex}`,
       city,
-      timeWindow: tw,
+      timeWindow,
       forecastDate,
       expectedPm25: pm25,
       expectedPm10: pm10,
