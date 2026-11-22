@@ -138,7 +138,7 @@ export async function fetchAutomaticCamsForecast(city: string): Promise<{
       status: {
         ...base,
         liveReachable: true,
-        status: slots.length ? 'live' : 'unavailable',
+        status: slots.length ? 'forecast' : 'unavailable',
         notes: slots.length
           ? `Retrieved ${slots.length} coarse-grid forecast windows for ${canonicalCity}. This is modeled forecast data, not a live station reading.`
           : 'CAMS endpoint responded but no valid forecast windows were available.',
