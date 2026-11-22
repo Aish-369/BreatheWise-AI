@@ -28,6 +28,7 @@ export function HistoryView({
 }: HistoryViewProps) {
   const [selectedPlan, setSelectedPlan] = useState<ProtectionPlanResult | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!selectedPlan) return;
@@ -40,9 +41,12 @@ export function HistoryView({
 
   const handleExportPdf = async (plan: ProtectionPlanResult) => {
     setExporting(true);
+    setExportError(null);
     try {
       const { exportProtectionPlanPdf } = await import('../utils/pdfExport');
       await exportProtectionPlanPdf(household, plan, lang);
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : 'Unable to export the PDF report.');
     } finally {
       setExporting(false);
     }
@@ -72,6 +76,8 @@ export function HistoryView({
           <span>{t(lang, 'action_downloadPdf')}</span>
         </button>
       </div>
+
+      {exportError && <p role="alert" className="rounded-lg border border-[#B33A2E]/35 bg-white px-4 py-3 text-xs text-[#9A2E24]">{exportError}</p>}
 
       {/* KPI Summary Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
