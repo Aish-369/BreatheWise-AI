@@ -353,7 +353,7 @@ export interface ProviderAdapterStatus {
   name: string;
   configured: boolean;
   liveReachable: boolean;
-  status: 'live' | 'unconfigured' | 'unavailable' | 'manual_import';
+  status: 'live' | 'forecast' | 'unconfigured' | 'unavailable' | 'manual_import';
   licenseName: string;
   attributionText: string;
   notes: string;
