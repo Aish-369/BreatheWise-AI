@@ -41,6 +41,7 @@ import {
 } from './db';
 import {
   asyncHandler,
+  AppError,
   BadRequestError,
   errorMiddleware,
   notFoundApiHandler,
@@ -354,6 +355,9 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
   app.post(
     '/api/local/reset-demo',
     asyncHandler(async (_req, res) => {
+      if (process.env.NODE_ENV === 'production') {
+        throw new AppError(403, 'LOCAL_MAINTENANCE_DISABLED', 'Local demo reset is disabled in production.');
+      }
       resetToDemoProfile(db);
       const data = await getFullAppBootstrap(db, { persistPlan: true });
       res.json(data);
@@ -363,6 +367,9 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
   app.delete(
     '/api/local/clear',
     asyncHandler((_req, res) => {
+      if (process.env.NODE_ENV === 'production') {
+        throw new AppError(403, 'LOCAL_MAINTENANCE_DISABLED', 'Local data clearing is disabled in production.');
+      }
       clearAllLocalData(db);
       res.json({ ok: true, cleared: true });
     })
