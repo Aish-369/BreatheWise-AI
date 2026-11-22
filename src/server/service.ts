@@ -252,8 +252,8 @@ export async function resolveEnvironmentBundle(
               : buildDemoFixtureForCity(city, nowIso).forecasts);
 
       return {
-        primarySnapshot: matchingFixtures[0],
-        secondarySnapshots: matchingFixtures.slice(1),
+        primarySnapshot: resolvedDemoSnapshots[0],
+        secondarySnapshots: resolvedDemoSnapshots.slice(1),
         comparisonCities: {
           pune: puneList,
           ahilyanagar: ahilyanagarList,
