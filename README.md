@@ -278,15 +278,16 @@ This repository is undergoing production hardening. **The public Render deployme
 The hardening branch now implements anonymous browser-workspace isolation:
 - A cryptographically random 256-bit session token is issued in an HttpOnly, Secure (production), SameSite=Lax cookie.
 - Only a SHA-256 token hash is stored in SQLite; session records expire after 30 days.
-- Each new browser session receives a distinct household. All household CRUD, bootstrap, history, and scenario operations resolve the household through the verified session rather than selecting a global active household.
+- Each new browser session receives a distinct household. All household CRUD, bootstrap, history, scenario operations, and user-imported CAMS forecasts resolve through the verified session rather than selecting a global active household.
 - Unsafe production API requests require a same-origin HTTPS Origin header.
+- Production responses include a restrictive Content Security Policy, HSTS, security headers, and no-store API caching.
 - Production no longer seeds the shared demo household on startup; synthetic fixtures remain disabled by default.
 
 This is **browser-session isolation, not account authentication**. There is no email/password login, account recovery, cross-device sync, or user identity verification. Clearing browser cookies can make an anonymous workspace inaccessible.
 
 **Durable persistence remains a release blocker for the current free Render deployment.** Its filesystem is ephemeral, so SQLite data can be lost after restart or redeploy. Do not rely on the public deployment for durable personal data. A durable database is needed before enabling real production use; no existing unrelated Supabase project has been connected or modified.
 
-The branch has passed GitHub Actions type-check, automated tests, and production build for commit `b2cb6fc4` (45 tests). Live CPCB/OpenAQ provider coverage, deployed-browser workflows, accessibility automation, backup/restore, and durable production persistence still require verification. Do not describe the public deployment as production-ready until those release blockers are closed.
+The branch has passed GitHub Actions type-check, automated tests, and production build for commit `f2484f02` (46 tests; 4 test files). The workflow also reported zero dependency vulnerabilities. Live CPCB/OpenAQ provider coverage, deployed-browser workflows, accessibility automation, backup/restore, and durable production persistence still require verification. Do not describe the public deployment as production-ready until those release blockers are closed.
 
 ## ⚠️ Important Disclaimer
 
