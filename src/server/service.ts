@@ -53,6 +53,7 @@ export async function resolveEnvironmentBundle(
   db: DatabaseSync,
   city: string,
   options: {
+    householdId?: string;
     simulateOutage?: boolean;
     useDemoFixtures?: boolean;
     extraCities?: string[];
@@ -139,7 +140,7 @@ export async function resolveEnvironmentBundle(
   }
 
   const fixtures = buildDemoFixtures(nowIso);
-  const importedForecasts = listImportedForecasts(db);
+  const importedForecasts = listImportedForecasts(db, undefined, options.householdId);
 
   const puneFixtures = fixtures.snapshots.filter((s) => s.city.toLowerCase() === 'pune');
   const ahilyanagarFixtures = fixtures.snapshots.filter(
@@ -318,6 +319,7 @@ export async function getFullAppBootstrap(
   const targetCity = options.cityOverride?.trim() || settings.defaultCity || household.city;
 
   const environment = await resolveEnvironmentBundle(db, targetCity, {
+    householdId: household.id,
     simulateOutage: options.simulateOutage ?? settings.simulateOutage,
     useDemoFixtures: options.useDemoFixtures ?? settings.useDemoFixtures,
     extraCities: locations.map((l) => l.city),
@@ -367,6 +369,7 @@ export async function executeWhatIfScenario(
   const routines = listRoutines(db, household.id);
   const settings = getUserSettings(db, household.id);
   const env = await resolveEnvironmentBundle(db, household.city, {
+    householdId: household.id,
     simulateOutage: options.simulateOutage ?? settings.simulateOutage,
     useDemoFixtures: options.useDemoFixtures ?? settings.useDemoFixtures,
   });
