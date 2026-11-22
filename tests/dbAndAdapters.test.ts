@@ -30,7 +30,7 @@ describe('SQLite Persistence & CAMS Importer Integration', () => {
     expect(first.snapshot.classification).toBe('demo_fixture');
     expect(first.snapshot.isDemoFixture).toBe(true);
     expect(first.snapshot.isAvailable).toBe(true);
-    expect(first.snapshot.measuredAt).toBeNull();
+    expect(first.snapshot.measuredAt).toBe(now);
     expect(first.snapshot.warnings.join(' ')).toContain('NOT LIVE MEASUREMENTS');
     expect(first.snapshot.reportedAqiIndia).toBe(second.snapshot.reportedAqiIndia);
     expect(first.forecasts).toHaveLength(5);
