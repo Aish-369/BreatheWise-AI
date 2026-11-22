@@ -34,6 +34,7 @@ import {
   listScenarioRuns,
   listSnapshots,
   resetToDemoProfile,
+  revokeBrowserSession,
   saveForecastSlots,
   seedDemoHouseholdIfEmpty,
   setRoutineCompletion,
@@ -98,11 +99,14 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
       .find((part) => part.startsWith('breathewise_session='));
     const tokenFromCookie = cookie?.slice('breathewise_session='.length);
     const existing = tokenFromCookie ? getBrowserSession(db, tokenFromCookie) : null;
-    if (existing) {
+    const existingHousehold = existing ? getHouseholdById(db, existing.householdId) : null;
+    if (existing && existingHousehold && !existingHousehold.isDemoProfile) {
       res.setHeader('Cache-Control', 'no-store');
-      res.json({ authenticated: true, household: getHouseholdById(db, existing.householdId) });
+      res.json({ authenticated: true, household: existingHousehold });
       return;
     }
+    // Rotate legacy demo-profile sessions into a clean, empty household.
+    if (tokenFromCookie && existing) revokeBrowserSession(db, tokenFromCookie);
     const token = crypto.randomBytes(32).toString('base64url');
     const household = createHouseholdForBrowserSession(db);
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
@@ -165,7 +169,9 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
       const simulateOutage =
         req.query.simulateOutage !== undefined ? req.query.simulateOutage === 'true' : undefined;
       const useDemoFixtures =
-        req.query.useFixtures !== undefined ? req.query.useFixtures !== 'false' : undefined;
+        process.env.NODE_ENV === 'production'
+          ? false
+          : req.query.useFixtures !== undefined ? req.query.useFixtures !== 'false' : undefined;
       const persistPlan = req.query.persist === 'true';
 
       const data = await getFullAppBootstrap(db, {
@@ -368,7 +374,10 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     asyncHandler((req, res) => {
       const parsed = UserSettingsInputSchema.parse(req.body);
       const household = getRequestHousehold(req, db);
-      const settings = upsertUserSettings(db, household.id, parsed);
+      const settings = upsertUserSettings(db, household.id, {
+        ...parsed,
+        useDemoFixtures: process.env.NODE_ENV === 'production' ? false : parsed.useDemoFixtures,
+      });
       res.json({
         settings,
         household: getHouseholdById(db, household.id),
@@ -410,7 +419,9 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
       const simulateOutage =
         typeof req.body?.simulateOutage === 'boolean' ? req.body.simulateOutage : undefined;
       const useDemoFixtures =
-        typeof req.body?.useFixtures === 'boolean' ? req.body.useFixtures : undefined;
+        process.env.NODE_ENV === 'production'
+          ? false
+          : typeof req.body?.useFixtures === 'boolean' ? req.body.useFixtures : undefined;
 
       const household = getRequestHousehold(req, db);
       if (!household) throw new NotFoundError('Household not found.');
