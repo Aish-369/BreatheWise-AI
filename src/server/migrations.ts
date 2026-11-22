@@ -133,7 +133,7 @@ const MIGRATIONS: Migration[] = [
         CREATE TABLE IF NOT EXISTS user_settings (
           household_id TEXT PRIMARY KEY,
           language TEXT NOT NULL DEFAULT 'en' CHECK (language IN ('en', 'mr', 'hi')),
-          use_demo_fixtures INTEGER NOT NULL DEFAULT 1 CHECK (use_demo_fixtures IN (0, 1)),
+          use_demo_fixtures INTEGER NOT NULL DEFAULT 0 CHECK (use_demo_fixtures IN (0, 1)),
           simulate_outage INTEGER NOT NULL DEFAULT 0 CHECK (simulate_outage IN (0, 1)),
           default_city TEXT NOT NULL DEFAULT 'Pune',
           updated_at TEXT NOT NULL,
@@ -292,7 +292,7 @@ const MIGRATIONS: Migration[] = [
 
       const insertSettings = db.prepare(`
         INSERT OR IGNORE INTO user_settings (household_id, language, use_demo_fixtures, simulate_outage, default_city, updated_at)
-        VALUES (?, ?, 1, 0, ?, ?)
+        VALUES (?, ?, 0, 0, ?, ?)
       `);
       const countLocations = db.prepare('SELECT COUNT(*) as c FROM locations WHERE household_id = ?');
       const insertLoc = db.prepare(`
@@ -387,6 +387,14 @@ const MIGRATIONS: Migration[] = [
         CREATE INDEX IF NOT EXISTS idx_snapshots_dedupe
           ON environmental_snapshots(provider, station_or_grid_id, measured_at);
       `);
+    },
+  },,
+  {
+    version: 4,
+    name: '004_disable_demo_fixtures_by_default',
+    up: (db) => {
+      // Existing households must explicitly opt into synthetic demo data.
+      db.exec('UPDATE user_settings SET use_demo_fixtures = 0;');
     },
   },
 ];
