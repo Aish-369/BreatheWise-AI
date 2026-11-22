@@ -13,7 +13,6 @@ interface SettingsViewProps {
   onChangeLang: (lang: LanguageCode) => void;
   onToggleOutage: (next: boolean) => void;
   onToggleFixtures: (next: boolean) => void;
-  onResetDemo: () => Promise<void>;
   onClearLocal: () => Promise<void>;
 }
 
@@ -26,7 +25,6 @@ export function SettingsView({
   onChangeLang,
   onToggleOutage,
   onToggleFixtures,
-  onResetDemo,
   onClearLocal,
 }: SettingsViewProps) {
   const [subTab, setSubTab] = useState<'preferences' | 'methodology'>(initialSubTab);
