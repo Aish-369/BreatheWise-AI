@@ -36,6 +36,7 @@ import {
   deleteLocationApi,
   deleteMemberApi,
   deleteRoutineApi,
+  ensureBrowserSession,
   fetchBootstrap,
   fetchProvidersApi,
   importCamsApi,
@@ -137,6 +138,7 @@ export default function App() {
       setLoading(true);
       setErrorMsg(null);
       try {
+        await ensureBrowserSession();
         const payload = await fetchBootstrap({
           city: opts?.city,
           simulateOutage: hasOverride || initializedFromServer.current ? outage : undefined,
