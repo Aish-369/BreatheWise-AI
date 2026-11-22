@@ -383,7 +383,7 @@ export function upsertHousehold(
 
     db.prepare(
       `INSERT INTO user_settings (household_id, language, use_demo_fixtures, simulate_outage, default_city, updated_at)
-       VALUES (?, ?, 1, 0, ?, ?)`
+       VALUES (?, ?, 0, 0, ?, ?)`
     ).run(id, input.language, input.city, now);
 
     const locLabel = input.locality?.trim()
@@ -867,13 +867,13 @@ export function getUserSettings(db: DatabaseSync, householdId: string): UserSett
 
   db.prepare(
     `INSERT INTO user_settings (household_id, language, use_demo_fixtures, simulate_outage, default_city, updated_at)
-     VALUES (?, ?, 1, 0, ?, ?)`
+     VALUES (?, ?, 0, 0, ?, ?)`
   ).run(householdId, lang, defaultCity, now);
 
   return {
     householdId,
     language: lang,
-    useDemoFixtures: true,
+    useDemoFixtures: false,
     simulateOutage: false,
     defaultCity,
     updatedAt: now,
