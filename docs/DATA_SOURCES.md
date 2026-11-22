@@ -44,6 +44,16 @@ BreatheWise AI enforces strict provenance transparency so users always know what
   3. Restart the Express server. Never place keys in Vite `VITE_*` client variables.
 - **Adapter Behavior:** Queries stations within 25 km of known Indian city coordinates (or `iso=IN` fallback), enforces Zod response validation & pollutant bounds checks, extracts optional weather fields (`temperatureC`, `relativeHumidityPct`, `windSpeedMs`), retries `429`/`5xx` once respecting `Retry-After`, and applies a 5-minute TTL cache to conserve free-tier quota.
 
+### D. Automatic CAMS Global Forecast (Open-Meteo delivery)
+
+- **Adapter:** `src/server/adapters/camsForecast.ts`
+- **Endpoint:** `https://air-quality-api.open-meteo.com/v1/air-quality` with `domains=cams_global`.
+- **Credentials:** No API key is required for eligible non-commercial use.
+- **Coverage:** CAMS Global atmospheric composition forecast, approximately 0.4° / 45 km grid, 3-hourly model output and up to 5 forecast days. It is a modeled regional forecast, never a physical station observation or street-level measurement.
+- **Attribution:** Credit Copernicus Atmosphere Monitoring Service (CAMS) and Open-Meteo. Open-Meteo data is provided under CC BY 4.0; check Open-Meteo's current terms before any commercial use.
+- **Freshness semantics:** The public response does not provide a reliable model-run issue timestamp in the fields consumed by this adapter. The app records retrieval time in the existing `issuedAt` field; it must not be interpreted as the model's official issue time.
+- **Precedence:** A household's validated manual CAMS import takes precedence over the automatic forecast. Automatic forecasts are used when no manual import exists for the selected city.
+
 ### C. Copernicus Atmosphere Monitoring Service (CAMS) — Manual Offline Import vs. Automated CDS API
 - **Adapter:** `src/server/adapters/camsImporter.ts`
 - **License:** Copernicus Open License (Free, Perpetual, Worldwide, Commercial Allowed). Mandatory attribution: *"Generated using Copernicus Atmosphere Monitoring Service information [Year]"*.
