@@ -1186,16 +1186,16 @@ export function listCitySnapshots(
   return rows.map(mapSnapshotRow);
 }
 
-export function saveForecastSlots(db: DatabaseSync, city: string, slots: ForecastSlot[]): void {
+export function saveForecastSlots(db: DatabaseSync, city: string, slots: ForecastSlot[], householdId?: string): void {
   runInTransaction(db, () => {
-    db.prepare('DELETE FROM cams_forecasts WHERE lower(city) = lower(?) AND is_demo_fixture = 0').run(
-      city
+    db.prepare('DELETE FROM cams_forecasts WHERE lower(city) = lower(?) AND is_demo_fixture = 0 AND household_id IS ?').run(
+      city, householdId ?? null
     );
     const stmt = db.prepare(
       `INSERT OR REPLACE INTO cams_forecasts (
         id, city, time_window, forecast_date, expected_pm25, expected_pm10, expected_aqi_india,
-        trend, data_type, provider_label, grid_resolution_note, issued_at, license_attribution, is_demo_fixture
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        trend, data_type, provider_label, grid_resolution_note, issued_at, license_attribution, is_demo_fixture, household_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
     for (const s of slots) {
       stmt.run(
@@ -1212,19 +1212,19 @@ export function saveForecastSlots(db: DatabaseSync, city: string, slots: Forecas
         s.gridResolutionNote,
         s.issuedAt,
         s.licenseAttribution,
-        s.isDemoFixture ? 1 : 0
+        s.isDemoFixture ? 1 : 0,
+        householdId ?? null
       );
     }
   });
 }
 
-export function listImportedForecasts(db: DatabaseSync, city?: string): ForecastSlot[] {
+export function listImportedForecasts(db: DatabaseSync, city?: string, householdId?: string): ForecastSlot[] {
+  const scope = householdId ? ' AND (household_id IS NULL OR household_id = ?)' : '';
   const rows = (
     city
-      ? db
-          .prepare('SELECT * FROM cams_forecasts WHERE lower(city) = lower(?) ORDER BY time_window ASC')
-          .all(city)
-      : db.prepare('SELECT * FROM cams_forecasts ORDER BY city ASC, time_window ASC').all()
+      ? db.prepare(`SELECT * FROM cams_forecasts WHERE lower(city) = lower(?)${scope} ORDER BY time_window ASC`).all(...(householdId ? [city, householdId] : [city]))
+      : db.prepare(`SELECT * FROM cams_forecasts WHERE 1 = 1${scope} ORDER BY city ASC, time_window ASC`).all(...(householdId ? [householdId] : []))
   ) as Array<Record<string, unknown>>;
 
   return rows.map((r) => ({
