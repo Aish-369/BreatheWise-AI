@@ -11,7 +11,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 async function startServer() {
   const db = getDb();
-  seedDemoHouseholdIfEmpty(db);
+  if (!isProduction) seedDemoHouseholdIfEmpty(db);
 
   const app = createApp(db, { mountErrorHandler: false });
 
