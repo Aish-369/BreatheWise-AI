@@ -115,6 +115,8 @@ export function DashboardView({
   const [selectedMemberFilter, setSelectedMemberFilter] = useState<string>('all');
   const [savedNotice, setSavedNotice] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
+  const [savingSnapshot, setSavingSnapshot] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const dateFormatted = new Intl.DateTimeFormat(
     lang === 'mr' ? 'mr-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN',
@@ -166,12 +168,25 @@ export function DashboardView({
 
   const handleExportPdf = async () => {
     setExportingPdf(true);
+    setActionError(null);
     try {
       const { exportProtectionPlanPdf } = await import('../utils/pdfExport');
       await exportProtectionPlanPdf(household, plan, lang);
-    } finally {
-      setExportingPdf(false);
-    }
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Unable to export the PDF report.');
+    } finally { setExportingPdf(false); }
+  };
+
+  const handleSaveSnapshot = async () => {
+    setSavingSnapshot(true);
+    setActionError(null);
+    try {
+      await onSaveSnapshot();
+      setSavedNotice(true);
+      window.setTimeout(() => setSavedNotice(false), 2500);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Unable to save this protection plan.');
+    } finally { setSavingSnapshot(false); }
   };
 
   const classificationKey = `cls_${plan.classification ?? (plan.isDemoFixture ? 'demo_fixture' : plan.isAvailable ? 'verified_live' : 'unavailable')}`;
@@ -193,14 +208,11 @@ export function DashboardView({
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           <button
             type="button"
-            onClick={() => {
-              onSaveSnapshot();
-              setSavedNotice(true);
-              setTimeout(() => setSavedNotice(false), 2500);
-            }}
+            disabled={savingSnapshot}
+            onClick={() => void handleSaveSnapshot()}
             className="px-3.5 py-2 text-xs font-medium border border-[#E2E7E1] bg-white text-[#252D28] rounded-lg hover:bg-[#DCE9DD]/40 transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-2xs"
           >
-            {savedNotice ? t(lang, 'dash_savedNotice') : t(lang, 'action_persistPlan')}
+            {savingSnapshot ? 'Saving…' : savedNotice ? t(lang, 'dash_savedNotice') : t(lang, 'action_persistPlan')}
           </button>
           <button
             type="button"
@@ -213,6 +225,8 @@ export function DashboardView({
           </button>
         </div>
       </div>
+
+      {actionError && <p role="alert" className="rounded-lg border border-[#B33A2E]/35 bg-white px-4 py-3 text-xs text-[#9A2E24]">{actionError}</p>}
 
       {/* Subtle Context / Conflict Bar */}
       {(plan.isDemoFixture || (plan.conflictWarningKey && plan.conflictDetails) || plan.historicalTrend) && (
