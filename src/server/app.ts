@@ -109,6 +109,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
       const persistPlan = req.query.persist === 'true';
 
       const data = await getFullAppBootstrap(db, {
+        householdId: sessionHouseholdByRequest.get(req),
         cityOverride,
         simulateOutage,
         useDemoFixtures,
@@ -131,7 +132,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     '/api/members',
     asyncHandler((req, res) => {
       const parsed = FamilyMemberInputSchema.parse(req.body);
-      const household = getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db);
+      const household = getRequestHousehold(req, db);
       const member = addMember(db, household.id, parsed);
       res.status(201).json({ member, members: listMembers(db, household.id) });
     })
@@ -142,7 +143,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     asyncHandler((req, res) => {
       const memberId = IdParamSchema.parse(req.params.id);
       const parsed = FamilyMemberInputSchema.parse(req.body);
-      const household = getActiveHousehold(db);
+      const household = getRequestHousehold(req, db);
       if (!household) {
         throw new NotFoundError('Household not found.');
       }
@@ -308,7 +309,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
       const settings = upsertUserSettings(db, household.id, parsed);
       res.json({
         settings,
-        household: getActiveHousehold(db),
+        household: getHouseholdById(db, household.id),
       });
     })
   );
@@ -348,7 +349,10 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
       const useDemoFixtures =
         typeof req.body?.useFixtures === 'boolean' ? req.body.useFixtures : undefined;
 
+      const household = getRequestHousehold(req, db);
+      if (!household) throw new NotFoundError('Household not found.');
       const result = await executeWhatIfScenario(db, parsed, {
+        householdId: household.id,
         simulateOutage,
         useDemoFixtures,
       });
