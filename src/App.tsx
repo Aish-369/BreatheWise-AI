@@ -196,6 +196,19 @@ export default function App() {
     }
   };
 
+  const handleToggleFixtures = async (nextEnabled: boolean) => {
+    setUseFixtures(nextEnabled);
+    if (data?.household) {
+      await runAction(() => updateSettingsApi({
+        language: lang,
+        useDemoFixtures: nextEnabled,
+        simulateOutage,
+        defaultCity: data.household.city,
+      }));
+    }
+    await loadBootstrap({ outage: simulateOutage, fixtures: nextEnabled });
+  };
+
   const handleToggleOutage = async (nextOutage: boolean) => {
     setSimulateOutage(nextOutage);
     if (data?.household) {
@@ -942,10 +955,12 @@ export default function App() {
                         key={`settings-${settingsSubTab}`}
                         lang={lang}
                         simulateOutage={simulateOutage}
+                        useDemoFixtures={useFixtures}
                         providers={providers}
                         initialSubTab={settingsSubTab}
                         onChangeLang={(next) => void handleLanguageChange(next)}
                         onToggleOutage={(next) => void handleToggleOutage(next)}
+                        onToggleDemoFixtures={(next) => void handleToggleFixtures(next)}
                         onClearLocal={handleClearLocal}
                       />
                     )}
