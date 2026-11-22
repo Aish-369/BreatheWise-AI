@@ -117,7 +117,7 @@ export function ForecastTrendChart({ slots, city, lang = 'en' }: ForecastTrendCh
           </div>
           <div className="font-mono tabular-nums text-[#252D28]">
             PM2.5 <strong>~{activeSlot.expectedPm25} µg/m³</strong>
-            {activeSlot.expectedAqiIndia ? ` · NAQI ${activeSlot.expectedAqiIndia}` : ''}
+            {activeSlot.expectedAqiIndia != null ? ` · NAQI ${activeSlot.expectedAqiIndia}` : ''}
           </div>
         </div>
       )}
