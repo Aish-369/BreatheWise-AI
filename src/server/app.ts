@@ -393,7 +393,8 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
       if (!parsed.ok || !parsed.slots || !parsed.city) {
         throw new BadRequestError(parsed.error ?? 'Invalid CAMS forecast payload.');
       }
-      saveForecastSlots(db, parsed.city, parsed.slots);
+      const household = getRequestHousehold(req, db);
+      saveForecastSlots(db, parsed.city, parsed.slots, household.id);
       res.status(201).json({
         importedCount: parsed.slots.length,
         city: parsed.city,
