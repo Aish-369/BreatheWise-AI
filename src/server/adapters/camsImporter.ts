@@ -62,7 +62,7 @@ export function parseCamsImport(rawText: string): {
           error: parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '),
         };
       }
-      if (hasFormulaInjection(parsed.data.city) || hasFormulaInjection(parsed.data.gridId)) {
+      if (!isValidIssuedAt(parsed.data.issuedAt)) {\n        return { ok: false, error: 'issuedAt must be a valid ISO-8601 timestamp with timezone and cannot be in the future.' };\n      }\n      if (hasFormulaInjection(parsed.data.city) || hasFormulaInjection(parsed.data.gridId)) {
         return {
           ok: false,
           error: 'Rejected unsafe formula prefix in city or gridId.',
@@ -71,10 +71,10 @@ export function parseCamsImport(rawText: string): {
       const canonicalCity = normalizeCityCanonicalName(parsed.data.city);
       const slots: ForecastSlot[] = [];
       for (const s of parsed.data.slots) {
-        if (!ISO_DATE_PATTERN.test(s.forecastDate)) {
+        if (!isValidIsoDate(s.forecastDate) || s.forecastDate < parsed.data.issuedAt.slice(0, 10)) {
           return {
             ok: false,
-            error: `Invalid forecastDate "${s.forecastDate}". Expected YYYY-MM-DD.`,
+            error: `Invalid forecastDate "${s.forecastDate}". It must be a real YYYY-MM-DD date on or after the forecast issue date.`,
           };
         }
         const derived = deriveAqiFromPollutants({
@@ -139,7 +139,7 @@ export function parseCamsImport(rawText: string): {
       }
     }
 
-    const rawCity = cols[idx('city')] || 'Pune';
+    const rawCity = cols[idx('city')];
     if (rawCity.length > 60) {
       return { ok: false, error: `Row ${i + 1}: city name exceeds 60 characters.` };
     }
@@ -152,7 +152,7 @@ export function parseCamsImport(rawText: string): {
     if (!ISO_DATE_PATTERN.test(forecastDate)) {
       return {
         ok: false,
-        error: `Row ${i + 1}: invalid forecast_date "${forecastDate}". Expected YYYY-MM-DD.`,
+        error: `Row ${i + 1}: invalid forecast_date "${forecastDate}". It must be a real YYYY-MM-DD date on or after issued_at.`,
       };
     }
 
@@ -195,7 +195,7 @@ export function parseCamsImport(rawText: string): {
       providerLabel: `Copernicus CAMS (${gridId})`,
       gridResolutionNote:
         'Coarse regional atmospheric model grid (~40 km); indicates general trend only, not street-level concentration.',
-      issuedAt: nowIso,
+      issuedAt,
       licenseAttribution: CAMS_LICENSE_TEXT,
       isDemoFixture: false,
     });
