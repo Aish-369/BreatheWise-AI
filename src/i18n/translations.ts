@@ -42,7 +42,6 @@ const en: TranslationMap = {
   action_add: 'Add',
   action_delete: 'Remove',
   action_refresh: 'Refresh Evidence',
-  action_resetDemo: 'Restore Default Profile',
   action_clearLocal: 'Delete Local Data',
   action_downloadPdf: 'Download PDF Report',
   action_runScenario: 'Run What-If Scenario',
@@ -53,7 +52,6 @@ const en: TranslationMap = {
   error_generic: 'Unable to complete request. Please verify inputs and try again.',
   demo_fixture_notice: 'Demonstration Fixture Active — Synthetic reference values used because live provider keys are unconfigured.',
   outage_mode_label: 'Simulate Provider Outage',
-  fixtures_mode_label: 'Demo Fixtures',
   on: 'On',
   off: 'Off',
 
@@ -118,8 +116,8 @@ const en: TranslationMap = {
   landing_step_3_desc: 'Generates transparent, evidence-linked guidance without paid AI hallucinations or medical diagnoses.',
   landing_step_4: '04. Daily Action & What-If',
   landing_step_4_desc: 'Adjusts flexible schedules only when forecast evidence supports it, and lets you test hypothetical shifts.',
-  landing_demo_title: '02. Family Protection Intelligence in Practice',
-  landing_demo_subtitle: 'Example output for a four-member Pune household combining a fixed school commute with flexible outdoor routines.',
+  landing_demo_title: '02. See the Protection Workflow',
+  landing_demo_subtitle: 'Explore how environmental evidence becomes clear, family-aware daily actions.',
   landing_trust_title: '03. Radical Data Transparency',
   landing_trust_desc: 'Zero hidden assumptions. Every recommendation cites its exact station or grid source, measurement timestamp, data type, and limitations.',
 
@@ -272,7 +270,7 @@ const en: TranslationMap = {
 
   // Section Headers
   onb_title: 'Family Onboarding & Local Profile',
-  onb_subtitle: 'Configure your local demo household without providing medical records or sensitive personal identifiers.',
+  onb_subtitle: 'Configure your household without providing medical records or unnecessary sensitive identifiers.',
   env_title: 'Environmental Intelligence & Providers',
   env_subtitle: 'Inspect station telemetry, license attribution, freshness status, and import Copernicus CAMS forecasts.',
   plan_title: 'Daily Protection Planner',
@@ -509,7 +507,6 @@ const mr: TranslationMap = {
   action_add: 'जोडा',
   action_delete: 'काढा',
   action_refresh: 'डेटा ताजा करा',
-  action_resetDemo: 'मूळ प्रोफाइल पुनर्संचयित करा',
   action_clearLocal: 'स्थानिक डेटा हटवा',
   action_downloadPdf: 'PDF अहवाल डाउनलोड करा',
   action_runScenario: 'सिम्युलेशन चालवा',
@@ -520,7 +517,6 @@ const mr: TranslationMap = {
   error_generic: 'विनंती पूर्ण करता आली नाही. कृपया माहिती तपासून पुन्हा प्रयत्न करा.',
   demo_fixture_notice: 'डेमो संदर्भ डेटा सक्रिय — थेट API की उपलब्ध नसल्याने स्पष्टपणे चिन्हांकित नमुना डेटा वापरला आहे.',
   outage_mode_label: 'प्रदाता बंद स्थिती तपासा',
-  fixtures_mode_label: 'डेमो संदर्भ डेटा',
   on: 'सुरू',
   off: 'बंद',
 
@@ -582,8 +578,8 @@ const mr: TranslationMap = {
   landing_step_3_desc: 'सशुल्क AI शिवाय किंवा वैद्यकीय निदानाशिवाय पुराव्यांवर आधारित स्पष्ट मार्गदर्शन देते.',
   landing_step_4: '04. दैनिक नियोजन व काय-जर चाचणी',
   landing_step_4_desc: 'अंदाज डेटा असल्यासच वेळेतील बदल सुचवते आणि काल्पनिक परिस्थिती तपासू देते.',
-  landing_demo_title: '02. कौटुंबिक हवा संरक्षण नियोजनाचे उदाहरण',
-  landing_demo_subtitle: 'पुण्यातील चार सदस्यांच्या कुटुंबासाठी निश्चित शाळा प्रवास आणि लवचिक उपक्रमांचे उदाहरण.',
+  landing_demo_title: '02. संरक्षण नियोजनाची प्रक्रिया',
+  landing_demo_subtitle: 'पर्यावरणीय पुराव्याचे कुटुंबासाठी उपयुक्त दैनंदिन कृतींमध्ये रूपांतर कसे होते ते पहा.',
   landing_trust_title: '03. संपूर्ण डेटा पारदर्शकता',
   landing_trust_desc: 'प्रत्येक शिफारशीसोबत अचूक केंद्र, वेळ, डेटा प्रकार आणि मर्यादा स्पष्ट दिल्या जातात.',
 
@@ -958,7 +954,6 @@ const hi: TranslationMap = {
   action_add: 'जोड़ें',
   action_delete: 'हटाएँ',
   action_refresh: 'डेटा रीफ़्रेश करें',
-  action_resetDemo: 'मूल प्रोफ़ाइल पुनर्स्थापित करें',
   action_clearLocal: 'स्थानीय डेटा हटाएँ',
   action_downloadPdf: 'PDF रिपोर्ट डाउनलोड करें',
   action_runScenario: 'परिदृश्य चलाएँ',
@@ -969,7 +964,6 @@ const hi: TranslationMap = {
   error_generic: 'अनुरोध पूरा नहीं हो सका। कृपया विवरण जांचें और पुनः प्रयास करें।',
   demo_fixture_notice: 'डेमो संदर्भ डेटा सक्रिय — लाइव प्रदाता कुंजी न होने से स्पष्ट रूप से चिह्नित नमूना डेटा उपयोग किया गया है।',
   outage_mode_label: 'प्रदाता बंद स्थिति जांचें',
-  fixtures_mode_label: 'डेमो संदर्भ डेटा',
   on: 'चालू',
   off: 'बंद',
 
@@ -1031,8 +1025,8 @@ const hi: TranslationMap = {
   landing_step_3_desc: 'बिना पेड AI या चिकित्सीय निदान के साक्ष्य-आधारित और व्याख्या योग्य सलाह देता है।',
   landing_step_4: '04. दैनिक योजना व परिदृश्य',
   landing_step_4_desc: 'केवल वैध पूर्वानुमान होने पर समय बदलाव सुझाता है और काल्पनिक स्थितियों का परीक्षण करने देता है।',
-  landing_demo_title: '02. पारिवारिक सुरक्षा योजना का उदाहरण',
-  landing_demo_subtitle: 'पुणे के चार सदस्यों वाले परिवार के लिए निश्चित स्कूल यात्रा और लचीली गतिविधियों का उदाहरण।',
+  landing_demo_title: '02. सुरक्षा योजना की प्रक्रिया',
+  landing_demo_subtitle: 'देखें कि पर्यावरणीय साक्ष्य परिवार के लिए उपयोगी दैनिक कदमों में कैसे बदलते हैं।',
   landing_trust_title: '03. पूर्ण डेटा पारदर्शिता',
   landing_trust_desc: 'हर सिफारिश के साथ सटीक केंद्र, समय, डेटा प्रकार और सीमाएँ स्पष्ट दिखाई जाती हैं।',
 
