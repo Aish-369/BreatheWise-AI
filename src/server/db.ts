@@ -392,7 +392,7 @@ export function createHouseholdForBrowserSession(db: DatabaseSync): HouseholdPro
     ).run(id, now, now);
     db.prepare(
       `INSERT INTO user_settings (household_id, language, use_demo_fixtures, simulate_outage, default_city, updated_at)
-       VALUES (?, 'en', 0, 0, 'Pune', ?)`
+       VALUES (?, 'en', 1, 0, 'Pune', ?)`
     ).run(id, now);
     db.prepare(
       `INSERT INTO locations (id, household_id, city, locality, label, is_primary, latitude, longitude, created_at, updated_at)
