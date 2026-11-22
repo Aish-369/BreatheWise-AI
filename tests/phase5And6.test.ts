@@ -236,36 +236,51 @@ describe('Phase 5 & 6 — Provenance Tiers, Intelligence v2, Adapters, DB & Loca
     expect(improving?.sampleCount).toBe(2);
   });
 
-  it('validates OpenAQ adapter: out-of-range filtering, 429 retry, 5-min TTL caching, and weather extraction', async () => {
+  it('validates OpenAQ v3 locations + latest endpoints, bounds checks, retry and TTL caching', async () => {
     process.env.OPENAQ_API_KEY = 'test-openaq-key';
     const freshUtc = new Date(Date.now() - 20 * 60 * 1000).toISOString();
 
     let fetchCalls = 0;
-    globalThis.fetch = vi.fn(async () => {
+    globalThis.fetch = vi.fn(async (input) => {
       fetchCalls += 1;
+      const url = String(input);
       if (fetchCalls === 1) {
         return new Response('Rate limited', {
           status: 429,
           headers: { 'retry-after': '0' },
         });
       }
+      if (url.includes('/locations?')) {
+        return new Response(
+          JSON.stringify({
+            results: [
+              {
+                id: 777,
+                name: 'Shivajinagar Station',
+                locality: 'Pune',
+                coordinates: { latitude: 18.53, longitude: 73.85 },
+                datetimeLast: { utc: freshUtc },
+                sensors: [
+                  { id: 1, parameter: { name: 'pm25' } },
+                  { id: 2, parameter: { name: 'pm10' } },
+                  { id: 3, parameter: { name: 'temperature' } },
+                  { id: 4, parameter: { name: 'relativehumidity' } },
+                  { id: 5, parameter: { name: 'wind_speed' } },
+                ],
+              },
+            ],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
       return new Response(
         JSON.stringify({
           results: [
-            {
-              id: 777,
-              name: 'Shivajinagar Station',
-              locality: 'Pune',
-              coordinates: { latitude: 18.53, longitude: 73.85 },
-              datetimeLast: { utc: freshUtc },
-              sensors: [
-                { parameter: { name: 'pm25' }, latest: { value: 64.2, datetime: { utc: freshUtc } } },
-                { parameter: { name: 'pm10' }, latest: { value: 99999, datetime: { utc: freshUtc } } },
-                { parameter: { name: 'temperature' }, latest: { value: 26.5 } },
-                { parameter: { name: 'relativehumidity' }, latest: { value: 48 } },
-                { parameter: { name: 'wind_speed' }, latest: { value: 2.3 } },
-              ],
-            },
+            { sensorsId: 1, value: 64.2, datetime: { utc: freshUtc } },
+            { sensorsId: 2, value: 99999, datetime: { utc: freshUtc } },
+            { sensorsId: 3, value: 26.5, datetime: { utc: freshUtc } },
+            { sensorsId: 4, value: 48, datetime: { utc: freshUtc } },
+            { sensorsId: 5, value: 2.3, datetime: { utc: freshUtc } },
           ],
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } }
@@ -273,7 +288,7 @@ describe('Phase 5 & 6 — Provenance Tiers, Intelligence v2, Adapters, DB & Loca
     }) as typeof fetch;
 
     const first = await fetchOpenAqSnapshots('Pune');
-    expect(fetchCalls).toBe(2); // 429 + 1 retry
+    expect(fetchCalls).toBe(3); // 429 retry + locations + location latest
     expect(first.status.status).toBe('live');
     expect(first.snapshots).toHaveLength(1);
     expect(first.snapshots[0].pollutants.pm25).toBe(64.2);
@@ -287,7 +302,7 @@ describe('Phase 5 & 6 — Provenance Tiers, Intelligence v2, Adapters, DB & Loca
     expect(first.snapshots[0].qualityMetadata?.fromCache).toBe(false);
 
     const second = await fetchOpenAqSnapshots('Pune');
-    expect(fetchCalls).toBe(2); // served from TTL cache without network call
+    expect(fetchCalls).toBe(3); // served from TTL cache without network call
     expect(second.snapshots[0].qualityMetadata?.fromCache).toBe(true);
   });
 
@@ -330,7 +345,9 @@ describe('Phase 5 & 6 — Provenance Tiers, Intelligence v2, Adapters, DB & Loca
     }) as typeof fetch;
 
     const first = await fetchCpcbSnapshots('Ahilyanagar');
-    expect(requestedUrl).toContain('filters[city]=Ahmednagar');
+    const parsedCpcbUrl = new URL(requestedUrl);
+    expect(parsedCpcbUrl.searchParams.get('filters[city]')).toBe('Ahmednagar');
+    expect(parsedCpcbUrl.searchParams.get('filters[state]')).toBe('Maharashtra');
     expect(first.status.status).toBe('live');
     expect(first.snapshots).toHaveLength(1);
     expect(first.snapshots[0].city).toBe('Ahilyanagar');
@@ -343,17 +360,23 @@ describe('Phase 5 & 6 — Provenance Tiers, Intelligence v2, Adapters, DB & Loca
     expect(second.snapshots[0].qualityMetadata?.fromCache).toBe(true);
   });
 
-  it('rejects CAMS CSV formula injection and malformed dates while accepting valid JSON/CSV', () => {
+  it('rejects unsafe or fabricated CAMS import metadata and accepts complete JSON/CSV', () => {
     const formulaRes = parseCamsImport(
-      'city,grid_id,forecast_date,time_window,expected_pm25\n=CMD("calc"),CAMS,2026-11-21,06:00-09:00,45'
+      `city,grid_id,issued_at,forecast_date,time_window,expected_pm25\n=CMD("calc"),CAMS,2026-11-20T08:00:00Z,2026-11-21,06:00-09:00,45`
     );
     expect(formulaRes.ok).toBe(false);
-    expect(formulaRes.error).toContain('formula prefix');
+    expect(formulaRes.error).toContain('unsafe formula');
 
-    const badDateRes = parseCamsImport(
-      'city,grid_id,forecast_date,time_window,expected_pm25\nPune,CAMS,21-11-2026,06:00-09:00,45'
+    const missingMetadata = parseCamsImport(
+      `city,grid_id,forecast_date,time_window,expected_pm25\nPune,CAMS,2026-11-21,06:00-09:00,45`
     );
-    expect(badDateRes.ok).toBe(false);
+    expect(missingMetadata.ok).toBe(false);
+    expect(missingMetadata.error).toContain('issued_at');
+
+    const invalidDate = parseCamsImport(
+      `city,grid_id,issued_at,forecast_date,time_window,expected_pm25\nPune,CAMS,2026-11-20T08:00:00Z,2026-02-30,06:00-09:00,45`
+    );
+    expect(invalidDate.ok).toBe(false);
 
     const validJson = parseCamsImport(
       JSON.stringify({
@@ -374,6 +397,13 @@ describe('Phase 5 & 6 — Provenance Tiers, Intelligence v2, Adapters, DB & Loca
     expect(validJson.ok).toBe(true);
     expect(validJson.city).toBe('Ahilyanagar');
     expect(validJson.slots?.[0].expectedAqiIndia).toBeGreaterThan(0);
+
+    const validCsv = parseCamsImport(
+      `city,grid_id,issued_at,forecast_date,time_window,expected_pm25\nPune,CAMS-0.4,2026-11-20T08:00:00Z,2026-11-21,06:00-09:00,45`
+    );
+    expect(validCsv.ok).toBe(true);
+    expect(validCsv.slots?.[0].trend).toBe('unknown');
+    expect(validCsv.slots?.[0].issuedAt).toBe('2026-11-20T08:00:00Z');
   });
 
   it('deduplicates persisted snapshots in SQLite and queries city history cleanly', () => {

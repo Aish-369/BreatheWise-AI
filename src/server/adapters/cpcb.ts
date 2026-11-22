@@ -17,7 +17,10 @@ const CpcbRecordSchema = z.object({
   city: z.string().optional(),
   last_update: z.string().optional(),
   pollutant_id: z.string().optional(),
-  avg_value: z.union([z.string(), z.number()]).optional(),
+  // The live data.gov.in resource exposes pollutant_avg. Keep avg_value as a
+  // compatibility alias for older exports, but prefer the documented field.
+  pollutant_avg: z.union([z.string(), z.number()]).nullable().optional(),
+  avg_value: z.union([z.string(), z.number()]).nullable().optional(),
   latitude: z.union([z.string(), z.number()]).optional(),
   longitude: z.union([z.string(), z.number()]).optional(),
 });
@@ -56,6 +59,16 @@ export function parseCpcbTimestamp(raw: string | undefined): string | null {
     return new Date(parsedMs).toISOString();
   }
   return null;
+}
+
+function describeNetworkError(error: unknown): string {
+  if (!(error instanceof Error)) return 'Connection failed';
+  const cause = (error as Error & { cause?: unknown }).cause;
+  if (cause instanceof Error) {
+    const code = (cause as NodeJS.ErrnoException).code;
+    return code ? `${error.message} (${code}: ${cause.message})` : `${error.message} (${cause.message})`;
+  }
+  return error.message;
 }
 
 async function fetchCpcbWithRetry(url: string): Promise<Response> {
@@ -146,7 +159,18 @@ export async function fetchCpcbSnapshots(city: string): Promise<AdapterFetchResu
           ? 'Aurangabad'
           : canonicalCity;
 
-  const url = `https://api.data.gov.in/resource/${CPCB_RESOURCE_ID}?api-key=${encodeURIComponent(apiKey)}&format=json&limit=25&filters[city]=${encodeURIComponent(queryCityName)}`;
+  const params = new URLSearchParams({
+    'api-key': apiKey,
+    format: 'json',
+    limit: '100',
+    offset: '0',
+    'filters[city]': queryCityName,
+  });
+  if (cityMeta?.state) {
+    // data.gov.in expects spaces in state names as underscores.
+    params.set('filters[state]', cityMeta.state.replace(/\s+/g, '_'));
+  }
+  const url = `https://api.data.gov.in/resource/${CPCB_RESOURCE_ID}?${params.toString()}`;
 
   try {
     const res = await fetchCpcbWithRetry(url);
@@ -201,7 +225,8 @@ export async function fetchCpcbSnapshots(city: string): Promise<AdapterFetchResu
     for (const rec of records) {
       const station = rec.station?.trim() || `${canonicalCity} Station`;
       let entry = byStation.get(station);
-      const val = Number(rec.avg_value);
+      const rawValue = rec.pollutant_avg ?? rec.avg_value;
+      const val = rawValue === null || rawValue === undefined || rawValue === '' ? NaN : Number(rawValue);
       const pid = rec.pollutant_id?.trim().toUpperCase();
       const measuredAt = parseCpcbTimestamp(rec.last_update);
 
@@ -252,8 +277,8 @@ export async function fetchCpcbSnapshots(city: string): Promise<AdapterFetchResu
 
       if (pid && pid in POLLUTANT_BOUNDS) {
         if (!Number.isFinite(val) || val < 0 || val > POLLUTANT_BOUNDS[pid]) {
-          if (rec.avg_value !== undefined && rec.avg_value !== 'NA') {
-            entry.rejectedFields.push(`${pid}=${rec.avg_value}`);
+          if (rawValue !== undefined && rawValue !== null && rawValue !== '' && rawValue !== 'NA') {
+            entry.rejectedFields.push(`${pid}=${rawValue}`);
           }
         } else {
           if (pid === 'PM2.5') {
@@ -327,7 +352,7 @@ export async function fetchCpcbSnapshots(city: string): Promise<AdapterFetchResu
         ...baseStatus,
         liveReachable: false,
         status: 'unavailable',
-        notes: `CPCB / data.gov.in unreachable: ${err instanceof Error ? err.message : 'Connection failed'}`,
+        notes: `CPCB / data.gov.in unreachable: ${describeNetworkError(err)}`,
       },
       snapshots: [],
     };

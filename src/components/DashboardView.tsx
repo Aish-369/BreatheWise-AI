@@ -128,6 +128,7 @@ export function DashboardView({
   const shiftCount = plan.dailyPlan.filter(
     (i) => i.status === 'adjust_window' || i.status === 'move_indoors'
   ).length;
+  const holdCount = plan.dailyPlan.filter((i) => i.status === 'hold_pending_data').length;
 
   const filteredRecommendations =
     selectedMemberFilter === 'all'
@@ -135,6 +136,12 @@ export function DashboardView({
       : plan.recommendations.filter((r) => r.applicableMembers.includes(selectedMemberFilter));
 
   const getMemberStatus = (member: FamilyMember): { label: string; tone: string } => {
+    if (!plan.isAvailable) {
+      return {
+        label: t(lang, 'ui_family_status_verify'),
+        tone: 'text-[#9A2E24] bg-[#F6DFDC]',
+      };
+    }
     const memberItems = plan.dailyPlan.filter((d) => d.applicableMembers.includes(member.name));
     if (memberItems.some((d) => d.status === 'adjust_window' || d.status === 'move_indoors')) {
       return {
@@ -370,7 +377,7 @@ export function DashboardView({
             </p>
 
             {/* Visual Plan Breakdown Metrics */}
-            <div className="mt-5 grid grid-cols-3 gap-2.5">
+            <div className="mt-5 grid grid-cols-2 xl:grid-cols-4 gap-2.5">
               <div className="rounded-xl bg-[#F7F7F1] border border-[#E2E7E1] p-3">
                 <p className="font-mono text-xl font-bold text-[#3B6E52] tabular-nums">
                   {proceedCount}
@@ -393,6 +400,14 @@ export function DashboardView({
                 </p>
                 <p className="mt-0.5 text-[11px] text-[#89918A] leading-tight">
                   {t(lang, 'ui_shift_count')}
+                </p>
+              </div>
+              <div className="rounded-xl bg-[#F6DFDC]/45 border border-[#E2E7E1] p-3">
+                <p className="font-mono text-xl font-bold text-[#9A2E24] tabular-nums">
+                  {holdCount}
+                </p>
+                <p className="mt-0.5 text-[11px] text-[#89918A] leading-tight">
+                  {t(lang, 'ui_hold_pending_data')}
                 </p>
               </div>
             </div>

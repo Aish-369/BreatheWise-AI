@@ -20,6 +20,7 @@ export function clearOpenAqCache(): void {
 }
 
 const OpenAqSensorSchema = z.object({
+  id: z.number(),
   parameter: z
     .object({
       name: z.string().optional(),
@@ -58,6 +59,14 @@ const OpenAqLocationSchema = z.object({
 
 const OpenAqPayloadSchema = z.object({
   results: z.array(OpenAqLocationSchema).optional(),
+});
+
+const OpenAqLatestPayloadSchema = z.object({
+  results: z.array(z.object({
+    value: z.number(),
+    datetime: z.object({ utc: z.string() }),
+    sensorsId: z.number(),
+  })).optional(),
 });
 
 async function fetchWithRetry(url: string, apiKey: string): Promise<Response> {
@@ -200,17 +209,42 @@ export async function fetchOpenAqSnapshots(city: string): Promise<AdapterFetchRe
 
     const snapshots: EnvironmentalSnapshot[] = [];
 
-    for (const loc of results.slice(0, 3)) {
+    // OpenAQ v3 /locations returns station metadata and sensor definitions,
+    // not the latest measurement series. Fetch the documented /latest resource
+    // for each selected location and join readings to sensors by sensorsId.
+    const latestResults = await Promise.all(
+      results.slice(0, 3).map(async (loc) => {
+        try {
+          const latestResponse = await fetchWithRetry(
+            `https://api.openaq.org/v3/locations/${loc.id}/latest?limit=100&page=1`,
+            apiKey
+          );
+          if (!latestResponse.ok) return { loc, readings: [] as z.infer<typeof OpenAqLatestPayloadSchema>['results'] };
+          const latestJson: unknown = await latestResponse.json();
+          const latestParsed = OpenAqLatestPayloadSchema.safeParse(latestJson);
+          return { loc, readings: latestParsed.success ? latestParsed.data.results ?? [] : [] };
+        } catch {
+          return { loc, readings: [] as z.infer<typeof OpenAqLatestPayloadSchema>['results'] };
+        }
+      })
+    );
+
+    for (const { loc, readings } of latestResults) {
       const pollutants: EnvironmentalSnapshot['pollutants'] = {};
       const weather: WeatherFields = {};
       const validatedFields: string[] = [];
       const rejectedFields: string[] = [];
-      let latestIso: string | null = loc.datetimeLast?.utc ?? null;
+      const parameterBySensorId = new Map<number, string>(
+        (loc.sensors ?? []).map(
+          (sensor): [number, string] => [sensor.id, sensor.parameter?.name?.toLowerCase() ?? '']
+        )
+      );
+      let latestIso: string | null = null;
 
-      for (const s of loc.sensors ?? []) {
-        const param = s.parameter?.name?.toLowerCase();
-        const val = s.latest?.value;
-        if (!param || typeof val !== 'number' || !Number.isFinite(val)) continue;
+      for (const reading of readings ?? []) {
+        const param = parameterBySensorId.get(reading.sensorsId);
+        const val = reading.value;
+        if (!param || !Number.isFinite(val)) continue;
 
         if (param in POLLUTANT_BOUNDS) {
           const maxBound = POLLUTANT_BOUNDS[param];
@@ -240,9 +274,7 @@ export async function fetchOpenAqSnapshots(city: string): Promise<AdapterFetchRe
           validatedFields.push('windSpeedMs');
         }
 
-        if (s.latest?.datetime?.utc && (!latestIso || s.latest.datetime.utc > latestIso)) {
-          latestIso = s.latest.datetime.utc;
-        }
+        if (!latestIso || reading.datetime.utc > latestIso) latestIso = reading.datetime.utc;
       }
 
       const missingPollutants = (['pm25', 'pm10', 'no2', 'o3', 'so2', 'co'] as const).filter(
@@ -287,7 +319,7 @@ export async function fetchOpenAqSnapshots(city: string): Promise<AdapterFetchRe
       };
 
       draftSnap.classification = classifySnapshotTier(draftSnap, freshness);
-      snapshots.push(draftSnap);
+      if (draftSnap.isAvailable) snapshots.push(draftSnap);
     }
 
     const availableSnapshots = snapshots.filter((s) => s.isAvailable);
