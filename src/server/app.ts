@@ -1,4 +1,5 @@
 import express from 'express';
+import { createRateLimitMiddleware } from './rateLimit';
 import crypto from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 import {
@@ -70,6 +71,7 @@ export interface CreateAppOptions {
 
 export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): express.Express {
   const app = express();
+  if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);
   app.disable('x-powered-by');
   app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -88,6 +90,12 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     next();
   });
   app.use(express.json({ limit: '1mb' }));
+
+  // Bound anonymous session creation separately to slow token/session abuse.
+  app.use('/api/session', createRateLimitMiddleware({ windowMs: 15 * 60 * 1000, max: 20, name: 'session' }));
+  // General API protection; per-instance in-memory limiter is defense-in-depth,
+  // not a replacement for edge/WAF limits on a multi-instance deployment.
+  app.use('/api', createRateLimitMiddleware({ windowMs: 15 * 60 * 1000, max: 240, name: 'api' }));
 
   app.get('/api/session', (req, res) => {
     if (process.env.NODE_ENV !== 'production') {
