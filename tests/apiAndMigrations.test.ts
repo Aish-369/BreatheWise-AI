@@ -10,17 +10,20 @@ import { buildDemoFixtures } from '../src/server/adapters/fixtures';
 import { createApp } from '../src/server/app';
 import {
   createBrowserSession,
+  createHouseholdForBrowserSession,
   getActiveHousehold,
   getBrowserSession,
   getDb,
   hashSessionToken,
   getSchemaVersion,
+  listImportedForecasts,
   listLocations,
   listMembers,
   listPlanEvidence,
   listPlanHistory,
   listPlanRecommendations,
   listRoutines,
+  saveForecastSlots,
   savePlanHistory,
   saveSnapshot,
   seedDemoHouseholdIfEmpty,
@@ -861,5 +864,20 @@ describe('Household browser session storage', () => {
     createBrowserSession(db, 'expired-token', household.id, '2000-01-01T00:00:00.000Z');
     expect(getBrowserSession(db, 'expired-token')).toBeNull();
     expect(getBrowserSession(db, 'unknown-token')).toBeNull();
+  });
+});
+
+
+describe('Household-scoped imported forecast storage', () => {
+  it('keeps a household uploaded forecast private from other browser sessions', () => {
+    const db = getDb(createTempDbPath());
+    openDbs.push(db);
+    const first = createHouseholdForBrowserSession(db);
+    const second = createHouseholdForBrowserSession(db);
+    const fixture = buildDemoFixtures().forecasts[0];
+    saveForecastSlots(db, fixture.city, [fixture], first.id);
+
+    expect(listImportedForecasts(db, fixture.city, first.id).some((slot) => slot.id === fixture.id)).toBe(true);
+    expect(listImportedForecasts(db, fixture.city, second.id).some((slot) => slot.id === fixture.id)).toBe(false);
   });
 });
