@@ -158,7 +158,7 @@ export async function fetchCpcbSnapshots(city: string): Promise<AdapterFetchResu
   });
   if (cityMeta?.state) {
     // data.gov.in expects spaces in state names as underscores.
-    params.set('filters[state]', cityMeta.state.replace(/\\s+/g, '_'));
+    params.set('filters[state]', cityMeta.state.replace(/\s+/g, '_'));
   }
   const url = `https://api.data.gov.in/resource/${CPCB_RESOURCE_ID}?${params.toString()}`;
 
