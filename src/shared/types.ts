@@ -99,7 +99,7 @@ export type QualityMetadata = z.infer<typeof QualityMetadataSchema>;
 
 export const EnvironmentalSnapshotSchema = z.object({
   id: z.string(),
-  provider: z.enum(['cpcb', 'openaq', 'cams_manual', 'demo_fixture', 'unavailable']),
+  provider: z.enum(['cpcb', 'openaq', 'cams_manual', 'cams_auto', 'demo_fixture', 'unavailable']),
   providerLabel: z.string(),
   dataType: DataTypeSchema,
   classification: DataClassificationSchema.optional(),
@@ -349,7 +349,7 @@ export interface ScenarioComparisonResult {
 }
 
 export interface ProviderAdapterStatus {
-  provider: 'cpcb' | 'openaq' | 'cams_manual';
+  provider: 'cpcb' | 'openaq' | 'cams_manual' | 'cams_auto';
   name: string;
   configured: boolean;
   liveReachable: boolean;
