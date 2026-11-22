@@ -198,19 +198,6 @@ export default function App() {
     await loadBootstrap({ outage: nextOutage, fixtures: useFixtures });
   };
 
-  const handleToggleFixtures = async (nextFixtures: boolean) => {
-    setUseFixtures(nextFixtures);
-    if (data?.household) {
-      await updateSettingsApi({
-        language: lang,
-        useDemoFixtures: nextFixtures,
-        simulateOutage,
-        defaultCity: data.household.city,
-      });
-    }
-    await loadBootstrap({ outage: simulateOutage, fixtures: nextFixtures });
-  };
-
   const navigateSection = (target?: string) => {
     closeHeaderMenus();
     if (target === 'family-setup') {
@@ -938,12 +925,10 @@ export default function App() {
                         key={`settings-${settingsSubTab}`}
                         lang={lang}
                         simulateOutage={simulateOutage}
-                        useFixtures={useFixtures}
                         providers={providers}
                         initialSubTab={settingsSubTab}
                         onChangeLang={(next) => void handleLanguageChange(next)}
                         onToggleOutage={(next) => void handleToggleOutage(next)}
-                        onToggleFixtures={(next) => void handleToggleFixtures(next)}
                         onClearLocal={handleClearLocal}
                       />
                     )}
