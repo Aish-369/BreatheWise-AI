@@ -15,6 +15,7 @@ import { buildDemoFixtures, buildUnavailableSnapshot } from './adapters/fixtures
 import { clearOpenAqCache, fetchOpenAqSnapshots } from './adapters/openaq';
 import {
   getActiveHousehold,
+  getHouseholdById,
   getUserSettings,
   listCitySnapshots,
   listImportedForecasts,
@@ -285,6 +286,7 @@ export async function resolveEnvironmentBundle(
 export async function getFullAppBootstrap(
   db: DatabaseSync,
   options: {
+    householdId?: string;
     cityOverride?: string;
     simulateOutage?: boolean;
     useDemoFixtures?: boolean;
@@ -304,10 +306,10 @@ export async function getFullAppBootstrap(
     snapshots: EnvironmentalSnapshot[];
   };
 }> {
-  let household = getActiveHousehold(db);
-  if (!household) {
-    household = seedDemoHouseholdIfEmpty(db);
-  }
+  let household = options.householdId
+    ? getHouseholdById(db, options.householdId)
+    : getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db);
+  if (!household) throw new Error('Household not found for this browser session.');
 
   const members = listMembers(db, household.id);
   const routines = listRoutines(db, household.id);
@@ -355,9 +357,12 @@ export async function getFullAppBootstrap(
 export async function executeWhatIfScenario(
   db: DatabaseSync,
   modification: ScenarioModification,
-  options: { simulateOutage?: boolean; useDemoFixtures?: boolean } = {}
+  options: { householdId?: string; simulateOutage?: boolean; useDemoFixtures?: boolean } = {}
 ): Promise<ScenarioComparisonResult> {
-  const household = getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db);
+  const household = options.householdId
+    ? getHouseholdById(db, options.householdId)
+    : getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db);
+  if (!household) throw new Error('Household not found for this browser session.');
   const members = listMembers(db, household.id);
   const routines = listRoutines(db, household.id);
   const settings = getUserSettings(db, household.id);
