@@ -18,7 +18,8 @@
 5. **Inspect Telemetry & Import CAMS Forecasts (`Air Quality`):**
    - View measured vs. retrieved timestamps, station IDs, coordinates, and ambient weather telemetry when reported.
    - Paste or upload a Copernicus CAMS CSV/JSON forecast under **Import CAMS Forecast** to unlock coarse-grid window comparisons for your city.
-   - Toggle **Simulate Outage** or **Demo Fixtures** in **Settings** to verify resilient outage behavior.
+   - Toggle **Simulate Outage** or **Demo environmental data** in **Settings**. When enabled, clearly labelled synthetic AQI, pollutant and forecast examples fill unsupported city views if live providers return no readings; live readings always take priority.
+   - Demo values are illustrative only, not CPCB/OpenAQ measurements or real CAMS forecasts. They are never presented as verified live data.
 6. **Compare Locations (`Locations & Compare`):**
    - Save multiple Indian cities or neighborhoods, set any saved location as Primary, edit labels, and compare any two slots side-by-side with automatic compatibility warnings when mixing tiers, skewed timestamps, or partial sensor coverage.
 7. **Run Hypothetical Experiments (`What-If Simulator`):**
