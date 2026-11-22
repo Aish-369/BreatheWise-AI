@@ -58,7 +58,9 @@ const sessionHouseholdByRequest = new WeakMap<express.Request, string>();
 
 function getRequestHousehold(req: express.Request, db: DatabaseSync) {
   const id = sessionHouseholdByRequest.get(req);
-  return id ? getHouseholdById(db, id) : getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db);
+  const household = id ? getHouseholdById(db, id) : getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db);
+  if (!household) throw new NotFoundError('Household not found for this browser session.');
+  return household;
 }
 
 export interface CreateAppOptions {
@@ -159,7 +161,6 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
       const persistPlan = req.query.persist === 'true';
 
       const data = await getFullAppBootstrap(db, {
-        householdId: sessionHouseholdByRequest.get(req),
         householdId: sessionHouseholdByRequest.get(req),
         cityOverride,
         simulateOutage,
