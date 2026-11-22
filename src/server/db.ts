@@ -371,6 +371,58 @@ export function revokeBrowserSession(db: DatabaseSync, token: string): void {
   db.prepare('DELETE FROM app_sessions WHERE token_hash = ?').run(hashSessionToken(token));
 }
 
+export function getHouseholdById(db: DatabaseSync, householdId: string): HouseholdProfile | null {
+  const row = db.prepare('SELECT * FROM households WHERE id = ?').get(householdId) as
+    | Record<string, unknown>
+    | undefined;
+  return row ? mapHouseholdRow(row) : null;
+}
+
+export function createHouseholdForBrowserSession(db: DatabaseSync): HouseholdProfile {
+  return runInTransaction(db, () => {
+    const now = new Date().toISOString();
+    const id = `hh-${crypto.randomUUID()}`;
+    db.prepare(
+      `INSERT INTO households (id, name, city, locality, language, is_demo_profile, sensitivity_tags_json, created_at, updated_at)
+       VALUES (?, 'My Family', 'Pune', '', 'en', 0, '[]', ?, ?)`
+    ).run(id, now, now);
+    db.prepare(
+      `INSERT INTO user_settings (household_id, language, use_demo_fixtures, simulate_outage, default_city, updated_at)
+       VALUES (?, 'en', 0, 0, 'Pune', ?)`
+    ).run(id, now);
+    db.prepare(
+      `INSERT INTO locations (id, household_id, city, locality, label, is_primary, latitude, longitude, created_at, updated_at)
+       VALUES (?, ?, 'Pune', '', 'Pune', 1, NULL, NULL, ?, ?)`
+    ).run(`loc-${crypto.randomUUID()}`, id, now, now);
+    return getHouseholdById(db, id)!;
+  });
+}
+
+export function updateHouseholdForId(
+  db: DatabaseSync,
+  householdId: string,
+  input: HouseholdInput,
+  isDemoProfile = false
+): HouseholdProfile {
+  return runInTransaction(db, () => {
+    const existing = getHouseholdById(db, householdId);
+    if (!existing) throw new BadRequestError('Household not found for this browser session.');
+    const now = new Date().toISOString();
+    db.prepare(
+      `UPDATE households SET name = ?, city = ?, locality = ?, language = ?, is_demo_profile = ?,
+       sensitivity_tags_json = ?, updated_at = ? WHERE id = ?`
+    ).run(input.name, input.city, input.locality ?? '', input.language, isDemoProfile ? 1 : 0,
+      JSON.stringify(input.sensitivityTags ?? []), now, householdId);
+    db.prepare(
+      `INSERT INTO user_settings (household_id, language, use_demo_fixtures, simulate_outage, default_city, updated_at)
+       VALUES (?, ?, 0, 0, ?, ?)
+       ON CONFLICT(household_id) DO UPDATE SET language = excluded.language,
+       default_city = excluded.default_city, updated_at = excluded.updated_at`
+    ).run(householdId, input.language, input.city, now);
+    return getHouseholdById(db, householdId)!;
+  });
+}
+
 export function upsertHousehold(
   db: DatabaseSync,
   input: HouseholdInput,
