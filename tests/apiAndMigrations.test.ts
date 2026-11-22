@@ -704,3 +704,31 @@ describe('Phase 1 — Express API CRUD, Validation & Centralized Error Handling 
     expect(db.prepare('SELECT household_id FROM user_settings WHERE household_id = ?').all(hh.id)).toHaveLength(0);
   });
 });
+
+
+describe('Production safety — local maintenance endpoints', () => {
+  it('blocks global demo reset and data clearing in production', async () => {
+    const db = getDb(createTempDbPath());
+    openDbs.push(db);
+    const household = seedDemoHouseholdIfEmpty(db);
+    const { baseUrl } = await startTestServer(db);
+    const previousNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+
+    try {
+      const resetResponse = await fetch(`${baseUrl}/api/local/reset-demo`, { method: 'POST' });
+      expect(resetResponse.status).toBe(403);
+      expect((await resetResponse.json()).code).toBe('LOCAL_MAINTENANCE_DISABLED');
+
+      const clearResponse = await fetch(`${baseUrl}/api/local/clear`, { method: 'DELETE' });
+      expect(clearResponse.status).toBe(403);
+      expect((await clearResponse.json()).code).toBe('LOCAL_MAINTENANCE_DISABLED');
+
+      const remaining = db.prepare('SELECT id FROM households').all() as Array<{ id: string }>;
+      expect(remaining.map((row) => row.id)).toContain(household.id);
+    } finally {
+      if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = previousNodeEnv;
+    }
+  });
+});
