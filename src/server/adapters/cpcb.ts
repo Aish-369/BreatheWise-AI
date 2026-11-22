@@ -61,6 +61,16 @@ export function parseCpcbTimestamp(raw: string | undefined): string | null {
   return null;
 }
 
+function describeNetworkError(error: unknown): string {
+  if (!(error instanceof Error)) return 'Connection failed';
+  const cause = (error as Error & { cause?: unknown }).cause;
+  if (cause instanceof Error) {
+    const code = (cause as NodeJS.ErrnoException).code;
+    return code ? `${error.message} (${code}: ${cause.message})` : `${error.message} (${cause.message})`;
+  }
+  return error.message;
+}
+
 async function fetchCpcbWithRetry(url: string): Promise<Response> {
   const maxAttempts = 2;
   let lastError: unknown = null;
@@ -342,7 +352,7 @@ export async function fetchCpcbSnapshots(city: string): Promise<AdapterFetchResu
         ...baseStatus,
         liveReachable: false,
         status: 'unavailable',
-        notes: `CPCB / data.gov.in unreachable: ${err instanceof Error ? err.message : 'Connection failed'}`,
+        notes: `CPCB / data.gov.in unreachable: ${describeNetworkError(err)}`,
       },
       snapshots: [],
     };
