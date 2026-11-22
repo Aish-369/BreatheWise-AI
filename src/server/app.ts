@@ -66,6 +66,24 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
   });
   app.use(express.json({ limit: '1mb' }));
 
+  // Temporary fail-closed protection: until every data query is bound to a
+  // verified per-browser household session, never expose shared global records
+  // through the public production deployment.
+  app.use('/api', (req, res, next) => {
+    if (
+      process.env.NODE_ENV === 'production' &&
+      req.path !== '/health' &&
+      req.path !== '/providers'
+    ) {
+      res.status(503).json({
+        error: 'Private workspace access is temporarily unavailable while household isolation is being completed.',
+        code: 'HOUSEHOLD_ISOLATION_PENDING',
+      });
+      return;
+    }
+    next();
+  });
+
   app.get(
     '/api/health',
     asyncHandler((_req, res) => {
