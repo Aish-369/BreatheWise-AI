@@ -246,7 +246,7 @@ export function buildDemoFixtureForCity(
   city: string,
   nowIso: string = new Date().toISOString()
 ): { snapshot: EnvironmentalSnapshot; forecasts: ForecastSlot[] } {
-  const normalizedCity = city.trim().replace(/\\s+/g, ' ');
+  const normalizedCity = city.trim().replace(/\s+/g, ' ');
   let seed = 0;
   for (const char of normalizedCity.toLowerCase()) {
     seed = (seed * 31 + char.charCodeAt(0)) >>> 0;
