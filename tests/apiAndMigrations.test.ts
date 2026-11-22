@@ -748,12 +748,12 @@ describe('Production safety — fail-closed household API boundary', () => {
 
     try {
       const bootstrap = await fetch(`${baseUrl}/api/bootstrap`);
-      expect(bootstrap.status).toBe(503);
-      expect((await bootstrap.json()).code).toBe('HOUSEHOLD_ISOLATION_PENDING');
+      expect(bootstrap.status).toBe(401);
+      expect((await bootstrap.json()).code).toBe('SESSION_REQUIRED');
 
       const members = await fetch(`${baseUrl}/api/members`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Unauthorized', ageGroup: 'adult', activityPreference: 'commute', routineFlexibility: 'fixed' }) });
-      expect(members.status).toBe(503);
-      expect((await members.json()).code).toBe('HOUSEHOLD_ISOLATION_PENDING');
+      expect(members.status).toBe(401);
+      expect((await members.json()).code).toBe('SESSION_REQUIRED');
 
       const health = await fetch(`${baseUrl}/api/health`);
       expect(health.status).toBe(200);
@@ -766,6 +766,78 @@ describe('Production safety — fail-closed household API boundary', () => {
   });
 });
 
+
+describe('Production browser session isolation', () => {
+  it('creates independent HttpOnly sessions and scopes writes to each household', async () => {
+    const db = getDb(createTempDbPath());
+    openDbs.push(db);
+    const { baseUrl } = await startTestServer(db);
+    const previousNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const first = await fetch(`${baseUrl}/api/session`);
+      expect(first.status).toBe(201);
+      const firstCookie = first.headers.get('set-cookie')?.split(';')[0];
+      expect(firstCookie).toBeTruthy();
+      expect(first.headers.get('set-cookie')).toContain('HttpOnly');
+      expect(first.headers.get('set-cookie')).toContain('SameSite=Lax');
+      expect(first.headers.get('set-cookie')).toContain('Secure');
+      const firstBody = await first.json() as { household: { id: string } };
+
+      const second = await fetch(`${baseUrl}/api/session`);
+      expect(second.status).toBe(201);
+      const secondCookie = second.headers.get('set-cookie')?.split(';')[0];
+      const secondBody = await second.json() as { household: { id: string } };
+      expect(secondBody.household.id).not.toBe(firstBody.household.id);
+
+      const add = await fetch(`${baseUrl}/api/members`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: firstCookie!,
+          Origin: new URL(baseUrl).origin.replace('http:', 'https:'),
+        },
+        body: JSON.stringify({
+          name: 'Private Member',
+          ageGroup: 'adult',
+          activityPreference: 'commute',
+          routineFlexibility: 'fixed',
+        }),
+      });
+      expect(add.status).toBe(201);
+      const inserted = db.prepare('SELECT household_id FROM family_members WHERE name = ?')
+        .get('Private Member') as { household_id: string };
+      expect(inserted.household_id).toBe(firstBody.household.id);
+      expect(inserted.household_id).not.toBe(secondBody.household.id);
+
+      const blocked = await fetch(`${baseUrl}/api/members`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: firstCookie!,
+          Origin: 'https://attacker.example',
+        },
+        body: JSON.stringify({
+          name: 'Cross Site',
+          ageGroup: 'adult',
+          activityPreference: 'commute',
+          routineFlexibility: 'fixed',
+        }),
+      });
+      expect(blocked.status).toBe(403);
+      expect((await blocked.json()).code).toBe('CSRF_ORIGIN_REJECTED');
+      expect(db.prepare('SELECT id FROM family_members WHERE name = ?').all('Cross Site')).toHaveLength(0);
+
+      const secondMembers = db.prepare('SELECT id FROM family_members WHERE household_id = ?')
+        .all(secondBody.household.id);
+      expect(secondMembers).toHaveLength(0);
+      expect(secondCookie).toBeTruthy();
+    } finally {
+      if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = previousNodeEnv;
+    }
+  });
+});
 
 describe('Household browser session storage', () => {
   it('stores only a token hash and resolves a valid unexpired session', () => {
