@@ -10,6 +10,7 @@ import type {
   ScenarioModification,
 } from '../shared/types';
 import { getCamsAdapterStatus } from './adapters/camsImporter';
+import { fetchAutomaticCamsForecast } from './adapters/camsForecast';
 import { clearCpcbCache, fetchCpcbSnapshots } from './adapters/cpcb';
 import { buildDemoFixtures, buildUnavailableSnapshot } from './adapters/fixtures';
 import { clearOpenAqCache, fetchOpenAqSnapshots } from './adapters/openaq';
@@ -129,9 +130,10 @@ export async function resolveEnvironmentBundle(
     };
   }
 
-  const [openaqRes, cpcbRes] = await Promise.all([
+  const [openaqRes, cpcbRes, automaticCamsRes] = await Promise.all([
     fetchOpenAqSnapshots(city),
     fetchCpcbSnapshots(city),
+    fetchAutomaticCamsForecast(city),
   ]);
 
   const liveSnapshots = [...cpcbRes.snapshots, ...openaqRes.snapshots].filter((s) => s.isAvailable);
@@ -141,6 +143,8 @@ export async function resolveEnvironmentBundle(
 
   const fixtures = buildDemoFixtures(nowIso);
   const importedForecasts = listImportedForecasts(db, undefined, options.householdId);
+  // User-imported CAMS files take precedence; otherwise use the automatic global model feed.
+  const automaticForecasts = automaticCamsRes.slots;
 
   const puneFixtures = fixtures.snapshots.filter((s) => s.city.toLowerCase() === 'pune');
   const ahilyanagarFixtures = fixtures.snapshots.filter(
@@ -214,7 +218,9 @@ export async function resolveEnvironmentBundle(
     const mergedForecasts =
       cityForecasts.length > 0
         ? cityForecasts
-        : useDemoFixtures
+        : automaticForecasts.length > 0
+          ? automaticForecasts
+          : useDemoFixtures
           ? fixtures.forecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase())
           : [];
 
@@ -227,7 +233,7 @@ export async function resolveEnvironmentBundle(
         byCity,
       },
       forecasts: mergedForecasts,
-      providerStatuses: [cpcbRes.status, openaqRes.status, camsStatus],
+      providerStatuses: [cpcbRes.status, openaqRes.status, automaticCamsRes.status, camsStatus],
       mode: 'live',
     };
   }
@@ -278,7 +284,9 @@ export async function resolveEnvironmentBundle(
       ahilyanagar: ahilyanagarList,
       byCity,
     },
-    forecasts: importedForecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase()),
+    forecasts: importedForecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase()).length > 0
+      ? importedForecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase())
+      : automaticForecasts,
     providerStatuses: [cpcbRes.status, openaqRes.status, camsStatus],
     mode: 'unavailable',
   };
