@@ -7,20 +7,24 @@ import { TrustView } from './TrustView';
 interface SettingsViewProps {
   lang: LanguageCode;
   simulateOutage: boolean;
+  useDemoFixtures: boolean;
   providers: DataProviderRecord[];
   initialSubTab?: 'preferences' | 'methodology';
   onChangeLang: (lang: LanguageCode) => void;
   onToggleOutage: (next: boolean) => void;
+  onToggleDemoFixtures: (next: boolean) => void;
   onClearLocal: () => Promise<void>;
 }
 
 export function SettingsView({
   lang,
   simulateOutage,
+  useDemoFixtures,
   providers,
   initialSubTab = 'preferences',
   onChangeLang,
   onToggleOutage,
+  onToggleDemoFixtures,
   onClearLocal,
 }: SettingsViewProps) {
   const [subTab, setSubTab] = useState<'preferences' | 'methodology'>(initialSubTab);
@@ -96,6 +100,32 @@ export function SettingsView({
                   {code === 'en' ? 'English' : code === 'mr' ? 'मराठी' : 'हिन्दी'}
                 </button>
               ))}
+            </div>
+
+            <div className="flex items-center justify-between gap-4 rounded-xl border border-[#E2E7E1] bg-[#F7F7F1] p-4">
+              <div className="flex items-start gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-[#DCE9DD] text-[#263C32] flex items-center justify-center shrink-0">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-[#252D28]">Demo environmental data</h3>
+                  <p className="mt-1 text-xs leading-relaxed text-[#89918A]">
+                    Show clearly labelled synthetic AQI, pollutant and forecast examples when live providers have no data. Live readings always take priority.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                aria-pressed={useDemoFixtures}
+                onClick={() => onToggleDemoFixtures(!useDemoFixtures)}
+                className={`px-3.5 py-1.5 text-xs font-medium rounded-lg border transition-colors shrink-0 cursor-pointer ${
+                  useDemoFixtures
+                    ? 'bg-[#263C32] text-white border-[#263C32]'
+                    : 'bg-white text-[#252D28] border-[#E2E7E1]'
+                }`}
+              >
+                {useDemoFixtures ? 'On' : 'Off'}
+              </button>
             </div>
 
             <div className="pt-4 border-t border-[#E2E7E1] space-y-4">
