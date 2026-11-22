@@ -21,6 +21,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Package source for engineering verification
+        run: tar --exclude=.git --exclude=node_modules --exclude=dist -czf /tmp/breathewise-source.tar.gz .
+      - name: Upload source artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: breathewise-source
+          path: /tmp/breathewise-source.tar.gz
+          retention-days: 1
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
