@@ -73,7 +73,9 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     if (
       process.env.NODE_ENV === 'production' &&
       req.path !== '/health' &&
-      req.path !== '/providers'
+      req.path !== '/providers' &&
+      req.path !== '/local/reset-demo' &&
+      req.path !== '/local/clear'
     ) {
       res.status(503).json({
         error: 'Private workspace access is temporarily unavailable while household isolation is being completed.',
