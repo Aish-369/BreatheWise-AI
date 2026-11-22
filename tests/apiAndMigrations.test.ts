@@ -185,9 +185,9 @@ describe('Phase 1 — Versioned SQLite Migrations & Normalized Evidence Storage'
     const db = getDb(dbPath);
     openDbs.push(db);
 
-    expect(getSchemaVersion(db)).toBe(4);
+    expect(getSchemaVersion(db)).toBe(5);
     // Idempotency check
-    expect(runMigrations(db)).toBe(4);
+    expect(runMigrations(db)).toBe(5);
 
     const household = getActiveHousehold(db);
     expect(household?.id).toBe('hh-legacy-1');
@@ -275,7 +275,7 @@ describe('Phase 1 — Express API CRUD, Validation & Centralized Error Handling 
     expect(healthRes.status).toBe(200);
     const healthJson = (await healthRes.json()) as { ok: boolean; schemaVersion: number };
     expect(healthJson.ok).toBe(true);
-    expect(healthJson.schemaVersion).toBe(4);
+    expect(healthJson.schemaVersion).toBe(5);
 
     // 2. Bootstrap exposes locations & settings without breaking existing contract
     const bootRes = await fetch(`${baseUrl}/api/bootstrap?simulateOutage=false&useFixtures=true&persist=true`);
@@ -528,7 +528,7 @@ describe('Phase 1 — Express API CRUD, Validation & Centralized Error Handling 
     ]);
   });
 
-  it('migrates a populated v2 database through v4 non-destructively with classification backfill', () => {
+  it('migrates a populated v2 database through v5 non-destructively with session storage', () => {
     const dbPath = createTempDbPath();
     const v2Db = new DatabaseSync(dbPath);
     const now = '2026-11-21T07:00:00.000Z';
@@ -650,7 +650,7 @@ describe('Phase 1 — Express API CRUD, Validation & Centralized Error Handling 
 
     const db = getDb(dbPath);
     openDbs.push(db);
-    expect(getSchemaVersion(db)).toBe(4);
+    expect(getSchemaVersion(db)).toBe(5);
 
     const hh = getActiveHousehold(db);
     expect(hh?.name).toBe('Joshi Family');
