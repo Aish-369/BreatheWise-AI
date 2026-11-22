@@ -36,10 +36,10 @@ import {
   deleteLocationApi,
   deleteMemberApi,
   deleteRoutineApi,
+  ensureBrowserSession,
   fetchBootstrap,
   fetchProvidersApi,
   importCamsApi,
-  resetDemoApi,
   runScenarioApi,
   saveHouseholdApi,
   toggleRoutineCompletionApi,
@@ -137,6 +137,7 @@ export default function App() {
       setLoading(true);
       setErrorMsg(null);
       try {
+        await ensureBrowserSession();
         const payload = await fetchBootstrap({
           city: opts?.city,
           simulateOutage: hasOverride || initializedFromServer.current ? outage : undefined,
@@ -195,19 +196,6 @@ export default function App() {
       });
     }
     await loadBootstrap({ outage: nextOutage, fixtures: useFixtures });
-  };
-
-  const handleToggleFixtures = async (nextFixtures: boolean) => {
-    setUseFixtures(nextFixtures);
-    if (data?.household) {
-      await updateSettingsApi({
-        language: lang,
-        useDemoFixtures: nextFixtures,
-        simulateOutage,
-        defaultCity: data.household.city,
-      });
-    }
-    await loadBootstrap({ outage: simulateOutage, fixtures: nextFixtures });
   };
 
   const navigateSection = (target?: string) => {
@@ -329,14 +317,6 @@ export default function App() {
     const scenarioResult = await runScenarioApi(mod, { simulateOutage, useFixtures });
     await loadBootstrap();
     return scenarioResult;
-  };
-
-  const handleResetDemo = async () => {
-    await resetDemoApi();
-    setSimulateOutage(false);
-    setUseFixtures(true);
-    setClearedEmpty(false);
-    await loadBootstrap({ outage: false, fixtures: true });
   };
 
   const handleClearLocal = async () => {
@@ -807,10 +787,10 @@ export default function App() {
                 </p>
                 <button
                   type="button"
-                  onClick={() => void handleResetDemo()}
+                  onClick={() => window.location.reload()}
                   className="px-4 py-2 text-xs font-medium bg-[#263C32] text-white rounded-lg hover:bg-[#1C2D25] cursor-pointer"
                 >
-                  {t(lang, 'action_resetDemo')}
+                  {t(lang, 'action_startOnboarding')}
                 </button>
               </div>
             ) : errorMsg ? (
@@ -945,13 +925,10 @@ export default function App() {
                         key={`settings-${settingsSubTab}`}
                         lang={lang}
                         simulateOutage={simulateOutage}
-                        useFixtures={useFixtures}
                         providers={providers}
                         initialSubTab={settingsSubTab}
                         onChangeLang={(next) => void handleLanguageChange(next)}
                         onToggleOutage={(next) => void handleToggleOutage(next)}
-                        onToggleFixtures={(next) => void handleToggleFixtures(next)}
-                        onResetDemo={handleResetDemo}
                         onClearLocal={handleClearLocal}
                       />
                     )}

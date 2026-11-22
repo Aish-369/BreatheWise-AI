@@ -3,7 +3,7 @@ import express from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createApp } from './src/server/app';
-import { getDb, seedDemoHouseholdIfEmpty } from './src/server/db';
+import { closeDb, getDb, seedDemoHouseholdIfEmpty } from './src/server/db';
 import { errorMiddleware } from './src/server/errors';
 
 const PORT = Number(process.env.PORT ?? 3000);
@@ -11,7 +11,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 async function startServer() {
   const db = getDb();
-  seedDemoHouseholdIfEmpty(db);
+  if (!isProduction) seedDemoHouseholdIfEmpty(db);
 
   const app = createApp(db, { mountErrorHandler: false });
 
@@ -37,9 +37,31 @@ async function startServer() {
 
   app.use(errorMiddleware);
 
-  app.listen(PORT, '0.0.0.0', () => {
+  const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`BreatheWise AI server listening on http://0.0.0.0:${PORT}`);
   });
+
+  let shuttingDown = false;
+  const shutdown = (signal: NodeJS.Signals) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`Received ${signal}; closing HTTP server and database.`);
+    server.close((error) => {
+      try {
+        closeDb();
+      } catch (closeError) {
+        console.error('Database shutdown failed:', closeError);
+        process.exitCode = 1;
+      }
+      if (error) {
+        console.error('HTTP server shutdown failed:', error);
+        process.exitCode = 1;
+      }
+    });
+  };
+
+  process.once('SIGTERM', shutdown);
+  process.once('SIGINT', shutdown);
 }
 
 startServer();

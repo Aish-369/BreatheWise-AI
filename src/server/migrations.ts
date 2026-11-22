@@ -397,6 +397,44 @@ const MIGRATIONS: Migration[] = [
       db.exec('UPDATE user_settings SET use_demo_fixtures = 0;');
     },
   },
+  {
+    version: 5,
+    name: '005_household_browser_sessions',
+    up: (db) => {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS app_sessions (
+          token_hash TEXT PRIMARY KEY,
+          household_id TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          expires_at TEXT NOT NULL,
+          last_seen_at TEXT NOT NULL,
+          FOREIGN KEY (household_id) REFERENCES households(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_app_sessions_household
+          ON app_sessions(household_id);
+        CREATE INDEX IF NOT EXISTS idx_app_sessions_expiry
+          ON app_sessions(expires_at);
+      `);
+      db.exec('DELETE FROM app_sessions WHERE expires_at <= CURRENT_TIMESTAMP;');
+    },
+  },
+  {
+    version: 6,
+    name: '006_household_scoped_imported_forecasts',
+    up: (db) => {
+      if (!hasColumn(db, 'cams_forecasts', 'household_id')) {
+        db.exec('ALTER TABLE cams_forecasts ADD COLUMN household_id TEXT REFERENCES households(id) ON DELETE CASCADE;');
+      }
+      // Attribute legacy non-demo imports to the one legacy active household so they
+      // do not become globally visible after anonymous multi-household sessions are enabled.
+      db.exec(`
+        UPDATE cams_forecasts
+        SET household_id = (SELECT id FROM households ORDER BY updated_at DESC LIMIT 1)
+        WHERE household_id IS NULL AND is_demo_fixture = 0;
+      `);
+      db.exec('CREATE INDEX IF NOT EXISTS idx_cams_forecasts_household_city ON cams_forecasts(household_id, city, time_window);');
+    },
+  }
 ];
 
 export function getSchemaVersion(db: DatabaseSync): number {

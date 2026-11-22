@@ -9,15 +9,21 @@ import { generateProtectionPlan } from '../src/engine/intelligence';
 import { buildDemoFixtures } from '../src/server/adapters/fixtures';
 import { createApp } from '../src/server/app';
 import {
+  createBrowserSession,
+  createHouseholdForBrowserSession,
   getActiveHousehold,
+  getBrowserSession,
   getDb,
+  hashSessionToken,
   getSchemaVersion,
+  listImportedForecasts,
   listLocations,
   listMembers,
   listPlanEvidence,
   listPlanHistory,
   listPlanRecommendations,
   listRoutines,
+  saveForecastSlots,
   savePlanHistory,
   saveSnapshot,
   seedDemoHouseholdIfEmpty,
@@ -182,9 +188,9 @@ describe('Phase 1 — Versioned SQLite Migrations & Normalized Evidence Storage'
     const db = getDb(dbPath);
     openDbs.push(db);
 
-    expect(getSchemaVersion(db)).toBe(4);
+    expect(getSchemaVersion(db)).toBe(6);
     // Idempotency check
-    expect(runMigrations(db)).toBe(4);
+    expect(runMigrations(db)).toBe(6);
 
     const household = getActiveHousehold(db);
     expect(household?.id).toBe('hh-legacy-1');
@@ -272,7 +278,7 @@ describe('Phase 1 — Express API CRUD, Validation & Centralized Error Handling 
     expect(healthRes.status).toBe(200);
     const healthJson = (await healthRes.json()) as { ok: boolean; schemaVersion: number };
     expect(healthJson.ok).toBe(true);
-    expect(healthJson.schemaVersion).toBe(4);
+    expect(healthJson.schemaVersion).toBe(6);
 
     // 2. Bootstrap exposes locations & settings without breaking existing contract
     const bootRes = await fetch(`${baseUrl}/api/bootstrap?simulateOutage=false&useFixtures=true&persist=true`);
@@ -525,7 +531,7 @@ describe('Phase 1 — Express API CRUD, Validation & Centralized Error Handling 
     ]);
   });
 
-  it('migrates a populated v2 database through v4 non-destructively with classification backfill', () => {
+  it('migrates a populated v2 database through v6 non-destructively with household forecast isolation', () => {
     const dbPath = createTempDbPath();
     const v2Db = new DatabaseSync(dbPath);
     const now = '2026-11-21T07:00:00.000Z';
@@ -647,7 +653,7 @@ describe('Phase 1 — Express API CRUD, Validation & Centralized Error Handling 
 
     const db = getDb(dbPath);
     openDbs.push(db);
-    expect(getSchemaVersion(db)).toBe(4);
+    expect(getSchemaVersion(db)).toBe(6);
 
     const hh = getActiveHousehold(db);
     expect(hh?.name).toBe('Joshi Family');
@@ -702,5 +708,176 @@ describe('Phase 1 — Express API CRUD, Validation & Centralized Error Handling 
     expect(listLocations(db, hh.id)).toHaveLength(0);
     expect(listPlanRecommendations(db, plan.id)).toHaveLength(0);
     expect(db.prepare('SELECT household_id FROM user_settings WHERE household_id = ?').all(hh.id)).toHaveLength(0);
+  });
+});
+
+
+describe('Production safety — local maintenance endpoints', () => {
+  it('blocks global demo reset and data clearing in production', async () => {
+    const db = getDb(createTempDbPath());
+    openDbs.push(db);
+    const household = seedDemoHouseholdIfEmpty(db);
+    const { baseUrl } = await startTestServer(db);
+    const previousNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+
+    try {
+      const resetResponse = await fetch(`${baseUrl}/api/local/reset-demo`, { method: 'POST' });
+      expect(resetResponse.status).toBe(403);
+      expect((await resetResponse.json()).code).toBe('LOCAL_MAINTENANCE_DISABLED');
+
+      const clearResponse = await fetch(`${baseUrl}/api/local/clear`, { method: 'DELETE' });
+      expect(clearResponse.status).toBe(403);
+      expect((await clearResponse.json()).code).toBe('LOCAL_MAINTENANCE_DISABLED');
+
+      const remaining = db.prepare('SELECT id FROM households').all() as Array<{ id: string }>;
+      expect(remaining.map((row) => row.id)).toContain(household.id);
+    } finally {
+      if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = previousNodeEnv;
+    }
+  });
+});
+
+
+describe('Production safety — fail-closed household API boundary', () => {
+  it('does not expose the shared legacy household through public production routes', async () => {
+    const db = getDb(createTempDbPath());
+    openDbs.push(db);
+    seedDemoHouseholdIfEmpty(db);
+    const { baseUrl } = await startTestServer(db);
+    const previousNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+
+    try {
+      const bootstrap = await fetch(`${baseUrl}/api/bootstrap`);
+      expect(bootstrap.status).toBe(401);
+      expect((await bootstrap.json()).code).toBe('SESSION_REQUIRED');
+
+      const members = await fetch(`${baseUrl}/api/members`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Unauthorized', ageGroup: 'adult', activityPreference: 'commute', routineFlexibility: 'fixed' }) });
+      expect(members.status).toBe(401);
+      expect((await members.json()).code).toBe('SESSION_REQUIRED');
+
+      const health = await fetch(`${baseUrl}/api/health`);
+      expect(health.status).toBe(200);
+      const providers = await fetch(`${baseUrl}/api/providers`);
+      expect(providers.status).toBe(200);
+    } finally {
+      if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = previousNodeEnv;
+    }
+  });
+});
+
+
+describe('Production browser session isolation', () => {
+  it('creates independent HttpOnly sessions and scopes writes to each household', async () => {
+    const db = getDb(createTempDbPath());
+    openDbs.push(db);
+    const { baseUrl } = await startTestServer(db);
+    const previousNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const first = await fetch(`${baseUrl}/api/session`);
+      expect(first.status).toBe(201);
+      const firstCookie = first.headers.get('set-cookie')?.split(';')[0];
+      expect(firstCookie).toBeTruthy();
+      expect(first.headers.get('set-cookie')).toContain('HttpOnly');
+      expect(first.headers.get('set-cookie')).toContain('SameSite=Lax');
+      expect(first.headers.get('set-cookie')).toContain('Secure');
+      const firstBody = await first.json() as { household: { id: string } };
+
+      const second = await fetch(`${baseUrl}/api/session`);
+      expect(second.status).toBe(201);
+      const secondCookie = second.headers.get('set-cookie')?.split(';')[0];
+      const secondBody = await second.json() as { household: { id: string } };
+      expect(secondBody.household.id).not.toBe(firstBody.household.id);
+
+      const add = await fetch(`${baseUrl}/api/members`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: firstCookie!,
+          Origin: new URL(baseUrl).origin.replace('http:', 'https:'),
+        },
+        body: JSON.stringify({
+          name: 'Private Member',
+          ageGroup: 'adult',
+          activityPreference: 'commute',
+          routineFlexibility: 'fixed',
+        }),
+      });
+      expect(add.status).toBe(201);
+      const inserted = db.prepare('SELECT household_id FROM family_members WHERE name = ?')
+        .get('Private Member') as { household_id: string };
+      expect(inserted.household_id).toBe(firstBody.household.id);
+      expect(inserted.household_id).not.toBe(secondBody.household.id);
+
+      const blocked = await fetch(`${baseUrl}/api/members`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: firstCookie!,
+          Origin: 'https://attacker.example',
+        },
+        body: JSON.stringify({
+          name: 'Cross Site',
+          ageGroup: 'adult',
+          activityPreference: 'commute',
+          routineFlexibility: 'fixed',
+        }),
+      });
+      expect(blocked.status).toBe(403);
+      expect((await blocked.json()).code).toBe('CSRF_ORIGIN_REJECTED');
+      expect(db.prepare('SELECT id FROM family_members WHERE name = ?').all('Cross Site')).toHaveLength(0);
+
+      const secondMembers = db.prepare('SELECT id FROM family_members WHERE household_id = ?')
+        .all(secondBody.household.id);
+      expect(secondMembers).toHaveLength(0);
+      expect(secondCookie).toBeTruthy();
+    } finally {
+      if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = previousNodeEnv;
+    }
+  });
+});
+
+describe('Household browser session storage', () => {
+  it('stores only a token hash and resolves a valid unexpired session', () => {
+    const db = getDb(createTempDbPath());
+    openDbs.push(db);
+    const household = seedDemoHouseholdIfEmpty(db);
+    const token = 'test-session-token-that-is-never-stored-raw';
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    createBrowserSession(db, token, household.id, expiresAt);
+    const stored = db.prepare('SELECT token_hash, household_id FROM app_sessions').get() as { token_hash: string; household_id: string };
+    expect(stored.token_hash).toBe(hashSessionToken(token));
+    expect(stored.token_hash).not.toBe(token);
+    expect(stored.household_id).toBe(household.id);
+    expect(getBrowserSession(db, token)).toEqual({ householdId: household.id, expiresAt });
+  });
+
+  it('rejects expired and unknown browser session tokens', () => {
+    const db = getDb(createTempDbPath());
+    openDbs.push(db);
+    const household = seedDemoHouseholdIfEmpty(db);
+    createBrowserSession(db, 'expired-token', household.id, '2000-01-01T00:00:00.000Z');
+    expect(getBrowserSession(db, 'expired-token')).toBeNull();
+    expect(getBrowserSession(db, 'unknown-token')).toBeNull();
+  });
+});
+
+
+describe('Household-scoped imported forecast storage', () => {
+  it('keeps a household uploaded forecast private from other browser sessions', () => {
+    const db = getDb(createTempDbPath());
+    openDbs.push(db);
+    const first = createHouseholdForBrowserSession(db);
+    const second = createHouseholdForBrowserSession(db);
+    const fixture = buildDemoFixtures().forecasts[0];
+    saveForecastSlots(db, fixture.city, [fixture], first.id);
+
+    expect(listImportedForecasts(db, fixture.city, first.id).some((slot) => slot.id === fixture.id)).toBe(true);
+    expect(listImportedForecasts(db, fixture.city, second.id).some((slot) => slot.id === fixture.id)).toBe(false);
   });
 });

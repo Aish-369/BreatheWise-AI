@@ -88,7 +88,7 @@ export function createDemoHousehold(db: DatabaseSync): HouseholdProfile {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       householdId,
-      'Deshmukh Family (Demo Profile)',
+      'My Family',
       'Pune',
       'Shivajinagar / Deccan',
       'en',
@@ -101,28 +101,28 @@ export function createDemoHousehold(db: DatabaseSync): HouseholdProfile {
     const members: Array<FamilyMemberInput & { id: string }> = [
       {
         id: 'mem-aarav',
-        name: 'Aarav',
+        name: 'Member 1',
         ageGroup: 'school_child',
         activityPreference: 'outdoor_play',
         routineFlexibility: 'flexible',
       },
       {
         id: 'mem-sunanda',
-        name: 'Sunanda',
+        name: 'Member 2',
         ageGroup: 'older_adult',
         activityPreference: 'morning_walk',
         routineFlexibility: 'flexible',
       },
       {
         id: 'mem-priya',
-        name: 'Priya',
+        name: 'Member 3',
         ageGroup: 'adult',
         activityPreference: 'commute',
         routineFlexibility: 'fixed',
       },
       {
         id: 'mem-vikram',
-        name: 'Vikram',
+        name: 'Member 4',
         ageGroup: 'adult',
         activityPreference: 'outdoor_exercise',
         routineFlexibility: 'flexible',
@@ -328,6 +328,105 @@ export function getActiveHousehold(db: DatabaseSync): HouseholdProfile | null {
   return row ? mapHouseholdRow(row) : null;
 }
 
+export interface BrowserSessionRecord {
+  householdId: string;
+  expiresAt: string;
+}
+
+export function hashSessionToken(token: string): string {
+  return crypto.createHash('sha256').update(token, 'utf8').digest('hex');
+}
+
+export function createBrowserSession(
+  db: DatabaseSync,
+  token: string,
+  householdId: string,
+  expiresAt: string
+): void {
+  const now = new Date().toISOString();
+  db.prepare(
+    `INSERT INTO app_sessions (token_hash, household_id, created_at, expires_at, last_seen_at)
+     VALUES (?, ?, ?, ?, ?)`
+  ).run(hashSessionToken(token), householdId, now, expiresAt, now);
+}
+
+export function getBrowserSession(
+  db: DatabaseSync,
+  token: string
+): BrowserSessionRecord | null {
+  const now = new Date().toISOString();
+  const tokenHash = hashSessionToken(token);
+  const row = db.prepare(
+    `SELECT household_id, expires_at FROM app_sessions
+     WHERE token_hash = ? AND expires_at > ?`
+  ).get(tokenHash, now) as
+    | { household_id: string; expires_at: string }
+    | undefined;
+  if (!row) {
+    db.prepare('DELETE FROM app_sessions WHERE token_hash = ? AND expires_at <= ?').run(tokenHash, now);
+    return null;
+  }
+  db.prepare('UPDATE app_sessions SET last_seen_at = ? WHERE token_hash = ?')
+    .run(now, tokenHash);
+  return { householdId: row.household_id, expiresAt: row.expires_at };
+}
+
+export function revokeBrowserSession(db: DatabaseSync, token: string): void {
+  db.prepare('DELETE FROM app_sessions WHERE token_hash = ?').run(hashSessionToken(token));
+}
+
+export function getHouseholdById(db: DatabaseSync, householdId: string): HouseholdProfile | null {
+  const row = db.prepare('SELECT * FROM households WHERE id = ?').get(householdId) as
+    | Record<string, unknown>
+    | undefined;
+  return row ? mapHouseholdRow(row) : null;
+}
+
+export function createHouseholdForBrowserSession(db: DatabaseSync): HouseholdProfile {
+  return runInTransaction(db, () => {
+    const now = new Date().toISOString();
+    const id = `hh-${crypto.randomUUID()}`;
+    db.prepare(
+      `INSERT INTO households (id, name, city, locality, language, is_demo_profile, sensitivity_tags_json, created_at, updated_at)
+       VALUES (?, 'My Family', 'Pune', '', 'en', 0, '[]', ?, ?)`
+    ).run(id, now, now);
+    db.prepare(
+      `INSERT INTO user_settings (household_id, language, use_demo_fixtures, simulate_outage, default_city, updated_at)
+       VALUES (?, 'en', 0, 0, 'Pune', ?)`
+    ).run(id, now);
+    db.prepare(
+      `INSERT INTO locations (id, household_id, city, locality, label, is_primary, latitude, longitude, created_at, updated_at)
+       VALUES (?, ?, 'Pune', '', 'Pune', 1, NULL, NULL, ?, ?)`
+    ).run(`loc-${crypto.randomUUID()}`, id, now, now);
+    return getHouseholdById(db, id)!;
+  });
+}
+
+export function updateHouseholdForId(
+  db: DatabaseSync,
+  householdId: string,
+  input: HouseholdInput,
+  isDemoProfile = false
+): HouseholdProfile {
+  return runInTransaction(db, () => {
+    const existing = getHouseholdById(db, householdId);
+    if (!existing) throw new BadRequestError('Household not found for this browser session.');
+    const now = new Date().toISOString();
+    db.prepare(
+      `UPDATE households SET name = ?, city = ?, locality = ?, language = ?, is_demo_profile = ?,
+       sensitivity_tags_json = ?, updated_at = ? WHERE id = ?`
+    ).run(input.name, input.city, input.locality ?? '', input.language, isDemoProfile ? 1 : 0,
+      JSON.stringify(input.sensitivityTags ?? []), now, householdId);
+    db.prepare(
+      `INSERT INTO user_settings (household_id, language, use_demo_fixtures, simulate_outage, default_city, updated_at)
+       VALUES (?, ?, 0, 0, ?, ?)
+       ON CONFLICT(household_id) DO UPDATE SET language = excluded.language,
+       default_city = excluded.default_city, updated_at = excluded.updated_at`
+    ).run(householdId, input.language, input.city, now);
+    return getHouseholdById(db, householdId)!;
+  });
+}
+
 export function upsertHousehold(
   db: DatabaseSync,
   input: HouseholdInput,
@@ -383,7 +482,7 @@ export function upsertHousehold(
 
     db.prepare(
       `INSERT INTO user_settings (household_id, language, use_demo_fixtures, simulate_outage, default_city, updated_at)
-       VALUES (?, ?, 1, 0, ?, ?)`
+       VALUES (?, ?, 0, 0, ?, ?)`
     ).run(id, input.language, input.city, now);
 
     const locLabel = input.locality?.trim()
@@ -867,13 +966,13 @@ export function getUserSettings(db: DatabaseSync, householdId: string): UserSett
 
   db.prepare(
     `INSERT INTO user_settings (household_id, language, use_demo_fixtures, simulate_outage, default_city, updated_at)
-     VALUES (?, ?, 1, 0, ?, ?)`
+     VALUES (?, ?, 0, 0, ?, ?)`
   ).run(householdId, lang, defaultCity, now);
 
   return {
     householdId,
     language: lang,
-    useDemoFixtures: true,
+    useDemoFixtures: false,
     simulateOutage: false,
     defaultCity,
     updatedAt: now,
@@ -1087,16 +1186,16 @@ export function listCitySnapshots(
   return rows.map(mapSnapshotRow);
 }
 
-export function saveForecastSlots(db: DatabaseSync, city: string, slots: ForecastSlot[]): void {
+export function saveForecastSlots(db: DatabaseSync, city: string, slots: ForecastSlot[], householdId?: string): void {
   runInTransaction(db, () => {
-    db.prepare('DELETE FROM cams_forecasts WHERE lower(city) = lower(?) AND is_demo_fixture = 0').run(
-      city
+    db.prepare('DELETE FROM cams_forecasts WHERE lower(city) = lower(?) AND is_demo_fixture = 0 AND household_id IS ?').run(
+      city, householdId ?? null
     );
     const stmt = db.prepare(
       `INSERT OR REPLACE INTO cams_forecasts (
         id, city, time_window, forecast_date, expected_pm25, expected_pm10, expected_aqi_india,
-        trend, data_type, provider_label, grid_resolution_note, issued_at, license_attribution, is_demo_fixture
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        trend, data_type, provider_label, grid_resolution_note, issued_at, license_attribution, is_demo_fixture, household_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     );
     for (const s of slots) {
       stmt.run(
@@ -1113,19 +1212,19 @@ export function saveForecastSlots(db: DatabaseSync, city: string, slots: Forecas
         s.gridResolutionNote,
         s.issuedAt,
         s.licenseAttribution,
-        s.isDemoFixture ? 1 : 0
+        s.isDemoFixture ? 1 : 0,
+        householdId ?? null
       );
     }
   });
 }
 
-export function listImportedForecasts(db: DatabaseSync, city?: string): ForecastSlot[] {
+export function listImportedForecasts(db: DatabaseSync, city?: string, householdId?: string): ForecastSlot[] {
+  const scope = householdId ? ' AND (household_id IS NULL OR household_id = ?)' : '';
   const rows = (
     city
-      ? db
-          .prepare('SELECT * FROM cams_forecasts WHERE lower(city) = lower(?) ORDER BY time_window ASC')
-          .all(city)
-      : db.prepare('SELECT * FROM cams_forecasts ORDER BY city ASC, time_window ASC').all()
+      ? db.prepare(`SELECT * FROM cams_forecasts WHERE lower(city) = lower(?)${scope} ORDER BY time_window ASC`).all(...(householdId ? [city, householdId] : [city]))
+      : db.prepare(`SELECT * FROM cams_forecasts WHERE 1 = 1${scope} ORDER BY city ASC, time_window ASC`).all(...(householdId ? [householdId] : []))
   ) as Array<Record<string, unknown>>;
 
   return rows.map((r) => ({
@@ -1355,4 +1454,11 @@ export function clearAllLocalData(db: DatabaseSync): void {
 export function resetToDemoProfile(db: DatabaseSync): HouseholdProfile {
   clearAllLocalData(db);
   return createDemoHousehold(db);
+}
+
+/** Close the process-wide SQLite connection during graceful server shutdown. */
+export function closeDb(): void {
+  if (!dbInstance) return;
+  dbInstance.close();
+  dbInstance = null;
 }
