@@ -101,7 +101,7 @@ export default function App() {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
 
   const [simulateOutage, setSimulateOutage] = useState(false);
-  const [useFixtures, setUseFixtures] = useState(true);
+  const [useFixtures, setUseFixtures] = useState(false);
   const initializedFromServer = useRef(false);
 
   const [data, setData] = useState<BootstrapPayload | null>(null);
