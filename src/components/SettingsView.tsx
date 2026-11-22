@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertTriangle, Database, Globe, ShieldCheck, WifiOff } from 'lucide-react';
+import { AlertTriangle, Globe, ShieldCheck, WifiOff } from 'lucide-react';
 import type { DataProviderRecord, LanguageCode } from '../shared/types';
 import { t } from '../i18n/translations';
 import { TrustView } from './TrustView';
@@ -7,24 +7,20 @@ import { TrustView } from './TrustView';
 interface SettingsViewProps {
   lang: LanguageCode;
   simulateOutage: boolean;
-  useFixtures: boolean;
   providers: DataProviderRecord[];
   initialSubTab?: 'preferences' | 'methodology';
   onChangeLang: (lang: LanguageCode) => void;
   onToggleOutage: (next: boolean) => void;
-  onToggleFixtures: (next: boolean) => void;
   onClearLocal: () => Promise<void>;
 }
 
 export function SettingsView({
   lang,
   simulateOutage,
-  useFixtures,
   providers,
   initialSubTab = 'preferences',
   onChangeLang,
   onToggleOutage,
-  onToggleFixtures,
   onClearLocal,
 }: SettingsViewProps) {
   const [subTab, setSubTab] = useState<'preferences' | 'methodology'>(initialSubTab);
@@ -103,32 +99,6 @@ export function SettingsView({
             </div>
 
             <div className="pt-4 border-t border-[#E2E7E1] space-y-4">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-start gap-3">
-                  <Database className="w-4 h-4 text-[#263C32] mt-0.5 shrink-0" />
-                  <div>
-                    <h3 className="text-sm font-semibold text-[#252D28]">
-                      {t(lang, 'fixtures_mode_label')}
-                    </h3>
-                    <p className="text-xs text-[#89918A]">
-                      Pune &amp; Ahilyanagar synthetic reference fixtures when API keys are unconfigured.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  aria-pressed={useFixtures}
-                  onClick={() => onToggleFixtures(!useFixtures)}
-                  className={`px-3.5 py-1.5 text-xs font-medium rounded-lg border transition-colors shrink-0 cursor-pointer ${
-                    useFixtures
-                      ? 'bg-[#263C32] text-white border-[#263C32]'
-                      : 'bg-[#F7F7F1] text-[#89918A] border-[#E2E7E1]'
-                  }`}
-                >
-                  {useFixtures ? t(lang, 'on') : t(lang, 'off')}
-                </button>
-              </div>
-
               <div className="flex items-center justify-between gap-4 pt-4 border-t border-[#E2E7E1]">
                 <div className="flex items-start gap-3">
                   <WifiOff className="w-4 h-4 text-[#B33A2E] mt-0.5 shrink-0" />
