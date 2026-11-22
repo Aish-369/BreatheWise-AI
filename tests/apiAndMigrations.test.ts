@@ -732,3 +732,33 @@ describe('Production safety — local maintenance endpoints', () => {
     }
   });
 });
+
+
+describe('Production safety — fail-closed household API boundary', () => {
+  it('does not expose the shared legacy household through public production routes', async () => {
+    const db = getDb(createTempDbPath());
+    openDbs.push(db);
+    seedDemoHouseholdIfEmpty(db);
+    const { baseUrl } = await startTestServer(db);
+    const previousNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+
+    try {
+      const bootstrap = await fetch(`${baseUrl}/api/bootstrap`);
+      expect(bootstrap.status).toBe(503);
+      expect((await bootstrap.json()).code).toBe('HOUSEHOLD_ISOLATION_PENDING');
+
+      const members = await fetch(`${baseUrl}/api/members`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Unauthorized', ageGroup: 'adult', activityPreference: 'commute', routineFlexibility: 'fixed' }) });
+      expect(members.status).toBe(503);
+      expect((await members.json()).code).toBe('HOUSEHOLD_ISOLATION_PENDING');
+
+      const health = await fetch(`${baseUrl}/api/health`);
+      expect(health.status).toBe(200);
+      const providers = await fetch(`${baseUrl}/api/providers`);
+      expect(providers.status).toBe(200);
+    } finally {
+      if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+      else process.env.NODE_ENV = previousNodeEnv;
+    }
+  });
+});
