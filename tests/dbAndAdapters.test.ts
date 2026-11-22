@@ -22,9 +22,9 @@ import { generateProtectionPlan } from '../src/engine/intelligence';
 
 describe('SQLite Persistence & CAMS Importer Integration', () => {
   it('23. validates and parses CAMS CSV and JSON forecast payloads and rejects invalid rows', () => {
-    const csv = `city,grid_id,forecast_date,time_window,expected_pm25,expected_pm10,trend
-Pune,CAMS-0.4,2026-11-21,06:00-09:00,72,130,worsening
-Pune,CAMS-0.4,2026-11-21,12:00-16:00,40,80,improving`;
+    const csv = `city,grid_id,issued_at,forecast_date,time_window,expected_pm25,expected_pm10,trend
+Pune,CAMS-0.4,2026-11-20T08:00:00Z,2026-11-21,06:00-09:00,72,130,worsening
+Pune,CAMS-0.4,2026-11-20T08:00:00Z,2026-11-21,12:00-16:00,40,80,improving`;
     const parsedCsv = parseCamsImport(csv);
     expect(parsedCsv.ok).toBe(true);
     expect(parsedCsv.slots?.length).toBe(2);
@@ -75,7 +75,7 @@ Pune,CAMS-0.4,2026-11-21,12:00-16:00,40,80,improving`;
 
     // Store CAMS forecast
     const cams = parseCamsImport(
-      `city,time_window,expected_pm25\nAhilyanagar,12:00-16:00,34`
+      `city,grid_id,issued_at,forecast_date,time_window,expected_pm25\nAhilyanagar,CAMS-0.4,2026-11-21T08:00:00Z,2026-11-22,12:00-16:00,34`
     );
     expect(cams.ok).toBe(true);
     saveForecastSlots(db, 'Ahilyanagar', cams.slots!);
