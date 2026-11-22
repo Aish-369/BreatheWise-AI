@@ -1455,3 +1455,10 @@ export function resetToDemoProfile(db: DatabaseSync): HouseholdProfile {
   clearAllLocalData(db);
   return createDemoHousehold(db);
 }
+
+/** Close the process-wide SQLite connection during graceful server shutdown. */
+export function closeDb(): void {
+  if (!dbInstance) return;
+  dbInstance.close();
+  dbInstance = null;
+}
