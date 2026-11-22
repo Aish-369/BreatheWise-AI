@@ -88,7 +88,7 @@ export function createDemoHousehold(db: DatabaseSync): HouseholdProfile {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       householdId,
-      'Deshmukh Family (Demo Profile)',
+      'My Family',
       'Pune',
       'Shivajinagar / Deccan',
       'en',
@@ -101,28 +101,28 @@ export function createDemoHousehold(db: DatabaseSync): HouseholdProfile {
     const members: Array<FamilyMemberInput & { id: string }> = [
       {
         id: 'mem-aarav',
-        name: 'Aarav',
+        name: 'Member 1',
         ageGroup: 'school_child',
         activityPreference: 'outdoor_play',
         routineFlexibility: 'flexible',
       },
       {
         id: 'mem-sunanda',
-        name: 'Sunanda',
+        name: 'Member 2',
         ageGroup: 'older_adult',
         activityPreference: 'morning_walk',
         routineFlexibility: 'flexible',
       },
       {
         id: 'mem-priya',
-        name: 'Priya',
+        name: 'Member 3',
         ageGroup: 'adult',
         activityPreference: 'commute',
         routineFlexibility: 'fixed',
       },
       {
         id: 'mem-vikram',
-        name: 'Vikram',
+        name: 'Member 4',
         ageGroup: 'adult',
         activityPreference: 'outdoor_exercise',
         routineFlexibility: 'flexible',
