@@ -850,7 +850,7 @@ export default function App() {
                         primarySnapshot={data.environment.primarySnapshot}
                         forecasts={data.environment.forecasts}
                         onNavigate={navigateSection}
-                        onSaveSnapshot={() => void loadBootstrap({ persist: true })}
+                        onSaveSnapshot={() => loadBootstrap({ persist: true })}
                       />
                     )}
                     {activeTab === 'family' && (
