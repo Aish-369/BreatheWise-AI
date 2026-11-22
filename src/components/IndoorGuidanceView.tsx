@@ -10,6 +10,7 @@ interface IndoorGuidanceViewProps {
 }
 
 export function IndoorGuidanceView({ lang, currentBand, city }: IndoorGuidanceViewProps) {
+  const outdoorUnavailable = currentBand === 'unavailable';
   const highOutdoor =
     currentBand === 'poor' || currentBand === 'very_poor' || currentBand === 'severe';
 
@@ -17,8 +18,14 @@ export function IndoorGuidanceView({ lang, currentBand, city }: IndoorGuidanceVi
     {
       icon: Wind,
       title: t(lang, 'indoor_card_vent_title'),
-      badge: highOutdoor ? t(lang, 'indoor_badge_closed') : t(lang, 'indoor_badge_nonpeak'),
-      desc: t(lang, 'indoor_card_vent_desc'),
+      badge: outdoorUnavailable
+        ? 'Data unavailable'
+        : highOutdoor
+          ? t(lang, 'indoor_badge_closed')
+          : t(lang, 'indoor_badge_nonpeak'),
+      desc: outdoorUnavailable
+        ? 'Outdoor station data is unavailable. Check a trusted local AQI source before deciding when to ventilate.'
+        : t(lang, 'indoor_card_vent_desc'),
     },
     {
       icon: Fan,
@@ -57,10 +64,18 @@ export function IndoorGuidanceView({ lang, currentBand, city }: IndoorGuidanceVi
               {city} · {t(lang, `band_${currentBand}`)}
             </p>
             <h2 className="mt-1.5 font-display text-xl font-bold text-[#252D28]">
-              {highOutdoor ? t(lang, 'indoor_hero_high') : t(lang, 'indoor_hero_mod')}
+              {outdoorUnavailable
+                ? 'Outdoor air data is unavailable'
+                : highOutdoor
+                  ? t(lang, 'indoor_hero_high')
+                  : t(lang, 'indoor_hero_mod')}
             </h2>
             <p className="mt-2.5 text-sm leading-relaxed text-[#89918A]">
-              {highOutdoor ? t(lang, 'indoor_hero_high_desc') : t(lang, 'indoor_hero_mod_desc')}
+              {outdoorUnavailable
+                ? 'No verified outdoor station measurement is available for this location. These indoor practices remain useful, but this page cannot currently classify outdoor air as safe or unsafe.'
+                : highOutdoor
+                  ? t(lang, 'indoor_hero_high_desc')
+                  : t(lang, 'indoor_hero_mod_desc')}
             </p>
           </div>
           <p className="mt-6 pt-4 border-t border-[#E2E7E1] text-xs text-[#89918A]">

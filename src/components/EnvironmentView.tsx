@@ -55,16 +55,23 @@ export function EnvironmentView({
   };
 
   const allSnapshots = [primarySnapshot, ...secondarySnapshots];
+  // Do not render unavailable placeholder snapshots as if they were station records.
+  const availableSnapshots = allSnapshots.filter((snapshot) => snapshot.isAvailable);
 
-  const hasStationObservation = allSnapshots.some(
+  const hasStationObservation = availableSnapshots.some(
     (snapshot) =>
       snapshot.dataType === 'physical_station' &&
-      snapshot.isAvailable &&
       snapshot.classification !== 'demo_fixture'
   );
   const nextForecast = forecasts.find(
-    (slot) => slot.expectedPm25 !== null || slot.expectedPm10 !== null
+    (slot) =>
+      typeof slot.expectedPm25 === 'number' ||
+      typeof slot.expectedPm10 === 'number'
   ) ?? null;
+  const formatMetric = (value: number | null | undefined, unit = '') =>
+    typeof value === 'number' && Number.isFinite(value)
+      ? `${value}${unit}`
+      : 'Unavailable';
 
   const handleImport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,15 +138,34 @@ export function EnvironmentView({
               </p>
             </div>
             {nextForecast && (
-              <div className="shrink-0 rounded-xl border border-[#DCE9DD] bg-[#F7F7F1] px-4 py-3 sm:min-w-52">
+              <div className="shrink-0 rounded-xl border border-[#DCE9DD] bg-[#F7F7F1] p-4 sm:min-w-64">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-[#89918A]">
-                  Regional CAMS forecast · not live
+                  Regional CAMS model forecast · not a station reading
                 </p>
-                <p className="mt-1 font-mono text-xl font-bold tabular-nums text-[#263C32]">
-                  {nextForecast.expectedPm25 ?? '—'}
-                  <span className="ml-1 text-[11px] font-medium">µg/m³ PM2.5</span>
-                </p>
-                <p className="mt-1 text-[11px] text-[#89918A]">
+                <div className="mt-3 grid grid-cols-3 gap-3">
+                  <div>
+                    <p className="text-[10px] text-[#89918A]">PM2.5</p>
+                    <p className="mt-1 font-mono text-lg font-bold tabular-nums text-[#263C32]">
+                      {formatMetric(nextForecast.expectedPm25)}
+                    </p>
+                    <p className="text-[10px] text-[#89918A]">µg/m³</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-[#89918A]">PM10</p>
+                    <p className="mt-1 font-mono text-lg font-bold tabular-nums text-[#263C32]">
+                      {formatMetric(nextForecast.expectedPm10)}
+                    </p>
+                    <p className="text-[10px] text-[#89918A]">µg/m³</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-[#89918A]">India AQI</p>
+                    <p className="mt-1 font-mono text-lg font-bold tabular-nums text-[#263C32]">
+                      {formatMetric(nextForecast.expectedAqiIndia)}
+                    </p>
+                    <p className="text-[10px] text-[#89918A]">model-derived</p>
+                  </div>
+                </div>
+                <p className="mt-3 text-[11px] text-[#89918A]">
                   {nextForecast.forecastDate} · {nextForecast.timeWindow}
                 </p>
                 <button
@@ -252,8 +278,9 @@ export function EnvironmentView({
       ) : (
         <div className="space-y-6">
           {/* Station Divergence Visual Cards */}
+          {availableSnapshots.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {allSnapshots.map((s) => {
+            {availableSnapshots.map((s) => {
               const derived = deriveAqiFromPollutants(s.pollutants, s.reportedAqiIndia);
               const barPct = derived.aqi ? Math.min(100, Math.round((derived.aqi / 300) * 100)) : 0;
               const classKey = `cls_${s.classification ?? (s.isDemoFixture ? 'demo_fixture' : s.isAvailable ? 'verified_live' : 'unavailable')}`;
@@ -356,6 +383,16 @@ export function EnvironmentView({
               );
             })}
           </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-[#E2E7E1] bg-white p-6">
+              <h2 className="font-display text-sm font-semibold text-[#252D28]">
+                No verified station measurements available for {city}
+              </h2>
+              <p className="mt-1 text-xs leading-relaxed text-[#89918A]">
+                Station metric cards are hidden until a real station observation is received. Regional CAMS model values, when available, are shown separately above and in the Forecast tab.
+              </p>
+            </div>
+          )}
 
           {/* Station Telemetry Ledger */}
           <div className="bg-white border border-[#E2E7E1] rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
@@ -364,7 +401,7 @@ export function EnvironmentView({
                 {t(lang, 'dash_evidence_heading')} · {city}
               </h2>
               <span className="font-mono text-xs text-[#89918A] tabular-nums">
-                {allSnapshots.length} source(s)
+                {availableSnapshots.length} verified source(s)
               </span>
             </div>
             <div className="overflow-x-auto">
@@ -382,7 +419,13 @@ export function EnvironmentView({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E2E7E1]">
-                  {allSnapshots.map((s) => {
+                  {availableSnapshots.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="px-5 py-6 text-center text-xs text-[#89918A]">
+                        No verified station records are available. No zero or placeholder measurements are inserted.
+                      </td>
+                    </tr>
+                  ) : availableSnapshots.map((s) => {
                     const classKey = `cls_${s.classification ?? (s.isDemoFixture ? 'demo_fixture' : s.isAvailable ? 'verified_live' : 'unavailable')}`;
                     return (
                       <tr key={s.id} className="hover:bg-[#F7F7F1]/70">

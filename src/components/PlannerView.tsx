@@ -236,11 +236,16 @@ export function PlannerView({
           const partItems = plan.dailyPlan.filter((item) =>
             part.windows.includes(item.suggestedWindow ?? item.originalWindow)
           );
-          const partForecasts = forecasts.filter((f) => part.windows.includes(f.timeWindow));
+          const partForecasts = forecasts.filter(
+            (f) =>
+              part.windows.includes(f.timeWindow) &&
+              typeof f.expectedPm25 === 'number' &&
+              Number.isFinite(f.expectedPm25)
+          );
           const avgPm =
             partForecasts.length > 0
               ? Math.round(
-                  partForecasts.reduce((acc, f) => acc + (f.expectedPm25 ?? 0), 0) /
+                  partForecasts.reduce((acc, f) => acc + f.expectedPm25!, 0) /
                     partForecasts.length
                 )
               : null;
@@ -283,9 +288,9 @@ export function PlannerView({
                 </span>
               </div>
               <p className="mt-1.5 text-[11px] text-[#89918A]">
-                {forecastMatch?.expectedPm25
-                  ? `Est. PM2.5 ~${forecastMatch.expectedPm25} µg`
-                  : 'No forecast slot'}
+                {typeof forecastMatch?.expectedPm25 === 'number'
+                  ? `Est. PM2.5 ~${forecastMatch.expectedPm25} µg/m³`
+                  : 'No PM2.5 forecast for this window'}
               </p>
             </div>
           );
