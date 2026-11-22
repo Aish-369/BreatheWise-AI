@@ -175,13 +175,6 @@ export function SettingsView({
             <div className="flex flex-wrap gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => void onResetDemo()}
-                className="px-4 py-2 text-xs font-medium border border-[#E2E7E1] bg-[#F7F7F1] text-[#252D28] rounded-lg hover:bg-[#DCE9DD]/50 cursor-pointer"
-              >
-                {t(lang, 'action_resetDemo')}
-              </button>
-              <button
-                type="button"
                 onClick={() => setConfirmClearOpen(true)}
                 className="px-4 py-2 text-xs font-medium border border-[#B33A2E]/35 bg-white text-[#B33A2E] rounded-lg hover:bg-[#B33A2E]/5 cursor-pointer"
               >
