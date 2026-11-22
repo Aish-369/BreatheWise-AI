@@ -9,8 +9,11 @@ import { generateProtectionPlan } from '../src/engine/intelligence';
 import { buildDemoFixtures } from '../src/server/adapters/fixtures';
 import { createApp } from '../src/server/app';
 import {
+  createBrowserSession,
   getActiveHousehold,
+  getBrowserSession,
   getDb,
+  hashSessionToken,
   getSchemaVersion,
   listLocations,
   listMembers,
@@ -760,5 +763,31 @@ describe('Production safety — fail-closed household API boundary', () => {
       if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
       else process.env.NODE_ENV = previousNodeEnv;
     }
+  });
+});
+
+
+describe('Household browser session storage', () => {
+  it('stores only a token hash and resolves a valid unexpired session', () => {
+    const db = getDb(createTempDbPath());
+    openDbs.push(db);
+    const household = seedDemoHouseholdIfEmpty(db);
+    const token = 'test-session-token-that-is-never-stored-raw';
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    createBrowserSession(db, token, household.id, expiresAt);
+    const stored = db.prepare('SELECT token_hash, household_id FROM app_sessions').get() as { token_hash: string; household_id: string };
+    expect(stored.token_hash).toBe(hashSessionToken(token));
+    expect(stored.token_hash).not.toBe(token);
+    expect(stored.household_id).toBe(household.id);
+    expect(getBrowserSession(db, token)).toEqual({ householdId: household.id, expiresAt });
+  });
+
+  it('rejects expired and unknown browser session tokens', () => {
+    const db = getDb(createTempDbPath());
+    openDbs.push(db);
+    const household = seedDemoHouseholdIfEmpty(db);
+    createBrowserSession(db, 'expired-token', household.id, '2000-01-01T00:00:00.000Z');
+    expect(getBrowserSession(db, 'expired-token')).toBeNull();
+    expect(getBrowserSession(db, 'unknown-token')).toBeNull();
   });
 });
