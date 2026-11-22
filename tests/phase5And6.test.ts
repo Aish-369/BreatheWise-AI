@@ -362,19 +362,19 @@ describe('Phase 5 & 6 — Provenance Tiers, Intelligence v2, Adapters, DB & Loca
 
   it('rejects unsafe or fabricated CAMS import metadata and accepts complete JSON/CSV', () => {
     const formulaRes = parseCamsImport(
-      'city,grid_id,issued_at,forecast_date,time_window,expected_pm25\\n=CMD("calc"),CAMS,2026-11-20T08:00:00Z,2026-11-21,06:00-09:00,45'
+      `city,grid_id,issued_at,forecast_date,time_window,expected_pm25\n=CMD("calc"),CAMS,2026-11-20T08:00:00Z,2026-11-21,06:00-09:00,45`
     );
     expect(formulaRes.ok).toBe(false);
     expect(formulaRes.error).toContain('unsafe formula');
 
     const missingMetadata = parseCamsImport(
-      'city,grid_id,forecast_date,time_window,expected_pm25\\nPune,CAMS,2026-11-21,06:00-09:00,45'
+      `city,grid_id,forecast_date,time_window,expected_pm25\nPune,CAMS,2026-11-21,06:00-09:00,45`
     );
     expect(missingMetadata.ok).toBe(false);
     expect(missingMetadata.error).toContain('issued_at');
 
     const invalidDate = parseCamsImport(
-      'city,grid_id,issued_at,forecast_date,time_window,expected_pm25\\nPune,CAMS,2026-11-20T08:00:00Z,2026-02-30,06:00-09:00,45'
+      `city,grid_id,issued_at,forecast_date,time_window,expected_pm25\nPune,CAMS,2026-11-20T08:00:00Z,2026-02-30,06:00-09:00,45`
     );
     expect(invalidDate.ok).toBe(false);
 
@@ -399,7 +399,7 @@ describe('Phase 5 & 6 — Provenance Tiers, Intelligence v2, Adapters, DB & Loca
     expect(validJson.slots?.[0].expectedAqiIndia).toBeGreaterThan(0);
 
     const validCsv = parseCamsImport(
-      'city,grid_id,issued_at,forecast_date,time_window,expected_pm25\\nPune,CAMS-0.4,2026-11-20T08:00:00Z,2026-11-21,06:00-09:00,45'
+      `city,grid_id,issued_at,forecast_date,time_window,expected_pm25\nPune,CAMS-0.4,2026-11-20T08:00:00Z,2026-11-21,06:00-09:00,45`
     );
     expect(validCsv.ok).toBe(true);
     expect(validCsv.slots?.[0].trend).toBe('unknown');
