@@ -253,7 +253,9 @@ export async function resolveEnvironmentBundle(
       const cityForecasts =
         importedForCity.length > 0
           ? importedForCity
-          : fixtures.forecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase());
+          : automaticForecasts.length > 0
+            ? automaticForecasts
+            : fixtures.forecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase());
 
       return {
         primarySnapshot: matchingFixtures[0],
@@ -264,7 +266,7 @@ export async function resolveEnvironmentBundle(
           byCity,
         },
         forecasts: cityForecasts,
-        providerStatuses: [cpcbRes.status, openaqRes.status, camsStatus],
+        providerStatuses: [cpcbRes.status, openaqRes.status, automaticCamsRes.status, camsStatus],
         mode: 'demo_fixture',
       };
     }
@@ -287,7 +289,7 @@ export async function resolveEnvironmentBundle(
     forecasts: importedForecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase()).length > 0
       ? importedForecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase())
       : automaticForecasts,
-    providerStatuses: [cpcbRes.status, openaqRes.status, camsStatus],
+    providerStatuses: [cpcbRes.status, openaqRes.status, automaticCamsRes.status, camsStatus],
     mode: 'unavailable',
   };
 }
