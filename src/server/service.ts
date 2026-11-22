@@ -58,7 +58,7 @@ export async function resolveEnvironmentBundle(
   } = {}
 ): Promise<EnvironmentBundle> {
   const nowIso = new Date().toISOString();
-  const useDemoFixtures = options.useDemoFixtures ?? true;
+  const useDemoFixtures = options.useDemoFixtures ?? false;
   const simulateOutage = options.simulateOutage ?? false;
 
   const camsStatus = getCamsAdapterStatus();
