@@ -388,7 +388,7 @@ const MIGRATIONS: Migration[] = [
           ON environmental_snapshots(provider, station_or_grid_id, measured_at);
       `);
     },
-  },,
+  },
   {
     version: 4,
     name: '004_disable_demo_fixtures_by_default',
