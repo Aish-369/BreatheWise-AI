@@ -1,0 +1,57 @@
+name: Clean Up Merged Branches
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  delete-merged-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout complete history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Delete only branches fully contained in main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          git checkout main
+          git pull --ff-only origin main
+
+          deleted=0
+          preserved=0
+
+          while IFS= read -r ref; do
+            branch="${ref#refs/remotes/origin/}"
+            if [[ "$branch" == "main" || "$branch" == "HEAD" ]]; then
+              continue
+            fi
+
+            if git merge-base --is-ancestor "$ref" origin/main; then
+              echo "Deleting fully merged branch: $branch"
+              gh api --method DELETE "repos/$GH_REPO/git/refs/heads/$branch"
+              deleted=$((deleted + 1))
+            else
+              echo "::warning::Preserving branch with commits not in main: $branch"
+              preserved=$((preserved + 1))
+            fi
+          done < <(git for-each-ref --format='%(refname)' refs/remotes/origin/)
+
+          echo "Deleted merged branches: $deleted"
+          echo "Preserved branches with unique commits: $preserved"
+
+          remaining="$(git ls-remote --heads origin | awk '$2 != "refs/heads/main" { print $2 }')"
+          if [[ -n "$remaining" ]]; then
+            echo "::warning::Some non-main branches remain:"
+            echo "$remaining"
+          else
+            echo "Verified: main is the only branch remaining."
+          fi
