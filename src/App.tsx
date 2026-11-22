@@ -108,7 +108,17 @@ export default function App() {
   const [providers, setProviders] = useState<DataProviderRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [clearedEmpty, setClearedEmpty] = useState(false);
+
+  const runAction = useCallback(async <T,>(action: () => Promise<T>): Promise<T> => {
+    setActionError(null);
+    try { return await action(); }
+    catch (err) {
+      setActionError(err instanceof Error ? err.message : t(lang, 'error_generic'));
+      throw err;
+    }
+  }, [lang]);
 
   const closeHeaderMenus = useCallback(() => {
     setLocationMenuOpen(false);
@@ -145,6 +155,7 @@ export default function App() {
           persist,
         });
         setData(payload);
+        setActionError(null);
         setClearedEmpty(false);
         if (payload.settings) {
           setSimulateOutage(payload.settings.simulateOutage);
@@ -176,24 +187,24 @@ export default function App() {
   const handleLanguageChange = async (nextLang: LanguageCode) => {
     setLang(nextLang);
     if (data?.household) {
-      await updateSettingsApi({
+      await runAction(() => updateSettingsApi({
         language: nextLang,
         useDemoFixtures: useFixtures,
         simulateOutage,
         defaultCity: data.household.city,
-      });
+      }));
     }
   };
 
   const handleToggleOutage = async (nextOutage: boolean) => {
     setSimulateOutage(nextOutage);
     if (data?.household) {
-      await updateSettingsApi({
+      await runAction(() => updateSettingsApi({
         language: lang,
         useDemoFixtures: useFixtures,
         simulateOutage: nextOutage,
         defaultCity: data.household.city,
-      });
+      }));
     }
     await loadBootstrap({ outage: nextOutage, fixtures: useFixtures });
   };
@@ -230,7 +241,7 @@ export default function App() {
   };
 
   const handleSaveHousehold = async (input: HouseholdInput) => {
-    await saveHouseholdApi(input);
+    await runAction(() => saveHouseholdApi(input));
     setLang(input.language);
     await loadBootstrap();
   };
@@ -248,58 +259,58 @@ export default function App() {
   };
 
   const handleAddMember = async (input: FamilyMemberInput) => {
-    await addMemberApi(input);
+    await runAction(() => addMemberApi(input));
     await loadBootstrap();
   };
 
   const handleUpdateMember = async (id: string, input: FamilyMemberInput) => {
-    await updateMemberApi(id, input);
+    await runAction(() => updateMemberApi(id, input));
     await loadBootstrap();
   };
 
   const handleDeleteMember = async (id: string) => {
-    await deleteMemberApi(id);
+    await runAction(() => deleteMemberApi(id));
     await loadBootstrap();
   };
 
   const handleAddRoutine = async (input: ActivityRoutineInput) => {
-    await addRoutineApi(input);
+    await runAction(() => addRoutineApi(input));
     await loadBootstrap();
   };
 
   const handleUpdateRoutine = async (id: string, input: ActivityRoutineInput) => {
-    await updateRoutineApi(id, input);
+    await runAction(() => updateRoutineApi(id, input));
     await loadBootstrap();
   };
 
   const handleToggleRoutineCompletion = async (id: string, completed: boolean) => {
-    await toggleRoutineCompletionApi(id, completed);
+    await runAction(() => toggleRoutineCompletionApi(id, completed));
     await loadBootstrap();
   };
 
   const handleDeleteRoutine = async (id: string) => {
-    await deleteRoutineApi(id);
+    await runAction(() => deleteRoutineApi(id));
     await loadBootstrap();
   };
 
   const handleCreateLocation = async (input: LocationInput) => {
-    await createLocationApi(input);
+    await runAction(() => createLocationApi(input));
     await loadBootstrap();
   };
 
   const handleUpdateLocation = async (id: string, input: LocationInput) => {
-    await updateLocationApi(id, input);
+    await runAction(() => updateLocationApi(id, input));
     await loadBootstrap();
   };
 
   const handleDeleteLocation = async (id: string) => {
-    await deleteLocationApi(id);
+    await runAction(() => deleteLocationApi(id));
     await loadBootstrap();
   };
 
   const handleImportCams = async (rawText: string) => {
     try {
-      const body = await importCamsApi(rawText);
+      const body = await runAction(() => importCamsApi(rawText));
       await loadBootstrap();
       return {
         ok: true,
@@ -314,13 +325,13 @@ export default function App() {
   };
 
   const handleRunScenario = async (mod: ScenarioModification) => {
-    const scenarioResult = await runScenarioApi(mod, { simulateOutage, useFixtures });
+    const scenarioResult = await runAction(() => runScenarioApi(mod, { simulateOutage, useFixtures }));
     await loadBootstrap();
     return scenarioResult;
   };
 
   const handleClearLocal = async () => {
-    await clearLocalApi();
+    await runAction(() => clearLocalApi());
     setClearedEmpty(true);
     setData(null);
   };
@@ -777,6 +788,12 @@ export default function App() {
           </header>
 
           <main className="flex-1 max-w-6xl w-full mx-auto px-4 lg:px-8 py-7">
+            {actionError && (
+              <div role="alert" aria-live="assertive" className="mb-5 flex items-start justify-between gap-3 rounded-xl border border-[#B33A2E]/35 bg-white px-4 py-3 text-sm text-[#9A2E24] shadow-sm">
+                <div><p className="font-semibold">Action could not be completed</p><p className="mt-1 text-xs leading-relaxed">{actionError}</p></div>
+                <button type="button" onClick={() => setActionError(null)} aria-label="Dismiss error" className="shrink-0 rounded-md p-1 hover:bg-[#F6DFDC] cursor-pointer"><X className="h-4 w-4" /></button>
+              </div>
+            )}
             {clearedEmpty ? (
               <div className="bg-white border border-[#E2E7E1] rounded-2xl p-10 text-center space-y-4">
                 <h2 className="font-display text-lg font-semibold text-[#252D28]">
