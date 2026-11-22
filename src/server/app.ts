@@ -1,4 +1,5 @@
 import express from 'express';
+import crypto from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 import {
   ActivityRoutineInputSchema,
@@ -18,7 +19,11 @@ import {
   deleteLocation,
   deleteMember,
   deleteRoutine,
+  createBrowserSession,
+  createHouseholdForBrowserSession,
   getActiveHousehold,
+  getBrowserSession,
+  getHouseholdById,
   getSchemaVersion,
   getUserSettings,
   listDataProvidersWithLicenses,
@@ -35,7 +40,7 @@ import {
   updateLocation,
   updateMember,
   updateRoutine,
-  upsertHousehold,
+  updateHouseholdForId,
   upsertRoutine,
   upsertUserSettings,
 } from './db';
@@ -48,6 +53,13 @@ import {
   NotFoundError,
 } from './errors';
 import { executeWhatIfScenario, getFullAppBootstrap } from './service';
+
+const sessionHouseholdByRequest = new WeakMap<express.Request, string>();
+
+function getRequestHousehold(req: express.Request, db: DatabaseSync) {
+  const id = sessionHouseholdByRequest.get(req);
+  return id ? getHouseholdById(db, id) : getRequestHousehold(req, db);
+}
 
 export interface CreateAppOptions {
   mountErrorHandler?: boolean;
@@ -66,29 +78,62 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
   });
   app.use(express.json({ limit: '1mb' }));
 
-  // Temporary fail-closed protection: until every data query is bound to a
-  // verified per-browser household session, never expose shared global records
-  // through the public production deployment.
-  app.use('/api', (req, res, next) => {
-    if (
-      process.env.NODE_ENV === 'production' &&
-      req.path !== '/health' &&
-      req.path !== '/providers' &&
-      req.path !== '/local/reset-demo' &&
-      req.path !== '/local/clear'
-    ) {
-      res.status(503).json({
-        error: 'Private workspace access is temporarily unavailable while household isolation is being completed.',
-        code: 'HOUSEHOLD_ISOLATION_PENDING',
-      });
+  app.get('/api/session', (req, res) => {
+    const cookie = (req.headers.cookie ?? '').split(';').map((part) => part.trim())
+      .find((part) => part.startsWith('breathewise_session='));
+    const tokenFromCookie = cookie?.slice('breathewise_session='.length);
+    const existing = tokenFromCookie ? getBrowserSession(db, tokenFromCookie) : null;
+    if (existing) {
+      res.setHeader('Cache-Control', 'no-store');
+      res.json({ authenticated: true, household: getHouseholdById(db, existing.householdId) });
       return;
     }
+    const token = crypto.randomBytes(32).toString('base64url');
+    const household = createHouseholdForBrowserSession(db);
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    createBrowserSession(db, token, household.id, expiresAt);
+    const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
+    res.setHeader('Set-Cookie', `breathewise_session=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000${secure}`);
+    res.setHeader('Cache-Control', 'no-store');
+    res.status(201).json({ authenticated: true, household });
+  });
+
+  app.use('/api', (req, res, next) => {
+    if (['/health', '/providers', '/session', '/local/reset-demo', '/local/clear'].includes(req.path)) {
+      next();
+      return;
+    }
+    if (process.env.NODE_ENV !== 'production') {
+      next();
+      return;
+    }
+    const cookie = (req.headers.cookie ?? '').split(';').map((part) => part.trim())
+      .find((part) => part.startsWith('breathewise_session='));
+    const token = cookie?.slice('breathewise_session='.length);
+    const session = token ? getBrowserSession(db, token) : null;
+    if (!session || !getHouseholdById(db, session.householdId)) {
+      res.status(401).json({ error: 'A valid browser session is required.', code: 'SESSION_REQUIRED' });
+      return;
+    }
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+      const origin = req.get('origin');
+      let validOrigin = false;
+      try {
+        const parsed = origin ? new URL(origin) : null;
+        validOrigin = Boolean(parsed && parsed.host === req.get('host') && parsed.protocol === 'https:');
+      } catch { validOrigin = false; }
+      if (!validOrigin) {
+        res.status(403).json({ error: 'Cross-origin request rejected.', code: 'CSRF_ORIGIN_REJECTED' });
+        return;
+      }
+    }
+    sessionHouseholdByRequest.set(req, session.householdId);
     next();
   });
 
   app.get(
     '/api/health',
-    asyncHandler((_req, res) => {
+    asyncHandler((req, res) => {
       res.json({
         ok: true,
         service: 'BreatheWise AI',
@@ -110,6 +155,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
 
       const data = await getFullAppBootstrap(db, {
         householdId: sessionHouseholdByRequest.get(req),
+        householdId: sessionHouseholdByRequest.get(req),
         cityOverride,
         simulateOutage,
         useDemoFixtures,
@@ -123,7 +169,9 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     '/api/household',
     asyncHandler((req, res) => {
       const parsed = HouseholdInputSchema.parse(req.body);
-      const updated = upsertHousehold(db, parsed, false);
+      const current = getRequestHousehold(req, db);
+      if (!current) throw new NotFoundError('Household not found.');
+      const updated = updateHouseholdForId(db, current.id, parsed, false);
       res.json({ household: updated });
     })
   );
@@ -159,7 +207,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     '/api/members/:id',
     asyncHandler((req, res) => {
       const memberId = IdParamSchema.parse(req.params.id);
-      const household = getActiveHousehold(db);
+      const household = getRequestHousehold(req, db);
       if (!household) {
         throw new NotFoundError('Household not found.');
       }
@@ -178,7 +226,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     '/api/routines',
     asyncHandler((req, res) => {
       const parsed = ActivityRoutineInputSchema.parse(req.body);
-      const household = getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db);
+      const household = getRequestHousehold(req, db);
       const routine = upsertRoutine(db, household.id, parsed);
       res.status(201).json({ routine, routines: listRoutines(db, household.id) });
     })
@@ -189,7 +237,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     asyncHandler((req, res) => {
       const routineId = IdParamSchema.parse(req.params.id);
       const parsed = ActivityRoutineInputSchema.parse(req.body);
-      const household = getActiveHousehold(db);
+      const household = getRequestHousehold(req, db);
       if (!household) {
         throw new NotFoundError('Household not found.');
       }
@@ -206,7 +254,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     asyncHandler((req, res) => {
       const routineId = IdParamSchema.parse(req.params.id);
       const parsed = RoutineCompletionSchema.parse(req.body);
-      const household = getActiveHousehold(db);
+      const household = getRequestHousehold(req, db);
       if (!household) {
         throw new NotFoundError('Household not found.');
       }
@@ -222,7 +270,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     '/api/routines/:id',
     asyncHandler((req, res) => {
       const routineId = IdParamSchema.parse(req.params.id);
-      const household = getActiveHousehold(db);
+      const household = getRequestHousehold(req, db);
       if (!household) {
         throw new NotFoundError('Household not found.');
       }
@@ -236,8 +284,8 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
 
   app.get(
     '/api/locations',
-    asyncHandler((_req, res) => {
-      const household = getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db);
+    asyncHandler((req, res) => {
+      const household = getRequestHousehold(req, db);
       res.json({ locations: listLocations(db, household.id) });
     })
   );
@@ -246,7 +294,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     '/api/locations',
     asyncHandler((req, res) => {
       const parsed = LocationInputSchema.parse(req.body);
-      const household = getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db);
+      const household = getRequestHousehold(req, db);
       const location = createLocation(db, household.id, parsed);
       res.status(201).json({
         location,
@@ -260,7 +308,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     asyncHandler((req, res) => {
       const locationId = IdParamSchema.parse(req.params.id);
       const parsed = LocationInputSchema.parse(req.body);
-      const household = getActiveHousehold(db);
+      const household = getRequestHousehold(req, db);
       if (!household) {
         throw new NotFoundError('Household not found.');
       }
@@ -279,7 +327,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     '/api/locations/:id',
     asyncHandler((req, res) => {
       const locationId = IdParamSchema.parse(req.params.id);
-      const household = getActiveHousehold(db);
+      const household = getRequestHousehold(req, db);
       if (!household) {
         throw new NotFoundError('Household not found.');
       }
@@ -295,8 +343,8 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
 
   app.get(
     '/api/settings',
-    asyncHandler((_req, res) => {
-      const household = getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db);
+    asyncHandler((req, res) => {
+      const household = getRequestHousehold(req, db);
       res.json({ settings: getUserSettings(db, household.id) });
     })
   );
@@ -305,7 +353,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     '/api/settings',
     asyncHandler((req, res) => {
       const parsed = UserSettingsInputSchema.parse(req.body);
-      const household = getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db);
+      const household = getRequestHousehold(req, db);
       const settings = upsertUserSettings(db, household.id, parsed);
       res.json({
         settings,
@@ -316,7 +364,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
 
   app.get(
     '/api/providers',
-    asyncHandler((_req, res) => {
+    asyncHandler((req, res) => {
       res.json({
         providers: listDataProvidersWithLicenses(db),
       });
@@ -362,8 +410,8 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
 
   app.get(
     '/api/history',
-    asyncHandler((_req, res) => {
-      const household = getActiveHousehold(db);
+    asyncHandler((req, res) => {
+      const household = getRequestHousehold(req, db);
       if (!household) {
         res.json({ plans: [], scenarios: [], snapshots: [] });
         return;
@@ -390,7 +438,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
 
   app.delete(
     '/api/local/clear',
-    asyncHandler((_req, res) => {
+    asyncHandler((req, res) => {
       if (process.env.NODE_ENV === 'production') {
         throw new AppError(403, 'LOCAL_MAINTENANCE_DISABLED', 'Local data clearing is disabled in production.');
       }
