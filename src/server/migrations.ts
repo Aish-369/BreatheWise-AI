@@ -417,6 +417,16 @@ const MIGRATIONS: Migration[] = [
       `);
       db.exec('DELETE FROM app_sessions WHERE expires_at <= CURRENT_TIMESTAMP;');
     },
+  },
+  {
+    version: 6,
+    name: '006_household_scoped_imported_forecasts',
+    up: (db) => {
+      if (!hasColumn(db, 'cams_forecasts', 'household_id')) {
+        db.exec('ALTER TABLE cams_forecasts ADD COLUMN household_id TEXT REFERENCES households(id) ON DELETE CASCADE;');
+      }
+      db.exec('CREATE INDEX IF NOT EXISTS idx_cams_forecasts_household_city ON cams_forecasts(household_id, city, time_window);');
+    },
   }
 ];
 
