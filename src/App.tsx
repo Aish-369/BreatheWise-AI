@@ -40,7 +40,6 @@ import {
   fetchBootstrap,
   fetchProvidersApi,
   importCamsApi,
-  resetDemoApi,
   runScenarioApi,
   saveHouseholdApi,
   toggleRoutineCompletionApi,
@@ -331,14 +330,6 @@ export default function App() {
     const scenarioResult = await runScenarioApi(mod, { simulateOutage, useFixtures });
     await loadBootstrap();
     return scenarioResult;
-  };
-
-  const handleResetDemo = async () => {
-    await resetDemoApi();
-    setSimulateOutage(false);
-    setUseFixtures(true);
-    setClearedEmpty(false);
-    await loadBootstrap({ outage: false, fixtures: true });
   };
 
   const handleClearLocal = async () => {
@@ -809,10 +800,10 @@ export default function App() {
                 </p>
                 <button
                   type="button"
-                  onClick={() => void handleResetDemo()}
+                  onClick={() => window.location.reload()}
                   className="px-4 py-2 text-xs font-medium bg-[#263C32] text-white rounded-lg hover:bg-[#1C2D25] cursor-pointer"
                 >
-                  {t(lang, 'action_resetDemo')}
+                  {t(lang, 'action_startOnboarding')}
                 </button>
               </div>
             ) : errorMsg ? (
@@ -953,7 +944,6 @@ export default function App() {
                         onChangeLang={(next) => void handleLanguageChange(next)}
                         onToggleOutage={(next) => void handleToggleOutage(next)}
                         onToggleFixtures={(next) => void handleToggleFixtures(next)}
-                        onResetDemo={handleResetDemo}
                         onClearLocal={handleClearLocal}
                       />
                     )}
