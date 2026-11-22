@@ -36,7 +36,7 @@ export function LandingPage({ lang, onChangeLang, onEnterWorkspace }: LandingPag
           pm25: previewShifted ? 68 : 74,
           pm10: 124,
           freshness: t(lang, 'fresh_fresh'),
-          source: 'Demo Fixture · Physical Station',
+          source: 'Illustrative reference · Not live',
           walkTime: previewShifted ? '12:00–16:00' : '06:00–09:00',
           walkStatus: previewShifted ? 'Shifted (Est. PM2.5 ~44 µg/m³)' : 'Peak Morning Traffic',
         }
@@ -48,7 +48,7 @@ export function LandingPage({ lang, onChangeLang, onEnterWorkspace }: LandingPag
           pm25: 54,
           pm10: 112,
           freshness: t(lang, 'fresh_aging'),
-          source: 'Demo Fixture · City Air Bulletin',
+          source: 'Illustrative reference · Not live',
           walkTime: '06:00–09:00',
           walkStatus: 'No forecast loaded · Hold shift',
         };
@@ -205,7 +205,7 @@ export function LandingPage({ lang, onChangeLang, onEnterWorkspace }: LandingPag
                           : 'text-[#DCE9DD] hover:text-white'
                       }`}
                     >
-                      Pune Demo
+                      Pune
                     </button>
                     <button
                       type="button"
@@ -216,7 +216,7 @@ export function LandingPage({ lang, onChangeLang, onEnterWorkspace }: LandingPag
                           : 'text-[#DCE9DD] hover:text-white'
                       }`}
                     >
-                      Ahilyanagar Demo
+                      Ahilyanagar
                     </button>
                   </div>
 
@@ -271,7 +271,7 @@ export function LandingPage({ lang, onChangeLang, onEnterWorkspace }: LandingPag
                 <div className="space-y-2 pt-4 border-t border-white/10 text-xs">
                   <div className="rounded-lg bg-white/8 px-3.5 py-2.5 flex items-center justify-between gap-3">
                     <div>
-                      <p className="font-medium text-white">Morning Walk · Sunanda (60+)</p>
+                      <p className="font-medium text-white">Morning walk · Older adult</p>
                       <p className="text-[11px] text-[#DCE9DD]">{previewData.walkStatus}</p>
                     </div>
                     <span className="font-mono text-[#DCE9DD] tabular-nums shrink-0">
@@ -280,7 +280,7 @@ export function LandingPage({ lang, onChangeLang, onEnterWorkspace }: LandingPag
                   </div>
                   <div className="rounded-lg bg-white/8 px-3.5 py-2.5 flex items-center justify-between gap-3">
                     <div>
-                      <p className="font-medium text-white">School Commute · Aarav (Fixed)</p>
+                      <p className="font-medium text-white">School commute · School-age member</p>
                       <p className="text-[11px] text-[#DCE9DD]">
                         Low-traffic route · Wash face after return
                       </p>
