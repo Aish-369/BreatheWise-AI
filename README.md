@@ -1,107 +1,301 @@
-# BreatheWise AI
+# 🌿 BreatheWise AI
 
-**Understand Your Air. Protect Your Family. Breathe Better.**
+### Understand Your Air. Protect Your Family. Breathe Better.
 
-BreatheWise AI is a privacy-conscious, zero-cost, local-first **Family Air Protection Intelligence Platform** that transforms environmental air-quality telemetry into transparent, explainable, family-oriented daily planning decisions.
+**BreatheWise AI** is a privacy-conscious, local-first Family Air Protection Intelligence Platform that transforms environmental air-quality data into personalized family protection plans, explainable recommendations, and smarter daily activity decisions.
 
----
+Instead of simply displaying an AQI number, BreatheWise AI considers environmental conditions, household preferences, family age groups, and daily routines to help families make more informed decisions about outdoor activities.
 
-## Core Differentiator
-
-Generic AQI dashboards stop at a single city number. BreatheWise AI connects:
-
-`Environmental Data -> Provenance & Quality Validation -> Household Context -> Deterministic Intelligence (v2.0.0) -> Actionable Daily Plan -> What-If Scenario Simulator`
-
-Every recommendation and schedule adjustment includes:
-- Plain-language title, explanation, and suggested action in **English**, **मराठी**, and **हिन्दी**
-- Applicable family members by age group (`infant_toddler`, `school_child`, `adult`, `older_adult`), routine flexibility (`fixed` vs `flexible`), and optional non-medical household sensitivity tags (`dust_sensitive`, `respiratory_comfort`, `high_outdoor_exertion`, `elder_mobility_care`, `early_commute_exposure`)
-- Four-part **Evidence & Explainability Trail** (`evidenceMetric`, `ruleTriggered`, `householdContext`, `reconsiderWhenKey`)
-- Explicit 5-tier data classification separating **Verified Live**, **Historical Observation**, **Forecast / Coarse Grid**, **Demo Fixture**, and **Unavailable** states — never disguising demo, historical, or forecast data as live telemetry
-- Printable / downloadable localized PDF Family Air Protection Reports (`jsPDF` with Devanagari canvas rendering for Marathi & Hindi)
-
-> **Non-Medical Disclaimer:** BreatheWise AI is an environmental awareness and daily activity planning aid only. It does not diagnose medical conditions, prescribe clinical interventions, or guarantee street-level air safety.
+**Know your air. Understand your risks. Plan your day better.**
 
 ---
 
-## Architecture Overview
+## ✨ Why BreatheWise AI?
+
+Most air-quality applications focus on displaying pollution levels.
+
+BreatheWise AI goes further by connecting environmental intelligence with everyday family routines.
+
+It follows a transparent intelligence pipeline:
 
 ```text
-React 19 + Vite 8 + Tailwind CSS 4 (Code-Split Lazy Presentation Layer)
-   ├── Editorial Landing Page (`LandingPage.tsx`)
-   ├── Dashboard & Action Center (`DashboardView.tsx`, lazy `pdfExport.ts`)
-   ├── Privacy-First Family Profile & Sensitivity Tags (`FamilyOnboardingView.tsx`)
-   ├── Air Quality, Station Telemetry & CAMS Importer (`EnvironmentView.tsx`)
-   ├── Daily Planner with Inline Edit & Completion Toggle (`PlannerView.tsx`)
-   ├── What-If Scenario Simulator (`SimulatorView.tsx`)
-   ├── Saved Locations CRUD & Compatibility Comparison (`ComparisonView.tsx`)
-   ├── Indoor Guidance (`IndoorGuidanceView.tsx`), History (`HistoryView.tsx`) & Settings/Trust (`SettingsView.tsx`, `TrustView.tsx`)
-          │
-          ▼  (Typed client API in `src/utils/api.ts` -> Express 4 + Zod)
-Express 4 Server (`server.ts` + `src/server/app.ts` + `src/server/service.ts`)
-   ├── Environmental Adapters (`openaq.ts`, `cpcb.ts`, `camsImporter.ts`, `fixtures.ts`)
-   ├── Data Quality, 5-Tier Classification & Trend Engine (`src/engine/quality.ts`)
-   ├── Deterministic Family Protection Intelligence v2.0.0 (`src/engine/intelligence.ts`)
-   └── Versioned Local SQLite Persistence (`node:sqlite` DatabaseSync, Schema v3)
+Environmental Data
+        ↓
+Data Quality & Validation
+        ↓
+Source & Timestamp Verification
+        ↓
+Family & Household Context
+        ↓
+Deterministic Intelligence Engine
+        ↓
+Personalized Protection Recommendations
+        ↓
+Daily Family Protection Plan
 ```
 
----
-
-## Tech Stack & Zero-Cost Compliance
-
-- **Frontend:** React 19, TypeScript, Tailwind CSS 4, Motion, Lucide Icons, lazy-loaded `jsPDF`
-- **Backend:** Express 4 (`server.ts` / `src/server/app.ts`), Vite 8 middleware (dev), Node.js v22 built-in `node:sqlite` (`DatabaseSync`, WAL mode, foreign keys, versioned migrations up to v3)
-- **Validation & Testing:** Zod, Vitest (39 automated unit, adapter, migration, API, and i18n key-parity tests)
-- **Zero-Cost Guarantee:** Zero paid AI/LLM APIs, zero cloud databases, zero paid subscriptions, and full offline/outage fallback. Continues operating cleanly when internet connectivity or upstream API keys are absent.
+Every recommendation is designed to be understandable, explainable, and linked to its supporting evidence.
 
 ---
 
-## Local Setup & Running
+## 🚀 Key Features
+
+### 👨‍👩‍👧‍👦 1. Family Protection Intelligence
+- Create and manage household profiles.
+- Add family members across different age groups.
+- Configure optional non-medical household sensitivity preferences.
+- Account for fixed and flexible daily routines.
+- Generate recommendations based on household context.
+
+### 🌍 2. Air Quality Intelligence
+- View environmental air-quality information.
+- Inspect pollutant measurements and station details.
+- Track observation timestamps and data freshness.
+- Integrate supported CPCB and OpenAQ data adapters.
+- Import Copernicus CAMS forecast data through CSV or JSON.
+
+### 🧠 3. Explainable Recommendation Engine
+- Deterministic, rule-based family protection intelligence.
+- Multi-pollutant consideration.
+- Household-context-aware recommendations.
+- Historical trend awareness.
+- Evidence-backed explanations for generated actions.
+
+Each recommendation includes:
+
+- Evidence Metric
+- Triggered Rule
+- Household Context
+- When to Reconsider
+
+### 📅 4. Daily Family Protection Planner
+- Organize daily routines into time windows.
+- Distinguish fixed and flexible activities.
+- Suggest adjustments when supported by suitable data.
+- Preserve fixed commitments.
+- Edit routines and track completion.
+
+### 🔬 5. What-If Scenario Simulator
+- Simulate hypothetical pollution changes.
+- Explore PM2.5 and PM10 scenarios.
+- Simulate moving outdoor activities indoors.
+- Explore unavailable-data and outage situations.
+
+All simulations are explicitly labelled as hypothetical, not observed environmental measurements.
+
+### 📍 6. Location Comparison
+- Save multiple locations.
+- Compare available environmental information.
+- Identify incompatible data sources or timestamps.
+- Display comparison warnings when data quality differs.
+
+### 🏠 7. Indoor Protection Guidance
+- Access practical indoor air-quality guidance.
+- Explore household-oriented protective actions.
+- Understand the limitations of available indoor information.
+
+### 🌐 8. Multilingual Experience
+Available languages:
+
+- English
+- मराठी
+- हिन्दी
+
+Localized recommendations and downloadable family protection reports are supported.
+
+### 📄 9. Family Protection PDF Reports
+- Generate downloadable reports.
+- Export reports in English, Marathi, and Hindi.
+- Support Devanagari text rendering.
+
+### 🔐 10. Privacy-First Local Storage
+- Local SQLite database.
+- Local household and routine persistence.
+- No mandatory cloud database.
+- No paid AI or LLM API dependency.
+- Local data management and reset options.
+
+---
+
+## 🛡️ Data Transparency & Trust
+
+BreatheWise AI distinguishes five environmental data states:
+
+| Classification | Meaning |
+|---|---|
+| Verified Live | Recent physical station observation |
+| Historical Observation | Older physical station observation |
+| Forecast / Coarse Grid | Model-based forecast information |
+| Demo Fixture | Clearly identified demonstration data |
+| Unavailable | No valid observation available |
+
+The platform does not intentionally disguise demo data, historical observations, or modeled forecasts as live station measurements.
+
+**Important:** Forecast estimates are not physical station readings. Coarse-grid forecasts are not equivalent to street-level air-quality measurements or official CPCB AQI.
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React 19, TypeScript |
+| Build Tool | Vite 8 |
+| Styling | Tailwind CSS 4 |
+| Backend | Node.js, Express 4 |
+| Validation | Zod |
+| Database | SQLite |
+| Intelligence | Deterministic TypeScript Engine |
+| Testing | Vitest |
+| PDF Generation | jsPDF |
+| Icons | Lucide React |
+| Motion | Motion |
+
+---
+
+## 🌱 Zero-Cost & Local-First Approach
+
+BreatheWise AI is designed to run locally without requiring paid AI services or cloud infrastructure.
+
+- No paid AI/LLM API required.
+- No mandatory cloud database.
+- No paid hosting required for local development.
+- No API key required for the local demonstration mode.
+- Graceful fallback when external providers are unavailable.
+
+Optional external environmental data providers may require free account registration, API keys, internet access, and compliance with their respective terms and licenses.
+
+---
+
+## ⚙️ Getting Started
 
 ### Prerequisites
-- **Node.js v22.x+** (required for built-in `node:sqlite`)
-- **npm 10+**
 
-### 1. Install Dependencies
+Install the following:
+
+- Node.js 22.x or newer
+- npm 10 or newer
+- Git
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/YOUR-USERNAME/BreatheWise-AI.git
+```
+
+### 2. Navigate to the Project
+
+```bash
+cd BreatheWise-AI
+```
+
+### 3. Install Dependencies
+
 ```bash
 npm install
 ```
 
-### 2. Configure Environment (Optional)
-Copy `.env.example` to `.env` if you want to test live external APIs. **No API keys are required** to run the app:
+### 4. Configure Environment Variables (Optional)
+
+Copy the example environment file:
+
 ```bash
 cp .env.example .env
 ```
-Optional server-side variables (never bundled into client code):
-- `OPENAQ_API_KEY`: Free OpenAQ v3 API key (`X-API-Key`).
-- `DATA_GOV_IN_API_KEY`: Free `data.gov.in` API key for CPCB CAAQMS feeds.
 
-### 3. Database Initialization & Migrations
-SQLite (`./data/breathewise.db`) initializes automatically on first server startup via versioned migrations (`001`–`003`) using parameterized `node:sqlite` prepared statements. When empty, it seeds a clearly labelled demonstration household (`Deshmukh Family (Demo Profile)` in Pune) and saved demo locations. Existing user data is always preserved across migrations.
+Optional server-side API keys:
 
-### 4. Run in Development
+```env
+OPENAQ_API_KEY=your_openaq_api_key
+DATA_GOV_IN_API_KEY=your_data_gov_in_api_key
+```
+
+These keys are optional. The application can run without them.
+
+Never expose private API keys through frontend environment variables or commit your `.env` file.
+
+### 5. Start the Application
+
 ```bash
 npm run dev
 ```
-Open `http://localhost:3000`.
 
-### 5. Build & Run Production
-```bash
-npm run build
-npm start
-```
+Open:
 
-### 6. Type Check & Automated Tests
-```bash
-npm run lint  # tsc --noEmit
-npm test      # vitest run (39 tests across 4 suites using isolated temp/in-memory DBs)
+```text
+http://localhost:3000
 ```
 
 ---
 
-## Documentation Index
+## 🧪 Testing & Quality Checks
 
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — System architecture, SQLite schema v3, security headers, and intelligence v2.0.0
-- [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) — CPCB, OpenAQ v3, Copernicus CAMS ADS import workflow, 5-tier provenance classification, and licenses
-- [`docs/TESTING.md`](docs/TESTING.md) — Automated Vitest suite, live HTTP verification, and verification limitations
-- [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) — End-user workflow guide for all workspace views, localization, and PDF export
-- [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) — Version `1.0.0` release summary
+Run the following commands:
+
+### TypeScript Type Checking
+
+```bash
+npm run lint
+```
+
+### Automated Tests
+
+```bash
+npm test
+```
+
+### Production Build
+
+```bash
+npm run build
+```
+
+The project's testing documentation reports 39 automated tests across four test suites covering intelligence rules, data adapters, SQLite migrations, API validation, localization, and data-quality behavior.
+
+Interactive browser automation with Playwright is not included in the currently documented verification suite.
+
+---
+
+## 📂 Project Documentation
+
+Detailed documentation is available in the `docs/` directory:
+
+| Document | Description |
+|---|---|
+| `ARCHITECTURE.md` | System architecture and database design |
+| `DATA_SOURCES.md` | Environmental providers, data classification and licensing |
+| `TESTING.md` | Automated testing and verification |
+| `USER_GUIDE.md` | Application usage and workflows |
+| `RELEASE_NOTES.md` | Version history and release information |
+
+---
+
+## ⚠️ Important Disclaimer
+
+BreatheWise AI is an environmental awareness and daily activity planning platform.
+
+It is not a medical device, diagnostic system, or substitute for professional medical advice.
+
+It does not diagnose diseases, prescribe clinical interventions, or guarantee that any location or activity is safe.
+
+Recommendations depend on the quality, freshness, availability, and limitations of the underlying environmental data.
+
+---
+
+## 🎯 Project Vision
+
+Our vision is to make environmental intelligence more understandable and actionable for everyday households.
+
+We believe air-quality information should do more than display numbers. It should help people understand their environment, make informed decisions, and plan their daily activities with greater awareness.
+
+**From Air Quality Data to Family Protection Intelligence.**
+
+---
+
+## 📜 License
+
+Choose and add an appropriate open-source license before publishing this repository as an open-source project. Provider datasets and external services remain subject to their respective licenses and terms.
+
+---
+
+**BreatheWise AI — Understand Your Air. Protect Your Family. Breathe Better.**
