@@ -10,6 +10,16 @@ Instead of simply displaying an AQI number, BreatheWise AI considers environment
 
 ---
 
+## 🎯 Chosen Challenge Vertical & Persona
+
+**Vertical:** Family Air-Quality Protection Intelligence.
+
+**Primary persona:** A household coordinator planning outdoor routines for a family that may include school-age children, adults, and older adults. The system uses household-provided age groups, sensitivity preferences, location, and routine flexibility to prioritize understandable, practical actions. It does not infer medical conditions or provide diagnosis.
+
+**Decision approach:** Validate each environmental observation and its provenance first; classify it as verified live, historical, forecast, demo, or unavailable; evaluate freshness and pollutant evidence; then apply deterministic, versioned rules to household context and routine flexibility. Each recommendation should expose its trigger, evidence, context, and reconsideration condition. If valid evidence is missing, the safe outcome is to hold the recommendation pending data rather than invent a reading.
+
+**Assumptions:** Household details are user-entered and non-medical; external providers may be unavailable or require their own free API credentials; forecast grids are not station observations; hypothetical what-if values are not real measurements; and recommendations are informational rather than medical advice.
+
 ## ✨ Why BreatheWise AI?
 
 Most air-quality applications focus on displaying pollution levels.
@@ -271,11 +281,11 @@ Detailed documentation is available in the `docs/` directory:
 ---
 
 
-## 🚧 Production Deployment Status
+## 🚧 Deployment & Production Limitations
 
-This repository is undergoing production hardening. **The public Render deployment has not yet been updated with this branch and must not be used for real family data.**
+The public Render deployment is a hosted evaluation instance, not a durable production service. The current application runtime uses local SQLite (`node:sqlite`). Render Free instances have ephemeral local storage, so household data may be lost on restart or redeploy. **Do not enter sensitive or important family information in the hosted instance.**
 
-The hardening branch now implements anonymous browser-workspace isolation:
+The current mainline includes anonymous browser-workspace isolation:
 - A cryptographically random 256-bit session token is issued in an HttpOnly, Secure (production), SameSite=Lax cookie.
 - Only a SHA-256 token hash is stored in SQLite; session records expire after 30 days.
 - Each new browser session receives a distinct household. All household CRUD, bootstrap, history, scenario operations, and user-imported CAMS forecasts resolve through the verified session rather than selecting a global active household.
@@ -287,7 +297,7 @@ This is **browser-session isolation, not account authentication**. There is no e
 
 **Durable persistence remains a release blocker for the current free Render deployment.** Its filesystem is ephemeral, so SQLite data can be lost after restart or redeploy. Do not rely on the public deployment for durable personal data. A durable database is needed before enabling real production use; no existing unrelated Supabase project has been connected or modified.
 
-The branch has passed GitHub Actions type-check, automated tests, and production build for commit `f2484f02` (46 tests; 4 test files). The workflow also reported zero dependency vulnerabilities. Live CPCB/OpenAQ provider coverage, deployed-browser workflows, accessibility automation, backup/restore, and durable production persistence still require verification. Do not describe the public deployment as production-ready until those release blockers are closed.
+Earlier GitHub Actions runs passed type-checking, automated tests, and the production build for their respective commits. These results do not establish that every current runtime workflow, live provider, or hosted database integration has been verified. Re-run the checks on the exact final commit before submission. Live CPCB/OpenAQ provider coverage, deployed-browser workflows, accessibility automation, backup/restore, and durable production persistence still require verification. Do not describe the public deployment as production-ready until those release blockers are closed.
 
 ## ⚠️ Important Disclaimer
 
@@ -313,7 +323,7 @@ We believe air-quality information should do more than display numbers. It shoul
 
 ## 📜 License
 
-Choose and add an appropriate open-source license before publishing this repository as an open-source project. Provider datasets and external services remain subject to their respective licenses and terms.
+This repository does not currently declare an open-source license. Unless a license file is added, all rights remain reserved by the copyright holder; provider datasets and external services remain subject to their respective licenses and terms.
 
 ---
 
