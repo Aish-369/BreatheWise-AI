@@ -176,10 +176,10 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
       const cityOverride = typeof req.query.city === 'string' ? req.query.city : undefined;
       const simulateOutage =
         req.query.simulateOutage !== undefined ? req.query.simulateOutage === 'true' : undefined;
+      // Demo fixtures are controlled by the household setting in every environment.
+      // They are synthetic and explicitly labelled; live provider readings take precedence.
       const useDemoFixtures =
-        process.env.NODE_ENV === 'production'
-          ? false
-          : req.query.useFixtures !== undefined ? req.query.useFixtures !== 'false' : undefined;
+        req.query.useFixtures !== undefined ? req.query.useFixtures !== 'false' : undefined;
       const persistPlan = req.query.persist === 'true';
 
       const data = await getFullAppBootstrap(db, {
