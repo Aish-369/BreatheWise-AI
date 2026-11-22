@@ -16,7 +16,7 @@ Instead of simply displaying an AQI number, BreatheWise AI considers environment
 
 **Primary persona:** A household coordinator planning outdoor routines for a family that may include school-age children, adults, and older adults. The system uses household-provided age groups, sensitivity preferences, location, and routine flexibility to prioritize understandable, practical actions. It does not infer medical conditions or provide diagnosis.
 
-**Decision approach:** Validate each environmental observation and its provenance first; classify it as verified live, historical, forecast, demo, or unavailable; evaluate freshness and pollutant evidence; then apply deterministic, versioned rules to household context and routine flexibility. Each recommendation should expose its trigger, evidence, context, and reconsideration condition. If valid evidence is missing, the safe outcome is to hold the recommendation pending data rather than invent a reading.
+**Decision approach:** Validate each environmental observation and its provenance first; classify it as verified live, historical, forecast, illustrative sample, or unavailable; evaluate freshness and pollutant evidence; then apply deterministic, versioned rules to household context and routine flexibility. Each recommendation should expose its trigger, evidence, context, and reconsideration condition. If valid evidence is missing, the safe outcome is to hold the recommendation pending data rather than invent a reading.
 
 **Assumptions:** Household details are user-entered and non-medical; external providers may be unavailable or require their own free API credentials; forecast grids are not station observations; hypothetical what-if values are not real measurements; and recommendations are informational rather than medical advice.
 
@@ -136,10 +136,10 @@ BreatheWise AI distinguishes five environmental data states:
 | Verified Live | Recent physical station observation |
 | Historical Observation | Older physical station observation |
 | Forecast / Coarse Grid | Model-based forecast information |
-| Demo Fixture | Clearly identified demonstration data |
+| Illustrative Sample | Clearly identified synthetic reference data, never live measurements |
 | Unavailable | No valid observation available |
 
-The platform does not intentionally disguise demo data, historical observations, or modeled forecasts as live station measurements.
+The platform does not disguise synthetic sample data, historical observations, or modeled forecasts as live station measurements.
 
 **Important:** Forecast estimates are not physical station readings. Coarse-grid forecasts are not equivalent to street-level air-quality measurements or official CPCB AQI.
 
@@ -170,7 +170,7 @@ BreatheWise AI is designed to run locally without requiring paid AI services or 
 - No paid AI/LLM API required.
 - No mandatory cloud database.
 - No paid hosting required for local development.
-- No API key required for the local demonstration mode.
+- No API key required for the local illustrative-data mode.
 - Graceful fallback when external providers are unavailable.
 
 Optional external environmental data providers may require free account registration, API keys, internet access, and compliance with their respective terms and licenses.
@@ -291,7 +291,7 @@ The current mainline includes anonymous browser-workspace isolation:
 - Each new browser session receives a distinct household. All household CRUD, bootstrap, history, scenario operations, and user-imported CAMS forecasts resolve through the verified session rather than selecting a global active household.
 - Unsafe production API requests require a same-origin HTTPS Origin header.
 - Production responses include a restrictive Content Security Policy, HSTS, security headers, and no-store API caching.
-- Production no longer seeds the shared demo household on startup; synthetic fixtures remain disabled by default.
+- Production no longer seeds the shared starter household on startup; synthetic fixtures remain disabled by default.
 
 This is **browser-session isolation, not account authentication**. There is no email/password login, account recovery, cross-device sync, or user identity verification. Clearing browser cookies can make an anonymous workspace inaccessible.
 

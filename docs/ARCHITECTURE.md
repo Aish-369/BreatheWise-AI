@@ -26,5 +26,5 @@
 ## 2. Safeguards & Privacy
 
 - External API keys (`OPENAQ_API_KEY`, `DATA_GOV_IN_API_KEY`) are read exclusively server-side via `process.env`.
-- Household records are non-medical, remain strictly local in SQLite (`./data/breathewise.db`), and can be wiped via one click (`DELETE /api/local/clear`) or reset cleanly to the demo fixture (`POST /api/local/reset-demo`).
+- Household records are non-medical, remain strictly local in SQLite (`./data/breathewise.db`), and can be wiped via one click (`DELETE /api/local/clear`) or reset cleanly to the demo fixture (`POST /api/local/reset-starter`).
 - Outages never silently fall back to synthetic values: `simulateOutage=true` with `useFixtures=false` surfaces an explicit unavailable state.

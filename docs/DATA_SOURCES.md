@@ -11,7 +11,7 @@ BreatheWise AI enforces strict provenance transparency so users always know what
 | `verified_live` | Physical station reading <= 6h old (`fresh` <= 2h or `aging` 2–6h) | Enables full protection guidance; warns if `aging` |
 | `historical_observation` | Physical station reading > 6h old (`stale`) | Holds flexible outdoor window shifting; warns about staleness |
 | `forecast_only` | Modeled coarse-grid trend (e.g., Copernicus CAMS ~40 km grid) | Advises flexible window shifts with explicit coarse-grid disclaimer |
-| `demo_fixture` | Synthetic local demonstration profile | Displayed with unmistakable Demo Fixture banner |
+| `demo_fixture` | Synthetic local illustrative profile | Displayed with clear Illustrative Sample banner |
 | `unavailable` | No valid reading available (e.g., unconfigured keys, offline, or outage) | Never invents numbers; switches flexible outdoor plans to `hold_pending_data` |
 
 ---
@@ -92,5 +92,5 @@ Cells starting with CSV formula prefixes (`=`, `+`, `-`, `@`, `\t`, `\r`) or inv
 
 ## 3. Offline Fallback, Conflict & Outage Handling
 
-- **Offline / Unconfigured Fallback:** When neither API key is set or external providers fail/time out, BreatheWise AI serves clearly marked **Demo Fixtures** only if `useDemoFixtures` is enabled in Settings; otherwise it surfaces an honest **Unavailable** state (`mode: 'unavailable'`) and holds flexible outdoor scheduling (`hold_pending_data`) without inventing measurements.
+- **Offline / Unconfigured Fallback:** When neither API key is set or external providers fail/time out, BreatheWise AI serves clearly marked **Illustrative Samples** only if `useDemoFixtures` is enabled in Settings; otherwise it surfaces an honest **Unavailable** state (`mode: 'unavailable'`) and holds flexible outdoor scheduling (`hold_pending_data`) without inventing measurements.
 - **Provider Conflict:** When two valid providers in the same city differ by `>= 35 AQI` or `>= 35% PM2.5`, `detectProviderConflict` raises `conflict_provider_divergence` inside the plan evidence drawer and recommendations.

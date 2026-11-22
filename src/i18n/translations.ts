@@ -50,7 +50,7 @@ const en: TranslationMap = {
   action_persistPlan: 'Save Snapshot to History',
   loading: 'Loading verified environmental intelligence...',
   error_generic: 'Unable to complete request. Please verify inputs and try again.',
-  demo_fixture_notice: 'Demonstration Fixture Active — Synthetic reference values used because live provider keys are unconfigured.',
+  demo_fixture_notice: 'Illustrative sample data active — Synthetic reference values are shown because live provider keys are not configured. These are not live measurements.',
   outage_mode_label: 'Simulate Provider Outage',
   on: 'On',
   off: 'Off',
@@ -317,7 +317,7 @@ const en: TranslationMap = {
   cls_verified_live: 'Verified Live',
   cls_historical_observation: 'Historical Observation',
   cls_forecast_only: 'Forecast Only (Coarse Grid)',
-  cls_demo_fixture: 'Demo Fixture',
+  cls_demo_fixture: 'Illustrative Sample',
   cls_unavailable: 'Unavailable',
 
   // Household Sensitivity Tags (Non-Medical)
@@ -517,7 +517,7 @@ const mr: TranslationMap = {
   action_persistPlan: 'योजना इतिहासात जतन करा',
   loading: 'पर्यावरणीय माहिती तपासली जात आहे...',
   error_generic: 'विनंती पूर्ण करता आली नाही. कृपया माहिती तपासून पुन्हा प्रयत्न करा.',
-  demo_fixture_notice: 'डेमो संदर्भ डेटा सक्रिय — थेट API की उपलब्ध नसल्याने स्पष्टपणे चिन्हांकित नमुना डेटा वापरला आहे.',
+  demo_fixture_notice: 'नमुना संदर्भ डेटा सक्रिय — थेट API की उपलब्ध नसल्याने स्पष्टपणे चिन्हांकित कृत्रिम नमुना मूल्ये दाखवली आहेत. ही थेट मोजमापे नाहीत.',
   outage_mode_label: 'प्रदाता बंद स्थिती तपासा',
   on: 'सुरू',
   off: 'बंद',
@@ -772,7 +772,7 @@ const mr: TranslationMap = {
   cls_verified_live: 'सत्यापित थेट डेटा',
   cls_historical_observation: 'ऐतिहासिक नोंद',
   cls_forecast_only: 'केवळ अंदाज (विस्तृत ग्रिड)',
-  cls_demo_fixture: 'डेमो नमुना डेटा',
+  cls_demo_fixture: 'कृत्रिम नमुना डेटा',
   cls_unavailable: 'उपलब्ध नाही',
 
   ui_sensitivity_tags_title: 'कौटुंबिक संपर्क प्राधान्ये (गैर-वैद्यकीय)',
@@ -966,7 +966,7 @@ const hi: TranslationMap = {
   action_persistPlan: 'योजना इतिहास में सहेजें',
   loading: 'सत्यापित पर्यावरणीय जानकारी लोड हो रही है...',
   error_generic: 'अनुरोध पूरा नहीं हो सका। कृपया विवरण जांचें और पुनः प्रयास करें।',
-  demo_fixture_notice: 'डेमो संदर्भ डेटा सक्रिय — लाइव प्रदाता कुंजी न होने से स्पष्ट रूप से चिह्नित नमूना डेटा उपयोग किया गया है।',
+  demo_fixture_notice: 'नमूना संदर्भ डेटा सक्रिय — लाइव प्रदाता कुंजी उपलब्ध न होने के कारण कृत्रिम नमूना मान दिखाए गए हैं। ये लाइव माप नहीं हैं।',
   outage_mode_label: 'प्रदाता बंद स्थिति जांचें',
   on: 'चालू',
   off: 'बंद',
@@ -1221,7 +1221,7 @@ const hi: TranslationMap = {
   cls_verified_live: 'सत्यापित लाइव डेटा',
   cls_historical_observation: 'ऐतिहासिक अवलोकन',
   cls_forecast_only: 'केवल पूर्वानुमान (कोर्स ग्रिड)',
-  cls_demo_fixture: 'डेमो संदर्भ डेटा',
+  cls_demo_fixture: 'कृत्रिम नमूना डेटा',
   cls_unavailable: 'उपलब्ध नहीं',
 
   ui_sensitivity_tags_title: 'पारिवारिक संवेदनशीलता प्राथमिकताएँ (गैर-चिकित्सीय)',

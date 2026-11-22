@@ -108,9 +108,9 @@ export function SettingsView({
                   <Globe className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-[#252D28]">Demo environmental data</h3>
+                  <h3 className="text-sm font-semibold text-[#252D28]">Illustrative environmental data</h3>
                   <p className="mt-1 text-xs leading-relaxed text-[#89918A]">
-                    Show clearly labelled synthetic AQI, pollutant and forecast examples when live providers have no data. Live readings always take priority.
+                    Show clearly labelled synthetic AQI, pollutant and forecast samples when live providers have no data. Verified live readings always take priority.
                   </p>
                 </div>
               </div>
