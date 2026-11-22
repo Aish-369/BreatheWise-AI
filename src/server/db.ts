@@ -355,15 +355,19 @@ export function getBrowserSession(
   token: string
 ): BrowserSessionRecord | null {
   const now = new Date().toISOString();
+  const tokenHash = hashSessionToken(token);
   const row = db.prepare(
     `SELECT household_id, expires_at FROM app_sessions
      WHERE token_hash = ? AND expires_at > ?`
-  ).get(hashSessionToken(token), now) as
+  ).get(tokenHash, now) as
     | { household_id: string; expires_at: string }
     | undefined;
-  if (!row) return null;
+  if (!row) {
+    db.prepare('DELETE FROM app_sessions WHERE token_hash = ? AND expires_at <= ?').run(tokenHash, now);
+    return null;
+  }
   db.prepare('UPDATE app_sessions SET last_seen_at = ? WHERE token_hash = ?')
-    .run(now, hashSessionToken(token));
+    .run(now, tokenHash);
   return { householdId: row.household_id, expiresAt: row.expires_at };
 }
 
