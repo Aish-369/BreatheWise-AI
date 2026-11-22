@@ -371,7 +371,7 @@ export const CamsImportPayloadSchema = z.object({
       expectedPm25: z.number().min(0).max(2000),
       expectedPm10: z.number().min(0).max(3000).optional(),
       expectedAqiIndia: z.number().min(0).max(1000).optional(),
-      trend: z.enum(['improving', 'stable', 'worsening']).default('stable'),
+      trend: z.enum(['improving', 'stable', 'worsening', 'unknown']).default('unknown'),
     })
   ).min(1),
 });
