@@ -271,9 +271,9 @@ export function buildDemoFixtureForCity(
     spatialResolutionNote: 'Synthetic city-level demonstration sample; not a physical station or measured location.',
     pollutants: { pm25, pm10, no2, o3, so2: 8 + (seed % 15), co: 0.4 + (seed % 8) / 10 },
     reportedAqiIndia: aqi,
-    measuredAt: null,
+    measuredAt: nowIso,
     retrievedAt: nowIso,
-    freshness: 'unavailable',
+    freshness: 'fresh',
     licenseAttribution: 'Synthetic demonstration data created by BreatheWise AI; not an external environmental observation.',
     warnings: [
       'DEMO DATA — NOT LIVE MEASUREMENTS. Values are synthetic examples for interface and workflow demonstration only.',
