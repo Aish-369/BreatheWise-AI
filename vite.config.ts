@@ -38,7 +38,7 @@ export default defineConfig(() => {
       rollupOptions: {
         output: {
           manualChunks(id) {
-            if (id.includes('node_modules/jspdf') || id.includes('node_modules/html2canvas') || id.includes('node_modules/canvg')) {
+            if (id.includes('node_modules/jspdf')) {
               return 'vendor-pdf';
             }
             if (id.includes('node_modules/motion')) {

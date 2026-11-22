@@ -16,27 +16,40 @@ BreatheWise AI enforces strict provenance transparency so users always know what
 
 ---
 
-## 2. Supported Providers & Licenses
+## 2. Supported Providers, Free Tiers & Exact User Setup
 
 ### A. Central Pollution Control Board (CPCB) via data.gov.in
 - **Adapter:** `src/server/adapters/cpcb.ts`
-- **License:** Government Open Data License – India (GODL) — commercial and non-commercial use allowed with attribution.
-- **Configuration:** Optional free API key via server environment variable `DATA_GOV_IN_API_KEY`.
-- **Details:** Parses CPCB CAAQMS pollutant feeds, converts IST (`DD-MM-YYYY HH:mm:ss`) timestamps to UTC ISO-8601, rejects out-of-range readings (`PM2.5 > 2000`, `PM10 > 3000`, etc.), caches valid responses for 5 minutes server-side, and handles city renames (e.g., `Ahilyanagar` -> `Ahmednagar`, `Chhatrapati Sambhajinagar` -> `Aurangabad`).
+- **Dataset & Endpoint:** `https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69` (Real-time Air Quality Index from various locations)
+- **License:** Government Open Data License – India (GODL) — free commercial and non-commercial use permitted with attribution.
+- **User Configuration Steps:**
+  1. Register a free account at `https://data.gov.in` and generate your personal API key from your profile dashboard (avoid relying on shared sample documentation keys, which are heavily rate-limited).
+  2. Copy `.env.example` to `.env` in the project root (`cp .env.example .env`) and set:
+     ```env
+     DATA_GOV_IN_API_KEY=your_data_gov_in_key_here
+     ```
+  3. Restart `npm run dev` or `npm start`. Keys stay strictly server-side in `process.env`.
+- **Adapter Behavior:** Converts IST (`DD-MM-YYYY HH:mm:ss`) timestamps to UTC ISO-8601, rejects out-of-range pollutants (`PM2.5 > 2000`, `PM10 > 3000`, `NO2 > 2000`, `O3 > 1500`, `SO2 > 2000`, `CO > 100`), caches valid responses for 5 minutes server-side, retries transient `429`/`5xx` once, and maps legacy CPCB names (`Ahilyanagar` -> `Ahmednagar`, `Chhatrapati Sambhajinagar` -> `Aurangabad`).
 
 ### B. OpenAQ API v3
 - **Adapter:** `src/server/adapters/openaq.ts`
-- **License:** OpenAQ Aggregated Open Data (per-station open license metadata).
-- **Configuration:** Optional free API key via server environment variable `OPENAQ_API_KEY`.
-- **Details:** Queries station locations by coordinates (radius 25 km for known Indian cities) or `iso=IN` fallback, validates payload via Zod, enforces bounded pollutant checks, extracts optional ambient weather (`temperatureC`, `relativeHumidityPct`, `windSpeedMs`), retries transient `429`/`5xx` once, and applies a 5-minute TTL cache.
+- **Endpoint:** `https://api.openaq.org/v3/locations` (`X-API-Key` request header)
+- **License & Free Tier:** Aggregated OpenAQ open data (per-station license metadata). Standard free API key tier permits **60 requests/minute** and **2,000 requests/hour**.
+- **User Configuration Steps:**
+  1. Register a free account and generate an OpenAQ v3 API key via OpenAQ Explorer: `https://explore.openaq.org/register`.
+  2. Add it to `.env` on the server:
+     ```env
+     OPENAQ_API_KEY=your_openaq_v3_key_here
+     ```
+  3. Restart the Express server. Never place keys in Vite `VITE_*` client variables.
+- **Adapter Behavior:** Queries stations within 25 km of known Indian city coordinates (or `iso=IN` fallback), enforces Zod response validation & pollutant bounds checks, extracts optional weather fields (`temperatureC`, `relativeHumidityPct`, `windSpeedMs`), retries `429`/`5xx` once respecting `Retry-After`, and applies a 5-minute TTL cache to conserve free-tier quota.
 
-### C. Copernicus Atmosphere Monitoring Service (CAMS) — ADS Manual Import Workflow
+### C. Copernicus Atmosphere Monitoring Service (CAMS) — Manual Offline Import vs. Automated CDS API
 - **Adapter:** `src/server/adapters/camsImporter.ts`
 - **License:** Copernicus Open License (Free, Perpetual, Worldwide, Commercial Allowed). Mandatory attribution: *"Generated using Copernicus Atmosphere Monitoring Service information [Year]"*.
-- **Zero-Cost Obtaining Workflow (Copernicus ADS):**
-  1. Register a free account on the Copernicus Atmosphere Data Store (ADS): `https://ads.atmosphere.copernicus.eu/`.
-  2. Accept the Copernicus CAMS dataset license in your ADS profile and copy your free `.cdsapirc` token if using the `cdsapi` Python client (`cams-global-atmospheric-composition-forecasts`).
-  3. Export a daily summary into either CSV or JSON matching the BreatheWise import schema below, then paste or upload in **Air Quality -> Import CAMS Forecast**.
+- **Manual Import vs. Automated Retrieval:**
+  - **Manual File / Paste Import (Built into App, Zero-Cost Offline Ready):** Upload a `.csv` / `.json` file or paste forecast rows directly under **Air Quality -> CAMS Forecast**. Works completely offline with zero external credentials.
+  - **Automated Retrieval via Copernicus ADS (`cdsapi`, External):** Copernicus ADS API calls (`https://ads.atmosphere.copernicus.eu/api`) run asynchronously over NetCDF/GRIB scientific datasets (often 50+ MB) using Python `cdsapi` and a user's personal `.cdsapirc` key. Because running Python `cdsapi` and NetCDF decoding inside a lightweight Node.js household app is impractical for low-RAM laptops (`i5-6300U` / `7.68 GB RAM`), BreatheWise intentionally does **not** auto-poll ADS in the background. Users who want automated daily CAMS pulls can schedule a tiny zero-cost Python `cdsapi` export externally and upload the resulting CSV/JSON file in-app.
 
 #### Accepted CSV Schema
 ```csv
@@ -63,11 +76,11 @@ Supported `time_window` values: `06:00-09:00`, `09:00-12:00`, `12:00-16:00`, `16
   ]
 }
 ```
-Cells starting with CSV formula prefixes (`=`, `+`, `-`, `@`, tab, CR) or invalid dates/bounds are automatically rejected.
+Cells starting with CSV formula prefixes (`=`, `+`, `-`, `@`, `\t`, `\r`) or invalid dates/bounds are rejected.
 
 ---
 
-## 3. Conflict & Outage Handling
+## 3. Offline Fallback, Conflict & Outage Handling
 
+- **Offline / Unconfigured Fallback:** When neither API key is set or external providers fail/time out, BreatheWise AI serves clearly marked **Demo Fixtures** only if `useDemoFixtures` is enabled in Settings; otherwise it surfaces an honest **Unavailable** state (`mode: 'unavailable'`) and holds flexible outdoor scheduling (`hold_pending_data`) without inventing measurements.
 - **Provider Conflict:** When two valid providers in the same city differ by `>= 35 AQI` or `>= 35% PM2.5`, `detectProviderConflict` raises `conflict_provider_divergence` inside the plan evidence drawer and recommendations.
-- **Unreachable / Unconfigured APIs:** Reported transparently via `GET /api/providers` and workspace badges (`status: 'unavailable' | 'unconfigured'`); synthetic demo fixtures are shown **only** when the user enables *Demo Fixtures*.

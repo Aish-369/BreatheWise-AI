@@ -467,6 +467,10 @@ const en: TranslationMap = {
   trust_engine_title: 'Deterministic Engine & Licenses',
   trust_engine_desc: 'Calculated locally via India CPCB NAQI sub-indices, freshness thresholds (≤ 2h Fresh, 2–6h Aging, > 6h Stale), and routine flexibility rules.',
   ui_pdf_disclaimer: 'Informational environmental planning aid only; not medical advice or emergency clinical guidance.',
+  cams_upload_file: 'Upload .csv / .json',
+  cams_sample_json: 'Sample JSON',
+  cams_mode_manual_title: 'Manual Import (Zero-Cost Offline Ready) vs. Automated CDS API',
+  cams_mode_manual_desc: 'Importing CSV/JSON files works completely offline at zero cost. Automated retrieval from Copernicus ADS requires your own free ADS registration and Python cdsapi token externally; BreatheWise never fabricates forecasts.',
 };
 
 const mr: TranslationMap = {
@@ -912,6 +916,10 @@ const mr: TranslationMap = {
   trust_engine_title: 'नियम-आधारित इंजिन व परवाने',
   trust_engine_desc: 'भारतीय CPCB NAQI उप-निर्देशांक, ताजेपणा मर्यादा (≤ २ तास ताजा, २–६ तास मध्यम, > ६ तास जुना) आणि लवचिकतेवर स्थानिक गणना.',
   ui_pdf_disclaimer: 'केवळ माहितीपूर्ण पर्यावरण नियोजन सहाय्य; वैद्यकीय सल्ला किंवा आपत्कालीन उपचार मार्गदर्शन नाही.',
+  cams_upload_file: '.csv / .json फाइल अपलोड',
+  cams_sample_json: 'नमुना JSON',
+  cams_mode_manual_title: 'मॅन्युअल आयात (ऑफलाइन व मोफत) विरुद्ध स्वयंचलित CDS API',
+  cams_mode_manual_desc: 'CSV/JSON फाइल आयात पूर्णपणे ऑफलाइन आणि मोफत काम करते. Copernicus ADS वरून स्वयंचलित डेटासाठी स्वतंत्र मोफत ADS नोंदणी व cdsapi आवश्यक असते; BreatheWise बनावट अंदाज तयार करत नाही.',
 };
 
 const hi: TranslationMap = {
@@ -1357,6 +1365,10 @@ const hi: TranslationMap = {
   trust_engine_title: 'नियम-आधारित इंजन और लाइसेंस',
   trust_engine_desc: 'भारतीय CPCB NAQI उप-सूचकांक, ताज़गी सीमा (≤ 2h ताज़ा, 2–6h मध्यम, > 6h पुराना) और लचीलेपन नियमों पर स्थानीय गणना।',
   ui_pdf_disclaimer: 'केवल सूचनात्मक पर्यावरण योजना सहायक; चिकित्सा सलाह या आपातकालीन नैदानिक मार्गदर्शन नहीं।',
+  cams_upload_file: '.csv / .json फ़ाइल अपलोड',
+  cams_sample_json: 'नमूना JSON',
+  cams_mode_manual_title: 'मैनुअल आयात (ऑफ़लाइन व निःशुल्क) बनाम स्वचालित CDS API',
+  cams_mode_manual_desc: 'CSV/JSON फ़ाइल आयात पूरी तरह ऑफ़लाइन और निःशुल्क काम करता है। Copernicus ADS से स्वचालित डेटा लाने के लिए आपका निःशुल्क ADS खाता व Python cdsapi आवश्यक है; BreatheWise काल्पनिक पूर्वानुमान नहीं बनाता।',
 };
 
 export const DICTS: Record<LanguageCode, TranslationMap> = { en, mr, hi };
@@ -1370,7 +1382,15 @@ export function t(
   let text = dict[key] ?? en[key] ?? key;
   if (params) {
     for (const [k, v] of Object.entries(params)) {
-      text = text.replaceAll(`{${k}}`, String(v));
+      let resolved = String(v);
+      if (k === 'band') {
+        resolved = dict[`band_${resolved}`] ?? en[`band_${resolved}`] ?? resolved;
+      } else if (k === 'group') {
+        resolved = dict[`age_${resolved}`] ?? en[`age_${resolved}`] ?? resolved;
+      } else if (k === 'tag') {
+        resolved = dict[`sens_${resolved}`] ?? en[`sens_${resolved}`] ?? resolved;
+      }
+      text = text.replaceAll(`{${k}}`, resolved);
     }
   }
   return text;

@@ -658,4 +658,49 @@ describe('Phase 1 — Express API CRUD, Validation & Centralized Error Handling 
       .get('snap-v2') as { classification: string };
     expect(snapRow.classification).toBe('verified_live');
   });
+
+  it('enforces SQLite PRAGMA foreign_keys = ON, rejects orphan children, and cascades deletes cleanly', () => {
+    const dbPath = createTempDbPath();
+    const db = getDb(dbPath);
+    openDbs.push(db);
+
+    const fkRow = db.prepare('PRAGMA foreign_keys').get() as { foreign_keys: number };
+    expect(fkRow.foreign_keys).toBe(1);
+
+    const hh = seedDemoHouseholdIfEmpty(db);
+    const now = new Date().toISOString();
+
+    // Reject orphan child referencing missing household
+    expect(() => {
+      db.prepare(
+        `INSERT INTO family_members (id, household_id, name, age_group, activity_preference, routine_flexibility, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run('mem-orphan', 'hh-nonexistent', 'Orphan', 'adult', 'commute', 'fixed', now, now);
+    }).toThrow(/FOREIGN KEY/i);
+
+    // Save snapshot + plan + evidence, then verify ON DELETE SET NULL on snapshot and ON DELETE CASCADE on household
+    const fixtures = buildDemoFixtures();
+    const puneSnap = fixtures.snapshots.find((s) => s.city === 'Pune')!;
+    saveSnapshot(db, puneSnap);
+    const plan = generateProtectionPlan({
+      household: hh,
+      members: listMembers(db, hh.id),
+      routines: listRoutines(db, hh.id),
+      primarySnapshot: puneSnap,
+      forecastSlots: fixtures.forecasts,
+    });
+    savePlanHistory(db, hh.id, plan, puneSnap.id);
+
+    db.prepare('DELETE FROM environmental_snapshots WHERE id = ?').run(puneSnap.id);
+    const evAfterSnapDelete = listPlanEvidence(db, plan.id);
+    expect(evAfterSnapDelete).toHaveLength(1);
+    expect(evAfterSnapDelete[0].snapshotId).toBeNull();
+
+    db.prepare('DELETE FROM households WHERE id = ?').run(hh.id);
+    expect(listMembers(db, hh.id)).toHaveLength(0);
+    expect(listRoutines(db, hh.id)).toHaveLength(0);
+    expect(listLocations(db, hh.id)).toHaveLength(0);
+    expect(listPlanRecommendations(db, plan.id)).toHaveLength(0);
+    expect(db.prepare('SELECT household_id FROM user_settings WHERE household_id = ?').all(hh.id)).toHaveLength(0);
+  });
 });

@@ -32,6 +32,20 @@ Pune,CAMS-GLOBAL-0.4DEG,2026-11-21,12:00-16:00,39,82,improving
 Pune,CAMS-GLOBAL-0.4DEG,2026-11-21,16:00-19:00,54,104,stable
 Pune,CAMS-GLOBAL-0.4DEG,2026-11-21,19:00-22:00,70,126,worsening`;
 
+const SAMPLE_CAMS_JSON = JSON.stringify(
+  {
+    city: 'Pune',
+    gridId: 'CAMS-GLOBAL-0.4DEG',
+    issuedAt: '2026-11-21T06:00:00.000Z',
+    slots: [
+      { forecastDate: '2026-11-21', timeWindow: '06:00-09:00', expectedPm25: 72, expectedPm10: 128, trend: 'worsening' },
+      { forecastDate: '2026-11-21', timeWindow: '12:00-16:00', expectedPm25: 38, expectedPm10: 80, trend: 'improving' },
+    ],
+  },
+  null,
+  2
+);
+
 export function EnvironmentView({
   lang,
   city,
@@ -47,6 +61,19 @@ export function EnvironmentView({
   const [camsText, setCamsText] = useState(SAMPLE_CAMS_CSV);
   const [importStatus, setImportStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [importing, setImporting] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 512 * 1024) {
+      setImportStatus({ ok: false, message: 'File exceeds 512 KB limit.' });
+      return;
+    }
+    const text = await file.text();
+    setCamsText(text);
+    setImportStatus(null);
+    e.target.value = '';
+  };
 
   const allSnapshots = [primarySnapshot, ...secondarySnapshots];
 
@@ -130,7 +157,11 @@ export function EnvironmentView({
                 <span>{importStatus.message}</span>
               </div>
             )}
-            <div className="flex items-center gap-3">
+            <div className="p-3 rounded-xl bg-[#F7F7F1] border border-[#E2E7E1] text-[11px] leading-relaxed text-[#252D28]">
+              <p className="font-semibold text-[#263C32]">{t(lang, 'cams_mode_manual_title')}</p>
+              <p className="mt-1 text-[#89918A]">{t(lang, 'cams_mode_manual_desc')}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2.5">
               <button
                 type="submit"
                 disabled={importing}
@@ -138,12 +169,29 @@ export function EnvironmentView({
               >
                 {t(lang, 'action_importCams')}
               </button>
+              <label className="px-3.5 py-2 text-xs font-medium border border-[#E2E7E1] bg-[#F7F7F1] text-[#252D28] rounded-lg hover:bg-[#DCE9DD]/40 cursor-pointer inline-flex items-center gap-1.5">
+                <Upload className="w-3.5 h-3.5 text-[#263C32]" />
+                <span>{t(lang, 'cams_upload_file')}</span>
+                <input
+                  type="file"
+                  accept=".csv,.json,text/csv,application/json"
+                  onChange={(e) => void handleFileUpload(e)}
+                  className="sr-only"
+                />
+              </label>
               <button
                 type="button"
                 onClick={() => setCamsText(SAMPLE_CAMS_CSV)}
-                className="px-4 py-2 text-xs font-medium border border-[#E2E7E1] bg-white text-[#252D28] rounded-lg hover:bg-[#DCE9DD]/40 cursor-pointer"
+                className="px-3.5 py-2 text-xs font-medium border border-[#E2E7E1] bg-white text-[#252D28] rounded-lg hover:bg-[#DCE9DD]/40 cursor-pointer"
               >
                 Reset Sample CSV
+              </button>
+              <button
+                type="button"
+                onClick={() => setCamsText(SAMPLE_CAMS_JSON)}
+                className="px-3.5 py-2 text-xs font-medium border border-[#E2E7E1] bg-white text-[#252D28] rounded-lg hover:bg-[#DCE9DD]/40 cursor-pointer"
+              >
+                {t(lang, 'cams_sample_json')}
               </button>
             </div>
           </form>
