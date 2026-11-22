@@ -12,7 +12,7 @@ import type {
 import { getCamsAdapterStatus } from './adapters/camsImporter';
 import { fetchAutomaticCamsForecast } from './adapters/camsForecast';
 import { clearCpcbCache, fetchCpcbSnapshots } from './adapters/cpcb';
-import { buildDemoFixtures, buildUnavailableSnapshot } from './adapters/fixtures';
+import { buildDemoFixtureForCity, buildDemoFixtures, buildUnavailableSnapshot } from './adapters/fixtures';
 import { clearOpenAqCache, fetchOpenAqSnapshots } from './adapters/openaq';
 import {
   getActiveHousehold,
@@ -163,15 +163,7 @@ export async function resolveEnvironmentBundle(
         byCity[c] = liveSnapshots;
       } else if (useDemoFixtures) {
         const fx = fixtures.snapshots.filter((s) => s.city.toLowerCase() === c.toLowerCase());
-        byCity[c] =
-          fx.length > 0
-            ? fx
-            : [
-                buildUnavailableSnapshot(
-                  c,
-                  `No live feed or demo fixture coverage is loaded for ${c}.`
-                ),
-              ];
+        byCity[c] = fx.length > 0 ? fx : [buildDemoFixtureForCity(c, nowIso).snapshot];
       } else {
         byCity[c] = [
           buildUnavailableSnapshot(c, `Live providers unconfigured; fixtures disabled for ${c}.`),
@@ -190,15 +182,7 @@ export async function resolveEnvironmentBundle(
       byCity[c] = extraLive;
     } else if (useDemoFixtures) {
       const fx = fixtures.snapshots.filter((s) => s.city.toLowerCase() === c.toLowerCase());
-      byCity[c] =
-        fx.length > 0
-          ? fx
-          : [
-              buildUnavailableSnapshot(
-                c,
-                `No live environmental feed or demonstration fixture is loaded for ${c}.`
-              ),
-            ];
+      byCity[c] = fx.length > 0 ? fx : [buildDemoFixtureForCity(c, nowIso).snapshot];
     } else {
       byCity[c] = [
         buildUnavailableSnapshot(c, `Live providers unconfigured; fixtures disabled for ${c}.`),
@@ -206,11 +190,11 @@ export async function resolveEnvironmentBundle(
     }
   }
 
-  const puneList = byCity['Pune'] ?? (useDemoFixtures ? puneFixtures : [buildUnavailableSnapshot('Pune', 'Live providers unconfigured; fixtures disabled.')]);
+  const puneList = byCity['Pune'] ?? (useDemoFixtures ? (puneFixtures.length ? puneFixtures : [buildDemoFixtureForCity('Pune', nowIso).snapshot]) : [buildUnavailableSnapshot('Pune', 'Live providers unconfigured; fixtures disabled.')]);
   const ahilyanagarList =
     byCity['Ahilyanagar'] ??
     (useDemoFixtures
-      ? ahilyanagarFixtures
+      ? (ahilyanagarFixtures.length ? ahilyanagarFixtures : [buildDemoFixtureForCity('Ahilyanagar', nowIso).snapshot])
       : [buildUnavailableSnapshot('Ahilyanagar', 'Live providers unconfigured; fixtures disabled.')]);
 
   if (liveSnapshots.length > 0) {
@@ -247,8 +231,12 @@ export async function resolveEnvironmentBundle(
     const matchingFixtures = fixtures.snapshots.filter(
       (s) => s.city.toLowerCase() === city.toLowerCase()
     );
-    if (matchingFixtures.length > 0) {
-      for (const snap of matchingFixtures) {
+    const cityDemo = matchingFixtures.length > 0
+      ? { snapshot: matchingFixtures[0], forecasts: fixtures.forecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase()) }
+      : buildDemoFixtureForCity(city, nowIso);
+    const resolvedDemoSnapshots = matchingFixtures.length > 0 ? matchingFixtures : [cityDemo.snapshot];
+    if (resolvedDemoSnapshots.length > 0) {
+      for (const snap of resolvedDemoSnapshots) {
         saveSnapshot(db, snap);
       }
       const importedForCity = importedForecasts.filter(
@@ -259,7 +247,9 @@ export async function resolveEnvironmentBundle(
           ? importedForCity
           : automaticForecasts.length > 0
             ? automaticForecasts
-            : fixtures.forecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase());
+            : (fixtures.forecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase()).length
+              ? fixtures.forecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase())
+              : buildDemoFixtureForCity(city, nowIso).forecasts);
 
       return {
         primarySnapshot: matchingFixtures[0],
