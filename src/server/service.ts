@@ -65,6 +65,8 @@ export async function resolveEnvironmentBundle(
   const simulateOutage = options.simulateOutage ?? false;
 
   const camsStatus = getCamsAdapterStatus();
+  // A simulated station outage must not disable the independent regional CAMS forecast.
+  const automaticCamsPromise = fetchAutomaticCamsForecast(city);
   const distinctCities = Array.from(
     new Map(
       [city, 'Pune', 'Ahilyanagar', ...(options.extraCities ?? [])]
@@ -75,6 +77,7 @@ export async function resolveEnvironmentBundle(
   );
 
   if (simulateOutage) {
+    const automaticCamsRes = await automaticCamsPromise;
     const unavailablePrimary = buildUnavailableSnapshot(
       city,
       'Simulated provider outage active: live stations unreachable and demo fixtures temporarily disabled.'
@@ -100,7 +103,7 @@ export async function resolveEnvironmentBundle(
         ],
         byCity,
       },
-      forecasts: [],
+      forecasts: automaticCamsRes.slots,
       providerStatuses: [
         {
           provider: 'cpcb',
@@ -124,6 +127,7 @@ export async function resolveEnvironmentBundle(
           notes: 'Simulated outage mode active.',
           lastCheckedAt: nowIso,
         },
+        automaticCamsRes.status,
         camsStatus,
       ],
       mode: 'unavailable',
@@ -133,7 +137,7 @@ export async function resolveEnvironmentBundle(
   const [openaqRes, cpcbRes, automaticCamsRes] = await Promise.all([
     fetchOpenAqSnapshots(city),
     fetchCpcbSnapshots(city),
-    fetchAutomaticCamsForecast(city),
+    automaticCamsPromise,
   ]);
 
   const liveSnapshots = [...cpcbRes.snapshots, ...openaqRes.snapshots].filter((s) => s.isAvailable);
