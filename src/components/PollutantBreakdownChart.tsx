@@ -121,7 +121,7 @@ export function PollutantBreakdownChart({
       </div>
 
       <p className="mt-5 pt-3.5 border-t border-[#E2E7E1] text-[11px] text-[#89918A]">
-        Vertical hairline marks India CPCB 24h/8h reference threshold. Missing sensors remain blank.
+        {t(lang, 'ui_pollutant_benchmark_note')}
       </p>
     </div>
   );

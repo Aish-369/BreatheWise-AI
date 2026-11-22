@@ -182,9 +182,9 @@ describe('Phase 1 — Versioned SQLite Migrations & Normalized Evidence Storage'
     const db = getDb(dbPath);
     openDbs.push(db);
 
-    expect(getSchemaVersion(db)).toBe(2);
+    expect(getSchemaVersion(db)).toBe(3);
     // Idempotency check
-    expect(runMigrations(db)).toBe(2);
+    expect(runMigrations(db)).toBe(3);
 
     const household = getActiveHousehold(db);
     expect(household?.id).toBe('hh-legacy-1');
@@ -272,7 +272,7 @@ describe('Phase 1 — Express API CRUD, Validation & Centralized Error Handling 
     expect(healthRes.status).toBe(200);
     const healthJson = (await healthRes.json()) as { ok: boolean; schemaVersion: number };
     expect(healthJson.ok).toBe(true);
-    expect(healthJson.schemaVersion).toBe(2);
+    expect(healthJson.schemaVersion).toBe(3);
 
     // 2. Bootstrap exposes locations & settings without breaking existing contract
     const bootRes = await fetch(`${baseUrl}/api/bootstrap?simulateOutage=false&useFixtures=true&persist=true`);
@@ -479,5 +479,183 @@ describe('Phase 1 — Express API CRUD, Validation & Centralized Error Handling 
     expect(badJsonRes.status).toBe(400);
     const badJsonBody = (await badJsonRes.json()) as { code: string };
     expect(badJsonBody.code).toBe('INVALID_JSON');
+
+    // 9. Routine daily completion toggle (PATCH /api/routines/:id/completion)
+    const completeRes = await fetch(`${baseUrl}/api/routines/${targetRoutineId}/completion`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed: true }),
+    });
+    expect(completeRes.status).toBe(200);
+    const completeJson = (await completeRes.json()) as {
+      routine: { completedDate: string | null };
+    };
+    expect(completeJson.routine.completedDate).toBe(new Date().toISOString().slice(0, 10));
+
+    const postCompleteBoot = await fetch(`${baseUrl}/api/bootstrap`);
+    const postCompleteJson = (await postCompleteBoot.json()) as {
+      plan: { dailyPlan: Array<{ routineId: string; completedToday?: boolean }> };
+    };
+    expect(
+      postCompleteJson.plan.dailyPlan.find((d) => d.routineId === targetRoutineId)?.completedToday
+    ).toBe(true);
+
+    // 10. PUT /api/household persists non-medical sensitivityTags + security headers check
+    const hhRes = await fetch(`${baseUrl}/api/household`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Deshmukh Verified',
+        city: 'Pune',
+        locality: 'Kothrud',
+        language: 'en',
+        sensitivityTags: ['dust_sensitive', 'early_commute_exposure'],
+      }),
+    });
+    expect(hhRes.status).toBe(200);
+    expect(hhRes.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(hhRes.headers.get('x-frame-options')).toBe('DENY');
+    expect(hhRes.headers.get('referrer-policy')).toBe('no-referrer');
+    const hhJson = (await hhRes.json()) as {
+      household: { name: string; sensitivityTags: string[] };
+    };
+    expect(hhJson.household.sensitivityTags).toEqual([
+      'dust_sensitive',
+      'early_commute_exposure',
+    ]);
+  });
+
+  it('migrates a populated v2 database to v3 non-destructively with classification backfill', () => {
+    const dbPath = createTempDbPath();
+    const v2Db = new DatabaseSync(dbPath);
+    const now = '2026-11-21T07:00:00.000Z';
+
+    v2Db.exec(`
+      CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL);
+      CREATE TABLE households (
+        id TEXT PRIMARY KEY, name TEXT NOT NULL, city TEXT NOT NULL, locality TEXT DEFAULT '',
+        language TEXT NOT NULL DEFAULT 'en', is_demo_profile INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+      );
+      CREATE TABLE family_members (
+        id TEXT PRIMARY KEY, household_id TEXT NOT NULL, name TEXT NOT NULL,
+        age_group TEXT NOT NULL, activity_preference TEXT NOT NULL, routine_flexibility TEXT NOT NULL,
+        created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+      );
+      CREATE TABLE activity_routines (
+        id TEXT PRIMARY KEY, household_id TEXT NOT NULL, title TEXT NOT NULL,
+        environment TEXT NOT NULL, flexibility TEXT NOT NULL, preferred_window TEXT NOT NULL,
+        member_ids_json TEXT NOT NULL, notes TEXT DEFAULT '', created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+      );
+      CREATE TABLE saved_locations (
+        id TEXT PRIMARY KEY, household_id TEXT NOT NULL, city TEXT NOT NULL, locality TEXT DEFAULT '',
+        label TEXT NOT NULL, is_primary INTEGER NOT NULL DEFAULT 0, latitude REAL, longitude REAL,
+        created_at TEXT NOT NULL, updated_at TEXT NOT NULL
+      );
+      CREATE TABLE user_settings (
+        household_id TEXT PRIMARY KEY, language TEXT NOT NULL DEFAULT 'en',
+        use_demo_fixtures INTEGER NOT NULL DEFAULT 1, simulate_outage INTEGER NOT NULL DEFAULT 0,
+        default_city TEXT NOT NULL DEFAULT 'Pune', updated_at TEXT NOT NULL
+      );
+      CREATE TABLE environmental_snapshots (
+        id TEXT PRIMARY KEY, provider TEXT NOT NULL, provider_label TEXT NOT NULL,
+        data_type TEXT NOT NULL, city TEXT NOT NULL, location_label TEXT NOT NULL,
+        station_or_grid_id TEXT NOT NULL, spatial_resolution_note TEXT NOT NULL,
+        pollutants_json TEXT NOT NULL, reported_aqi_india REAL, measured_at TEXT,
+        retrieved_at TEXT NOT NULL, freshness TEXT NOT NULL, license_attribution TEXT NOT NULL,
+        warnings_json TEXT NOT NULL, is_demo_fixture INTEGER NOT NULL DEFAULT 0,
+        is_available INTEGER NOT NULL DEFAULT 1
+      );
+      CREATE TABLE cams_forecasts (
+        id TEXT PRIMARY KEY, city TEXT NOT NULL, time_window TEXT NOT NULL,
+        forecast_date TEXT NOT NULL, expected_pm25 REAL, expected_pm10 REAL,
+        expected_aqi_india REAL, trend TEXT NOT NULL, data_type TEXT NOT NULL DEFAULT 'forecast',
+        provider_label TEXT NOT NULL, grid_resolution_note TEXT NOT NULL,
+        issued_at TEXT NOT NULL, license_attribution TEXT NOT NULL,
+        is_demo_fixture INTEGER NOT NULL DEFAULT 0
+      );
+      CREATE TABLE protection_plans (
+        id TEXT PRIMARY KEY, household_id TEXT NOT NULL, city TEXT NOT NULL,
+        generated_at TEXT NOT NULL, aqi_value REAL, aqi_band TEXT NOT NULL,
+        freshness TEXT NOT NULL, is_demo_fixture INTEGER NOT NULL DEFAULT 0,
+        plan_json TEXT NOT NULL
+      );
+      CREATE TABLE recommendations (
+        id TEXT PRIMARY KEY, plan_id TEXT NOT NULL, household_id TEXT NOT NULL,
+        title_key TEXT NOT NULL, severity TEXT NOT NULL, category TEXT NOT NULL,
+        applicable_members_json TEXT NOT NULL, suggested_action_key TEXT NOT NULL,
+        reason_generated_key TEXT NOT NULL, created_at TEXT NOT NULL
+      );
+      CREATE TABLE plan_evidence (
+        id TEXT PRIMARY KEY, plan_id TEXT NOT NULL, snapshot_id TEXT,
+        provider_label TEXT NOT NULL, station_or_grid_id TEXT NOT NULL, data_type TEXT NOT NULL,
+        freshness TEXT NOT NULL, measured_at TEXT, aqi_value REAL, aqi_is_derived INTEGER NOT NULL DEFAULT 0,
+        is_demo_fixture INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL
+      );
+      CREATE TABLE scenario_runs (
+        id TEXT PRIMARY KEY, household_id TEXT NOT NULL, created_at TEXT NOT NULL,
+        label TEXT NOT NULL, result_json TEXT NOT NULL
+      );
+      CREATE TABLE data_providers (
+        id TEXT PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL,
+        is_active INTEGER NOT NULL DEFAULT 1, notes TEXT NOT NULL DEFAULT ''
+      );
+      CREATE TABLE license_attributions (
+        id TEXT PRIMARY KEY, provider_id TEXT NOT NULL, license_name TEXT NOT NULL,
+        attribution_text TEXT NOT NULL, license_url TEXT NOT NULL DEFAULT '', commercial_use_allowed INTEGER NOT NULL DEFAULT 1
+      );
+    `);
+
+    v2Db.prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)').run(
+      1,
+      '001_initial_schema',
+      now
+    );
+    v2Db.prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)').run(
+      2,
+      '002_normalized_entities_locations_settings_providers',
+      now
+    );
+    v2Db.prepare(
+      `INSERT INTO households (id, name, city, locality, language, is_demo_profile, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run('hh-v2', 'Joshi Family', 'Nagpur', 'Dharampeth', 'hi', 0, now, now);
+
+    v2Db.prepare(
+      `INSERT INTO environmental_snapshots (id, provider, provider_label, data_type, city, location_label, station_or_grid_id, spatial_resolution_note, pollutants_json, reported_aqi_india, measured_at, retrieved_at, freshness, license_attribution, warnings_json, is_demo_fixture, is_available)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(
+      'snap-v2',
+      'cpcb',
+      'CPCB',
+      'physical_station',
+      'Nagpur',
+      'Civil Lines',
+      'CPCB-NGP-1',
+      'Station',
+      '{"pm25":52}',
+      92,
+      now,
+      now,
+      'fresh',
+      'GODL',
+      '[]',
+      0,
+      1
+    );
+    v2Db.close();
+
+    const db = getDb(dbPath);
+    openDbs.push(db);
+    expect(getSchemaVersion(db)).toBe(3);
+
+    const hh = getActiveHousehold(db);
+    expect(hh?.name).toBe('Joshi Family');
+    expect(hh?.sensitivityTags).toEqual([]);
+
+    const snapRow = db
+      .prepare('SELECT classification FROM environmental_snapshots WHERE id = ?')
+      .get('snap-v2') as { classification: string };
+    expect(snapRow.classification).toBe('verified_live');
   });
 });

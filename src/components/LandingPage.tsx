@@ -10,6 +10,8 @@ import {
   SlidersHorizontal,
   Users,
 } from 'lucide-react';
+import heroFamilyMorningImg from '../assets/images/hero_family_morning_1795249097204.jpg';
+import stationMonitoringPuneImg from '../assets/images/station_monitoring_pune_1795249097066.jpg';
 import type { LanguageCode } from '../shared/types';
 import { t } from '../i18n/translations';
 import { AqiGauge } from './AqiGauge';
@@ -317,7 +319,7 @@ export function LandingPage({ lang, onChangeLang, onEnterWorkspace }: LandingPag
           {/* Tall Photography Card */}
           <div className="md:col-span-5 relative rounded-2xl overflow-hidden border border-[#E2E7E1] min-h-[290px] bg-[#DCE9DD]">
             <img
-              src="/src/assets/images/hero_family_morning_1795249097204.jpg"
+              src={heroFamilyMorningImg}
               alt="Sunlit urban family home interior with green balcony"
               referrerPolicy="no-referrer"
               className="w-full h-full object-cover"
@@ -435,7 +437,7 @@ export function LandingPage({ lang, onChangeLang, onEnterWorkspace }: LandingPag
         <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           <div className="lg:col-span-5 relative rounded-2xl overflow-hidden border border-[#E2E7E1] min-h-[260px] bg-[#DCE9DD]">
             <img
-              src="/src/assets/images/station_monitoring_pune_1795249097066.jpg"
+              src={stationMonitoringPuneImg}
               alt="Ambient air quality monitoring station on urban rooftop"
               referrerPolicy="no-referrer"
               className="w-full h-full object-cover"

@@ -1,7 +1,9 @@
 import type {
   AqiBand,
+  DataClassification,
   EnvironmentalSnapshot,
   FreshnessStatus,
+  HistoricalTrendSummary,
   Pollutants,
 } from '../shared/types';
 
@@ -99,6 +101,28 @@ export function classifyFreshness(
   return 'stale';
 }
 
+export function classifySnapshotTier(
+  snapshot: EnvironmentalSnapshot | null | undefined,
+  freshness: FreshnessStatus
+): DataClassification {
+  if (!snapshot || !snapshot.isAvailable || snapshot.provider === 'unavailable') {
+    return 'unavailable';
+  }
+  if (snapshot.isDemoFixture || snapshot.provider === 'demo_fixture') {
+    return 'demo_fixture';
+  }
+  if (snapshot.dataType === 'forecast') {
+    return 'forecast_only';
+  }
+  if (freshness === 'unavailable') {
+    return 'unavailable';
+  }
+  if (freshness === 'stale') {
+    return 'historical_observation';
+  }
+  return 'verified_live';
+}
+
 export function deriveAqiFromPollutants(
   pollutants: Pollutants,
   reportedAqi?: number | null
@@ -150,6 +174,7 @@ export function deriveAqiFromPollutants(
 export interface SnapshotValidationResult {
   valid: boolean;
   freshness: FreshnessStatus;
+  classification: DataClassification;
   derivedAqi: DerivedAqiResult;
   missingPrimaryParticulates: boolean;
   warnings: string[];
@@ -163,6 +188,7 @@ export function validateEnvironmentalSnapshot(
     return {
       valid: false,
       freshness: 'unavailable',
+      classification: 'unavailable',
       derivedAqi: { aqi: null, band: 'unavailable', dominantPollutant: null, isDerived: false },
       missingPrimaryParticulates: true,
       warnings: ['No verified environmental measurement is currently available for this location.'],
@@ -174,6 +200,8 @@ export function validateEnvironmentalSnapshot(
     snapshot.dataType === 'forecast' || snapshot.dataType === 'hypothetical_scenario'
       ? snapshot.freshness
       : classifyFreshness(snapshot.measuredAt, nowIso);
+
+  const classification = classifySnapshotTier(snapshot, freshness);
 
   if (freshness === 'unavailable') {
     warnings.push('Measurement timestamp is missing or invalid; reading cannot be treated as current.');
@@ -202,6 +230,7 @@ export function validateEnvironmentalSnapshot(
   return {
     valid: freshness !== 'unavailable' && (derivedAqi.aqi !== null || !missingPrimaryParticulates),
     freshness,
+    classification,
     derivedAqi,
     missingPrimaryParticulates,
     warnings: Array.from(new Set(warnings)),
@@ -252,4 +281,103 @@ export function detectProviderConflict(
   }
 
   return { hasConflict: false, conflictWarningKey: null, details: null };
+}
+
+export function analyzeHistoricalTrend(
+  snapshots: EnvironmentalSnapshot[],
+  city: string,
+  currentSnapshot: EnvironmentalSnapshot | null
+): HistoricalTrendSummary | null {
+  const candidates = [...snapshots];
+  if (currentSnapshot && currentSnapshot.isAvailable) {
+    candidates.push(currentSnapshot);
+  }
+
+  const valid = candidates
+    .filter(
+      (s) =>
+        s.isAvailable &&
+        !s.isDemoFixture &&
+        s.city.toLowerCase() === city.toLowerCase() &&
+        typeof s.pollutants.pm25 === 'number' &&
+        Boolean(s.measuredAt)
+    )
+    .sort((a, b) => Date.parse(a.measuredAt!) - Date.parse(b.measuredAt!));
+
+  // Deduplicate by timestamp so repeated refreshes of the same reading do not look like a trend
+  const distinctByTime: EnvironmentalSnapshot[] = [];
+  for (const s of valid) {
+    const prev = distinctByTime[distinctByTime.length - 1];
+    if (!prev || prev.measuredAt !== s.measuredAt) {
+      distinctByTime.push(s);
+    }
+  }
+
+  if (distinctByTime.length < 2) {
+    return null;
+  }
+
+  const previous = distinctByTime[distinctByTime.length - 2];
+  const latest = distinctByTime[distinctByTime.length - 1];
+  const prevPm = previous.pollutants.pm25 ?? null;
+  const latestPm = latest.pollutants.pm25 ?? null;
+  if (prevPm === null || latestPm === null) return null;
+
+  const delta = Math.round((latestPm - prevPm) * 10) / 10;
+  let direction: HistoricalTrendSummary['direction'] = 'stable';
+  if (delta >= 10) direction = 'worsening';
+  else if (delta <= -10) direction = 'improving';
+
+  return {
+    direction,
+    previousPm25: prevPm,
+    latestPm25: latestPm,
+    deltaPm25: delta,
+    sampleCount: distinctByTime.length,
+  };
+}
+
+export interface ComparisonCompatibilityReport {
+  compatible: boolean;
+  warningKeys: string[];
+}
+
+export function assessLocationComparisonCompatibility(
+  snapA: EnvironmentalSnapshot | null | undefined,
+  snapB: EnvironmentalSnapshot | null | undefined,
+  nowIso: string = new Date().toISOString()
+): ComparisonCompatibilityReport {
+  const warningKeys: string[] = [];
+  if (!snapA || !snapA.isAvailable || !snapB || !snapB.isAvailable) {
+    warningKeys.push('comp_warn_missing_coverage');
+    return { compatible: false, warningKeys };
+  }
+
+  const valA = validateEnvironmentalSnapshot(snapA, nowIso);
+  const valB = validateEnvironmentalSnapshot(snapB, nowIso);
+
+  if (valA.classification !== valB.classification) {
+    warningKeys.push('comp_warn_mixed_tiers');
+  }
+
+  if (snapA.measuredAt && snapB.measuredAt) {
+    const diffHours =
+      Math.abs(Date.parse(snapA.measuredAt) - Date.parse(snapB.measuredAt)) / (1000 * 60 * 60);
+    if (Number.isFinite(diffHours) && diffHours >= 3) {
+      warningKeys.push('comp_warn_timestamp_skew');
+    }
+  }
+
+  const missingGasA =
+    snapA.pollutants.no2 == null || snapA.pollutants.o3 == null;
+  const missingGasB =
+    snapB.pollutants.no2 == null || snapB.pollutants.o3 == null;
+  if (missingGasA !== missingGasB) {
+    warningKeys.push('comp_warn_partial_pollutants');
+  }
+
+  return {
+    compatible: warningKeys.length === 0,
+    warningKeys,
+  };
 }

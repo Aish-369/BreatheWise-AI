@@ -17,10 +17,11 @@ import {
   Sparkles,
   Sun,
   TreePine,
+  TrendingDown,
+  TrendingUp,
   User,
 } from 'lucide-react';
 import type {
-  AqiBand,
   EnvironmentalSnapshot,
   FamilyMember,
   ForecastSlot,
@@ -29,7 +30,6 @@ import type {
   ProtectionPlanResult,
 } from '../shared/types';
 import { t } from '../i18n/translations';
-import { exportProtectionPlanPdf } from '../utils/pdfExport';
 import { AqiGauge } from './AqiGauge';
 import { PollutantBreakdownChart } from './PollutantBreakdownChart';
 import { ForecastTrendChart } from './ForecastTrendChart';
@@ -114,6 +114,7 @@ export function DashboardView({
   );
   const [selectedMemberFilter, setSelectedMemberFilter] = useState<string>('all');
   const [savedNotice, setSavedNotice] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
 
   const dateFormatted = new Intl.DateTimeFormat(
     lang === 'mr' ? 'mr-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN',
@@ -156,6 +157,18 @@ export function DashboardView({
     };
   };
 
+  const handleExportPdf = async () => {
+    setExportingPdf(true);
+    try {
+      const { exportProtectionPlanPdf } = await import('../utils/pdfExport');
+      await exportProtectionPlanPdf(household, plan, lang);
+    } finally {
+      setExportingPdf(false);
+    }
+  };
+
+  const classificationKey = `cls_${plan.classification ?? (plan.isDemoFixture ? 'demo_fixture' : plan.isAvailable ? 'verified_live' : 'unavailable')}`;
+
   return (
     <div className="space-y-7">
       {/* Section A: Welcome & Action Header */}
@@ -184,8 +197,9 @@ export function DashboardView({
           </button>
           <button
             type="button"
-            onClick={() => exportProtectionPlanPdf(household, plan, lang)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium bg-[#263C32] text-white rounded-lg hover:bg-[#1C2D25] transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-xs"
+            disabled={exportingPdf}
+            onClick={() => void handleExportPdf()}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium bg-[#263C32] text-white rounded-lg hover:bg-[#1C2D25] disabled:opacity-60 transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-xs"
           >
             <FileDown className="w-3.5 h-3.5" />
             <span>{t(lang, 'action_downloadPdf')}</span>
@@ -194,7 +208,7 @@ export function DashboardView({
       </div>
 
       {/* Subtle Context / Conflict Bar */}
-      {(plan.isDemoFixture || (plan.conflictWarningKey && plan.conflictDetails)) && (
+      {(plan.isDemoFixture || (plan.conflictWarningKey && plan.conflictDetails) || plan.historicalTrend) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {plan.isDemoFixture && (
             <div className="px-4 py-2.5 rounded-xl border border-[#E2E7E1] bg-gradient-to-r from-[#DCE9DD]/45 to-white flex items-center gap-2.5 text-xs text-[#252D28]">
@@ -213,6 +227,24 @@ export function DashboardView({
               </span>
             </div>
           )}
+          {plan.historicalTrend && (
+            <div className="px-4 py-2.5 rounded-xl border border-[#E2E7E1] bg-white flex items-center justify-between gap-2 text-xs text-[#252D28]">
+              <span className="inline-flex items-center gap-2 font-medium">
+                {plan.historicalTrend.direction === 'worsening' ? (
+                  <TrendingUp className="w-4 h-4 text-[#B4691E]" />
+                ) : (
+                  <TrendingDown className="w-4 h-4 text-[#3B6E52]" />
+                )}
+                <span>
+                  {t(lang, 'ui_historical_trend_label')}:{' '}
+                  <strong>{t(lang, `trend_${plan.historicalTrend.direction}`)}</strong>
+                </span>
+              </span>
+              <span className="font-mono text-[11px] text-[#89918A] tabular-nums">
+                {plan.historicalTrend.previousPm25 ?? '—'} → {plan.historicalTrend.latestPm25 ?? '—'} µg/m³ ({plan.historicalTrend.sampleCount})
+              </span>
+            </div>
+          )}
         </div>
       )}
 
@@ -221,9 +253,14 @@ export function DashboardView({
         {/* Deep Forest Gradient Environmental Hero */}
         <div className="lg:col-span-7 rounded-2xl bg-gradient-to-br from-[#263C32] via-[#2E493C] to-[#1A2B23] text-white p-6 lg:p-7 shadow-[0_12px_32px_rgba(38,60,50,0.14)] flex flex-col justify-between relative overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#DCE9DD]">
-            <span>
-              {t(lang, 'dash_aqi_label')} · {t(lang, `dtype_${plan.dataType}`)}
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-2 py-0.5 rounded-md bg-white/12 text-white font-medium text-[11px]">
+                {t(lang, classificationKey)}
+              </span>
+              <span>
+                {t(lang, 'dash_aqi_label')} · {t(lang, `dtype_${plan.dataType}`)}
+              </span>
+            </div>
             <span className="font-mono tabular-nums text-white/90">
               {t(lang, `fresh_${plan.freshness}`)}
             </span>
@@ -485,9 +522,7 @@ export function DashboardView({
 
           <div className="p-5">
             {plan.dailyPlan.length === 0 ? (
-              <p className="text-xs text-[#89918A]">
-                No routines configured. Add activities in Protection Planner.
-              </p>
+              <p className="text-xs text-[#89918A]">{t(lang, 'ui_no_routines')}</p>
             ) : (
               <div className="relative pl-5 space-y-4 before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-px before:bg-[#E2E7E1]">
                 {plan.dailyPlan.map((item) => {
@@ -532,7 +567,7 @@ export function DashboardView({
           </div>
         </section>
 
-        {/* Actionable Recommendations */}
+        {/* Actionable Recommendations with Explainability Trail */}
         <section className="lg:col-span-7 bg-white border border-[#E2E7E1] rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
           <div className="px-6 py-4 border-b border-[#E2E7E1] flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-display text-sm font-semibold text-[#252D28]">
@@ -605,6 +640,7 @@ export function DashboardView({
 
                     <button
                       type="button"
+                      aria-expanded={isOpen}
                       onClick={() => setExpandedRecId(isOpen ? null : rec.id)}
                       className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-[#E2E7E1] bg-white text-xs text-[#252D28] hover:bg-[#DCE9DD]/40 whitespace-nowrap shrink-0 cursor-pointer"
                     >
@@ -618,7 +654,7 @@ export function DashboardView({
                   </div>
 
                   {isOpen && (
-                    <div className="mt-3 ml-11 p-3.5 rounded-xl bg-[#F7F7F1] border border-[#E2E7E1] text-xs space-y-1.5 text-[#89918A]">
+                    <div className="mt-3 ml-11 p-3.5 rounded-xl bg-[#F7F7F1] border border-[#E2E7E1] text-xs space-y-2 text-[#89918A]">
                       <p className="text-[#252D28]">
                         {t(lang, rec.explanationKey, rec.explanationParams)}
                       </p>
@@ -628,7 +664,35 @@ export function DashboardView({
                         </strong>{' '}
                         {t(lang, rec.reasonGeneratedKey, rec.reasonGeneratedParams)}
                       </p>
-                      <p className="font-mono tabular-nums text-[11px]">
+                      {rec.evidenceTrail && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-[#E2E7E1]/80 text-[11px]">
+                          <div>
+                            <span className="font-semibold text-[#252D28]">
+                              {t(lang, 'trail_evidence_label')}:
+                            </span>{' '}
+                            <span className="font-mono">{rec.evidenceTrail.evidenceMetric}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-[#252D28]">
+                              {t(lang, 'trail_rule_label')}:
+                            </span>{' '}
+                            <span className="font-mono">{rec.evidenceTrail.ruleTriggered}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-[#252D28]">
+                              {t(lang, 'trail_context_label')}:
+                            </span>{' '}
+                            <span>{rec.evidenceTrail.householdContext}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-[#263C32]">
+                              {t(lang, 'trail_reconsider_label')}:
+                            </span>{' '}
+                            <span>{t(lang, rec.evidenceTrail.reconsiderWhenKey)}</span>
+                          </div>
+                        </div>
+                      )}
+                      <p className="font-mono tabular-nums text-[11px] pt-1 border-t border-[#E2E7E1]/60">
                         <strong className="font-sans font-medium text-[#252D28]">
                           {t(lang, 'dash_sourceLabel')}:
                         </strong>{' '}

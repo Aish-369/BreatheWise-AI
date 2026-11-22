@@ -1,38 +1,45 @@
-import { CheckCircle2, Cloud, Cpu, FileSpreadsheet, Radio, Shield } from 'lucide-react';
+import { CheckCircle2, Cloud, Cpu, ExternalLink, FileSpreadsheet, Radio, Shield } from 'lucide-react';
+import type { DataProviderRecord, LanguageCode } from '../shared/types';
+import { t } from '../i18n/translations';
 
-export function TrustView() {
+interface TrustViewProps {
+  lang?: LanguageCode;
+  providers?: DataProviderRecord[];
+}
+
+export function TrustView({ lang = 'en', providers = [] }: TrustViewProps) {
   const tiers = [
     {
       icon: Radio,
-      title: 'Physical Monitoring Station',
-      scope: 'Station perimeter only',
-      desc: 'CPCB CAAQMS or OpenAQ ground monitors.',
+      title: t(lang, 'trust_tier_station'),
+      scope: t(lang, 'trust_tier_station_scope'),
+      desc: t(lang, 'trust_tier_station_desc'),
     },
     {
       icon: FileSpreadsheet,
-      title: 'City Bulletin',
-      scope: 'Municipal aggregate',
-      desc: 'Regional summaries that may lag traffic peaks.',
+      title: t(lang, 'trust_tier_bulletin'),
+      scope: t(lang, 'trust_tier_bulletin_scope'),
+      desc: t(lang, 'trust_tier_bulletin_desc'),
     },
     {
       icon: Cloud,
-      title: 'Modeled & Coarse Forecast',
-      scope: '~40 km atmospheric grid',
-      desc: 'Copernicus CAMS regional trends; never street-level.',
+      title: t(lang, 'trust_tier_forecast'),
+      scope: t(lang, 'trust_tier_forecast_scope'),
+      desc: t(lang, 'trust_tier_forecast_desc'),
     },
     {
       icon: Cpu,
-      title: 'Hypothetical Scenario',
-      scope: 'Non-observed simulation',
-      desc: 'User-configured What-If overrides only.',
+      title: t(lang, 'trust_tier_scenario'),
+      scope: t(lang, 'trust_tier_scenario_scope'),
+      desc: t(lang, 'trust_tier_scenario_desc'),
     },
   ];
 
   const boundaries = [
-    'No medical diagnosis or clinical prescriptions',
-    'No unverified street-level safety guarantees',
-    'Stale (> 6h) or missing forecasts pause timing shifts openly',
-    'Provider outages never fall back to disguised mock values',
+    t(lang, 'trust_bound_1'),
+    t(lang, 'trust_bound_2'),
+    t(lang, 'trust_bound_3'),
+    t(lang, 'trust_bound_4'),
   ];
 
   return (
@@ -65,7 +72,7 @@ export function TrustView() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         <div className="lg:col-span-7 bg-white border border-[#E2E7E1] rounded-2xl p-6 space-y-4 shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
           <h2 className="font-display text-sm font-semibold text-[#252D28]">
-            Safeguard Commitments
+            {t(lang, 'trust_safeguards_title')}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {boundaries.map((b) => (
@@ -84,10 +91,10 @@ export function TrustView() {
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs text-[#DCE9DD]">
               <Shield className="w-4 h-4" />
-              <span>Deterministic Engine & Licenses</span>
+              <span>{t(lang, 'trust_engine_title')}</span>
             </div>
             <p className="mt-3 text-sm font-medium text-white leading-relaxed">
-              Calculated locally via India CPCB NAQI sub-indices, freshness thresholds (≤ 2h Fresh, 2–6h Aging, &gt; 6h Stale), and routine flexibility rules.
+              {t(lang, 'trust_engine_desc')}
             </p>
           </div>
           <p className="mt-5 pt-3 border-t border-white/12 font-mono text-[11px] text-[#DCE9DD]">
@@ -95,6 +102,64 @@ export function TrustView() {
           </p>
         </div>
       </div>
+
+      {providers.length > 0 && (
+        <div className="bg-white border border-[#E2E7E1] rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
+          <div className="px-6 py-4 border-b border-[#E2E7E1] flex items-center justify-between">
+            <h2 className="font-display text-sm font-semibold text-[#252D28]">
+              {t(lang, 'ui_provider_registry_title')}
+            </h2>
+            <span className="font-mono text-xs text-[#89918A] tabular-nums">
+              {providers.length}
+            </span>
+          </div>
+          <div className="divide-y divide-[#E2E7E1]">
+            {providers.map((prov) => (
+              <div key={prov.id} className="p-5 space-y-2 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h3 className="font-display text-sm font-semibold text-[#252D28]">{prov.name}</h3>
+                    <p className="font-mono text-[11px] text-[#89918A]">{prov.baseUrl}</p>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-md bg-[#F7F7F1] border border-[#E2E7E1] font-mono text-[11px] text-[#263C32]">
+                    {prov.status}
+                  </span>
+                </div>
+                <p className="text-[#89918A]">{prov.notes}</p>
+                {prov.licenses.map((lic) => (
+                  <div
+                    key={lic.id}
+                    className="p-3 rounded-xl bg-[#F7F7F1] border border-[#E2E7E1] flex flex-wrap items-center justify-between gap-2"
+                  >
+                    <div>
+                      <p className="font-semibold text-[#252D28]">{lic.licenseName}</p>
+                      <p className="text-[11px] text-[#89918A]">{lic.attributionText}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded bg-white border border-[#E2E7E1] text-[10px] text-[#263C32]">
+                        {lic.commercialAllowed
+                          ? t(lang, 'ui_license_commercial_yes')
+                          : t(lang, 'ui_license_commercial_no')}
+                      </span>
+                      {lic.licenseUrl && (
+                        <a
+                          href={lic.licenseUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] font-medium text-[#263C32] hover:underline"
+                        >
+                          <span>License</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

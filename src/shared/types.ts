@@ -20,6 +20,15 @@ export const ActivityPreferenceSchema = z.enum([
 ]);
 export type ActivityPreference = z.infer<typeof ActivityPreferenceSchema>;
 
+export const SensitivityTagSchema = z.enum([
+  'dust_sensitive',
+  'respiratory_comfort',
+  'high_outdoor_exertion',
+  'elder_mobility_care',
+  'early_commute_exposure',
+]);
+export type SensitivityTag = z.infer<typeof SensitivityTagSchema>;
+
 export const DataTypeSchema = z.enum([
   'physical_station',
   'city_bulletin',
@@ -28,6 +37,15 @@ export const DataTypeSchema = z.enum([
   'hypothetical_scenario',
 ]);
 export type DataType = z.infer<typeof DataTypeSchema>;
+
+export const DataClassificationSchema = z.enum([
+  'verified_live',
+  'historical_observation',
+  'forecast_only',
+  'demo_fixture',
+  'unavailable',
+]);
+export type DataClassification = z.infer<typeof DataClassificationSchema>;
 
 export const FreshnessStatusSchema = z.enum([
   'fresh',
@@ -56,11 +74,35 @@ export const PollutantsSchema = z.object({
 });
 export type Pollutants = z.infer<typeof PollutantsSchema>;
 
+export const WeatherFieldsSchema = z.object({
+  temperatureC: z.number().min(-40).max(65).nullable().optional(),
+  relativeHumidityPct: z.number().min(0).max(100).nullable().optional(),
+  windSpeedMs: z.number().min(0).max(120).nullable().optional(),
+  windDirectionDeg: z.number().min(0).max(360).nullable().optional(),
+});
+export type WeatherFields = z.infer<typeof WeatherFieldsSchema>;
+
+export const CoordinatesSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+});
+export type Coordinates = z.infer<typeof CoordinatesSchema>;
+
+export const QualityMetadataSchema = z.object({
+  validatedFields: z.array(z.string()).default([]),
+  missingPollutants: z.array(z.string()).default([]),
+  fromCache: z.boolean().default(false),
+  cacheExpiresAt: z.string().nullable().optional(),
+  rejectedFields: z.array(z.string()).optional(),
+});
+export type QualityMetadata = z.infer<typeof QualityMetadataSchema>;
+
 export const EnvironmentalSnapshotSchema = z.object({
   id: z.string(),
   provider: z.enum(['cpcb', 'openaq', 'cams_manual', 'demo_fixture', 'unavailable']),
   providerLabel: z.string(),
   dataType: DataTypeSchema,
+  classification: DataClassificationSchema.optional(),
   city: z.string().min(1).max(80),
   locationLabel: z.string().min(1).max(120),
   stationOrGridId: z.string().min(1).max(120),
@@ -74,6 +116,9 @@ export const EnvironmentalSnapshotSchema = z.object({
   warnings: z.array(z.string()),
   isDemoFixture: z.boolean().default(false),
   isAvailable: z.boolean().default(true),
+  coordinates: CoordinatesSchema.nullable().optional(),
+  weather: WeatherFieldsSchema.optional(),
+  qualityMetadata: QualityMetadataSchema.optional(),
 });
 export type EnvironmentalSnapshot = z.infer<typeof EnvironmentalSnapshotSchema>;
 
@@ -118,6 +163,7 @@ export const ActivityRoutineInputSchema = z.object({
   preferredWindow: TimeWindowSchema,
   memberIds: z.array(z.string()).min(1, 'Select at least one family member'),
   notes: z.string().max(240).optional(),
+  completedDate: z.string().nullable().optional(),
 });
 export type ActivityRoutineInput = z.infer<typeof ActivityRoutineInputSchema>;
 
@@ -125,19 +171,26 @@ export interface ActivityRoutine extends ActivityRoutineInput {
   id: string;
   householdId: string;
   createdAt: string;
+  completedDate?: string | null;
 }
+
+export const RoutineCompletionSchema = z.object({
+  completed: z.boolean(),
+});
 
 export const HouseholdInputSchema = z.object({
   name: z.string().trim().min(1, 'Household name is required').max(80),
   city: z.string().trim().min(1, 'City is required').max(60),
   locality: z.string().trim().max(100).optional(),
   language: LanguageCodeSchema,
+  sensitivityTags: z.array(SensitivityTagSchema).optional(),
 });
 export type HouseholdInput = z.infer<typeof HouseholdInputSchema>;
 
 export interface HouseholdProfile extends HouseholdInput {
   id: string;
   isDemoProfile: boolean;
+  sensitivityTags?: SensitivityTag[];
   createdAt: string;
   updatedAt: string;
 }
@@ -172,6 +225,7 @@ export interface SupportingEvidence {
   providerLabel: string;
   stationOrGridId: string;
   dataType: DataType;
+  classification?: DataClassification;
   measuredAt: string | null;
   retrievedAt: string;
   freshness: FreshnessStatus;
@@ -180,6 +234,13 @@ export interface SupportingEvidence {
   aqiValue: number | null;
   aqiIsDerived: boolean;
   isDemoFixture: boolean;
+}
+
+export interface ExplainabilityTrail {
+  evidenceMetric: string;
+  ruleTriggered: string;
+  householdContext: string;
+  reconsiderWhenKey: string;
 }
 
 export interface Recommendation {
@@ -196,6 +257,8 @@ export interface Recommendation {
   suggestedActionParams?: Record<string, string | number>;
   reasonGeneratedKey: string;
   reasonGeneratedParams?: Record<string, string | number>;
+  reconsiderWhenKey?: string;
+  evidenceTrail?: ExplainabilityTrail;
   severity: RecommendationSeverity;
 }
 
@@ -219,6 +282,16 @@ export interface DailyPlanItem {
   rationaleParams?: Record<string, string | number>;
   limitationKey: string | null;
   evidenceTimestamp: string | null;
+  notes?: string;
+  completedToday?: boolean;
+}
+
+export interface HistoricalTrendSummary {
+  direction: 'improving' | 'worsening' | 'stable';
+  previousPm25: number | null;
+  latestPm25: number | null;
+  deltaPm25: number | null;
+  sampleCount: number;
 }
 
 export interface ProtectionPlanResult {
@@ -231,6 +304,9 @@ export interface ProtectionPlanResult {
   dominantPollutant: string | null;
   freshness: FreshnessStatus;
   dataType: DataType;
+  classification?: DataClassification;
+  ruleSetVersion?: string;
+  historicalTrend?: HistoricalTrendSummary | null;
   isAvailable: boolean;
   isDemoFixture: boolean;
   isScenario: boolean;
@@ -362,4 +438,3 @@ export interface DataProviderRecord {
     licenseUrl: string;
   }>;
 }
-

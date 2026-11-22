@@ -1,4 +1,5 @@
-import { Activity, FileDown, FileText, SlidersHorizontal } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Activity, Eye, FileDown, FileText, SlidersHorizontal, X } from 'lucide-react';
 import type {
   EnvironmentalSnapshot,
   HouseholdProfile,
@@ -7,7 +8,6 @@ import type {
   ScenarioComparisonResult,
 } from '../shared/types';
 import { t } from '../i18n/translations';
-import { exportProtectionPlanPdf } from '../utils/pdfExport';
 
 interface HistoryViewProps {
   lang: LanguageCode;
@@ -26,6 +26,28 @@ export function HistoryView({
   scenarios,
   snapshots,
 }: HistoryViewProps) {
+  const [selectedPlan, setSelectedPlan] = useState<ProtectionPlanResult | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  useEffect(() => {
+    if (!selectedPlan) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedPlan(null);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedPlan]);
+
+  const handleExportPdf = async (plan: ProtectionPlanResult) => {
+    setExporting(true);
+    try {
+      const { exportProtectionPlanPdf } = await import('../utils/pdfExport');
+      await exportProtectionPlanPdf(household, plan, lang);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const pmPoints = snapshots
     .filter((s) => typeof s.pollutants.pm25 === 'number')
     .slice(0, 10)
@@ -42,8 +64,9 @@ export function HistoryView({
 
         <button
           type="button"
-          onClick={() => exportProtectionPlanPdf(household, currentPlan, lang)}
-          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium bg-[#263C32] text-white rounded-lg hover:bg-[#1C2D25] transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-xs"
+          disabled={exporting}
+          onClick={() => void handleExportPdf(currentPlan)}
+          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium bg-[#263C32] text-white rounded-lg hover:bg-[#1C2D25] disabled:opacity-60 transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-xs"
         >
           <FileDown className="w-4 h-4" strokeWidth={1.7} />
           <span>{t(lang, 'action_downloadPdf')}</span>
@@ -133,7 +156,7 @@ export function HistoryView({
           </div>
           {plans.length === 0 ? (
             <p className="p-6 text-xs text-[#89918A]">
-              No saved plan snapshots yet. Use "Save Snapshot to History" on Overview.
+              No saved plan snapshots yet. Use &ldquo;{t(lang, 'action_persistPlan')}&rdquo;.
             </p>
           ) : (
             <div className="divide-y divide-[#E2E7E1]">
@@ -141,21 +164,32 @@ export function HistoryView({
                 <div key={p.id} className="px-6 py-4 flex items-center justify-between gap-4 text-xs">
                   <div>
                     <p className="font-semibold text-[#252D28]">
-                      {p.city} · {p.aqiValue !== null ? `AQI ${p.aqiValue}` : 'Unavailable'} (
+                      {p.city} · {p.aqiValue !== null ? `AQI ${p.aqiValue}` : t(lang, 'band_unavailable')} (
                       {t(lang, `band_${p.aqiBand}`)})
                     </p>
                     <p className="font-mono text-[#89918A] tabular-nums mt-0.5">
                       {new Date(p.generatedAt).toLocaleString()}
-                      {p.isDemoFixture ? ' · Demo Fixture' : ''}
+                      {p.isDemoFixture ? ` · ${t(lang, 'cls_demo_fixture')}` : ''}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => exportProtectionPlanPdf(household, p, lang)}
-                    className="px-3 py-1.5 rounded-lg border border-[#E2E7E1] bg-[#F7F7F1] font-medium text-[#263C32] hover:bg-[#DCE9DD]/50 shrink-0 cursor-pointer"
-                  >
-                    PDF
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPlan(p)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[#E2E7E1] bg-white font-medium text-[#252D28] hover:bg-[#F7F7F1] cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>{t(lang, 'action_inspect')}</span>
+                    </button>
+                    <button
+                      type="button"
+                      disabled={exporting}
+                      onClick={() => void handleExportPdf(p)}
+                      className="px-3 py-1.5 rounded-lg border border-[#E2E7E1] bg-[#F7F7F1] font-medium text-[#263C32] hover:bg-[#DCE9DD]/50 cursor-pointer"
+                    >
+                      PDF
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -210,7 +244,7 @@ export function HistoryView({
                   <th className="py-2.5 px-4 font-medium">Provider</th>
                   <th className="py-2.5 px-4 font-medium text-right">PM2.5</th>
                   <th className="py-2.5 px-4 font-medium">Freshness</th>
-                  <th className="py-2.5 px-5 font-medium">Retrieved</th>
+                  <th className="py-2.5 px-5 font-medium">{t(lang, 'dash_retrieved_at')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E2E7E1]">
@@ -234,6 +268,107 @@ export function HistoryView({
           </div>
         )}
       </div>
+
+      {/* Plan Inspection Modal */}
+      {selectedPlan && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#252D28]/45 backdrop-blur-xs"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="plan-modal-title"
+        >
+          <div className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl bg-white border border-[#E2E7E1] shadow-xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#E2E7E1] flex items-center justify-between bg-[#F7F7F1]">
+              <div>
+                <h3 id="plan-modal-title" className="font-display text-base font-semibold text-[#252D28]">
+                  {t(lang, 'ui_modal_plan_detail')}
+                </h3>
+                <p className="font-mono text-[11px] text-[#89918A]">
+                  {selectedPlan.city} · AQI {selectedPlan.aqiValue ?? 'N/A'} (
+                  {t(lang, `band_${selectedPlan.aqiBand}`)}) ·{' '}
+                  {new Date(selectedPlan.generatedAt).toLocaleString()}
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-label={t(lang, 'action_close')}
+                onClick={() => setSelectedPlan(null)}
+                className="p-1.5 rounded-lg text-[#89918A] hover:text-[#252D28] hover:bg-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-5 text-xs">
+              <p className="text-sm text-[#252D28] leading-relaxed">
+                {t(lang, selectedPlan.summaryKey, selectedPlan.summaryParams)}
+              </p>
+
+              <div className="space-y-2.5">
+                <h4 className="font-display text-xs font-semibold uppercase tracking-wide text-[#89918A]">
+                  {t(lang, 'dash_actions_heading')}
+                </h4>
+                {selectedPlan.recommendations.map((rec) => (
+                  <div
+                    key={rec.id}
+                    className="p-3.5 rounded-xl bg-[#F7F7F1] border border-[#E2E7E1] space-y-1"
+                  >
+                    <p className="font-semibold text-[#252D28]">
+                      {t(lang, rec.titleKey, rec.titleParams)}
+                    </p>
+                    <p className="text-[#263C32]">
+                      {t(lang, rec.suggestedActionKey, rec.suggestedActionParams)}
+                    </p>
+                    <p className="text-[11px] text-[#89918A]">
+                      {rec.supportingEvidence.providerLabel} · PM2.5{' '}
+                      {rec.supportingEvidence.pm25 ?? 'N/A'} µg/m³
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-display text-xs font-semibold uppercase tracking-wide text-[#89918A]">
+                  {t(lang, 'dash_planner_heading')}
+                </h4>
+                {selectedPlan.dailyPlan.map((item) => (
+                  <div
+                    key={item.routineId}
+                    className="p-3 rounded-xl border border-[#E2E7E1] flex items-center justify-between gap-3"
+                  >
+                    <div>
+                      <p className="font-medium text-[#252D28]">{item.routineTitle}</p>
+                      <p className="text-[11px] text-[#89918A]">
+                        {t(lang, item.rationaleKey, item.rationaleParams)}
+                      </p>
+                    </div>
+                    <span className="font-mono text-[11px] text-[#263C32] shrink-0">
+                      {t(lang, `status_${item.status}`)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="px-6 py-3.5 border-t border-[#E2E7E1] bg-[#F7F7F1] flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => void handleExportPdf(selectedPlan)}
+                className="px-3.5 py-1.5 text-xs font-medium bg-[#263C32] text-white rounded-lg cursor-pointer"
+              >
+                {t(lang, 'action_downloadPdf')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedPlan(null)}
+                className="px-3.5 py-1.5 text-xs font-medium border border-[#E2E7E1] bg-white rounded-lg cursor-pointer"
+              >
+                {t(lang, 'action_close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AlertTriangle, Database, Globe, ShieldCheck, WifiOff } from 'lucide-react';
-import type { LanguageCode } from '../shared/types';
+import type { DataProviderRecord, LanguageCode } from '../shared/types';
 import { t } from '../i18n/translations';
 import { TrustView } from './TrustView';
 
@@ -8,6 +8,7 @@ interface SettingsViewProps {
   lang: LanguageCode;
   simulateOutage: boolean;
   useFixtures: boolean;
+  providers: DataProviderRecord[];
   initialSubTab?: 'preferences' | 'methodology';
   onChangeLang: (lang: LanguageCode) => void;
   onToggleOutage: (next: boolean) => void;
@@ -20,6 +21,7 @@ export function SettingsView({
   lang,
   simulateOutage,
   useFixtures,
+  providers,
   initialSubTab = 'preferences',
   onChangeLang,
   onToggleOutage,
@@ -67,7 +69,7 @@ export function SettingsView({
       </div>
 
       {subTab === 'methodology' ? (
-        <TrustView />
+        <TrustView lang={lang} providers={providers} />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           <div className="bg-white border border-[#E2E7E1] rounded-2xl p-6 space-y-5 shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
@@ -111,12 +113,13 @@ export function SettingsView({
                       {t(lang, 'fixtures_mode_label')}
                     </h3>
                     <p className="text-xs text-[#89918A]">
-                      Pune & Ahilyanagar synthetic reference fixtures when API keys are unconfigured.
+                      Pune &amp; Ahilyanagar synthetic reference fixtures when API keys are unconfigured.
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
+                  aria-pressed={useFixtures}
                   onClick={() => onToggleFixtures(!useFixtures)}
                   className={`px-3.5 py-1.5 text-xs font-medium rounded-lg border transition-colors shrink-0 cursor-pointer ${
                     useFixtures
@@ -142,6 +145,7 @@ export function SettingsView({
                 </div>
                 <button
                   type="button"
+                  aria-pressed={simulateOutage}
                   onClick={() => onToggleOutage(!simulateOutage)}
                   className={`px-3.5 py-1.5 text-xs font-medium rounded-lg border transition-colors shrink-0 cursor-pointer ${
                     simulateOutage
@@ -173,7 +177,7 @@ export function SettingsView({
             <div className="flex flex-wrap gap-3 pt-2">
               <button
                 type="button"
-                onClick={onResetDemo}
+                onClick={() => void onResetDemo()}
                 className="px-4 py-2 text-xs font-medium border border-[#E2E7E1] bg-[#F7F7F1] text-[#252D28] rounded-lg hover:bg-[#DCE9DD]/50 cursor-pointer"
               >
                 {t(lang, 'action_resetDemo')}
@@ -192,7 +196,11 @@ export function SettingsView({
 
       {/* Confirmation Modal */}
       {confirmClearOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#252D28]/40 backdrop-blur-xs">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#252D28]/40 backdrop-blur-xs"
+          role="dialog"
+          aria-modal="true"
+        >
           <div className="w-full max-w-md rounded-2xl bg-white border border-[#E2E7E1] p-6 shadow-xl space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-[#F6DFDC] text-[#B33A2E] flex items-center justify-center shrink-0">

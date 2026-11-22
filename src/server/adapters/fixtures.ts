@@ -16,6 +16,7 @@ export function buildDemoFixtures(nowIso: string = new Date().toISOString()): {
       provider: 'demo_fixture',
       providerLabel: 'Demo Fixture · Pune Station Reference',
       dataType: 'physical_station',
+      classification: 'demo_fixture',
       city: 'Pune',
       locationLabel: 'Shivajinagar Urban Corridor, Pune',
       stationOrGridId: 'DEMO-PNQ-SHIVAJINAGAR-01',
@@ -38,12 +39,19 @@ export function buildDemoFixtures(nowIso: string = new Date().toISOString()): {
       ],
       isDemoFixture: true,
       isAvailable: true,
+      coordinates: { latitude: 18.5308, longitude: 73.8475 },
+      qualityMetadata: {
+        validatedFields: ['pm25', 'pm10', 'no2', 'o3', 'so2', 'co', 'reportedAqiIndia'],
+        missingPollutants: [],
+        fromCache: false,
+      },
     },
     {
       id: 'fixture-pune-pashan',
       provider: 'demo_fixture',
       providerLabel: 'Demo Fixture · Pune West Sub-Station',
       dataType: 'city_bulletin',
+      classification: 'demo_fixture',
       city: 'Pune',
       locationLabel: 'Pashan / Baner Perimeter, Pune',
       stationOrGridId: 'DEMO-PNQ-PASHAN-02',
@@ -66,12 +74,19 @@ export function buildDemoFixtures(nowIso: string = new Date().toISOString()): {
       ],
       isDemoFixture: true,
       isAvailable: true,
+      coordinates: { latitude: 18.5362, longitude: 73.7995 },
+      qualityMetadata: {
+        validatedFields: ['pm25', 'pm10', 'no2', 'o3', 'reportedAqiIndia'],
+        missingPollutants: ['so2', 'co'],
+        fromCache: false,
+      },
     },
     {
       id: 'fixture-ahilyanagar-midc',
       provider: 'demo_fixture',
       providerLabel: 'Demo Fixture · Ahilyanagar Regional Bulletin',
       dataType: 'city_bulletin',
+      classification: 'demo_fixture',
       city: 'Ahilyanagar',
       locationLabel: 'Ahilyanagar Municipal Center',
       stationOrGridId: 'DEMO-AHN-BULLETIN-01',
@@ -95,6 +110,12 @@ export function buildDemoFixtures(nowIso: string = new Date().toISOString()): {
       ],
       isDemoFixture: true,
       isAvailable: true,
+      coordinates: { latitude: 19.0948, longitude: 74.748 },
+      qualityMetadata: {
+        validatedFields: ['pm25', 'pm10'],
+        missingPollutants: ['no2', 'o3', 'so2', 'co'],
+        fromCache: false,
+      },
     },
   ];
 
@@ -192,6 +213,7 @@ export function buildUnavailableSnapshot(city: string, reason: string): Environm
     provider: 'unavailable',
     providerLabel: 'No Live Environmental Feed Active',
     dataType: 'physical_station',
+    classification: 'unavailable',
     city,
     locationLabel: city,
     stationOrGridId: 'NONE',
@@ -205,5 +227,11 @@ export function buildUnavailableSnapshot(city: string, reason: string): Environm
     warnings: [reason],
     isDemoFixture: false,
     isAvailable: false,
+    coordinates: null,
+    qualityMetadata: {
+      validatedFields: [],
+      missingPollutants: ['pm25', 'pm10', 'no2', 'o3', 'so2', 'co'],
+      fromCache: false,
+    },
   };
 }

@@ -1,4 +1,5 @@
 import { Droplets, Fan, ShieldAlert, Wind } from 'lucide-react';
+import indoorVentilationImg from '../assets/images/indoor_ventilation_home_1795249096895.jpg';
 import type { AqiBand, LanguageCode } from '../shared/types';
 import { t } from '../i18n/translations';
 
@@ -15,27 +16,27 @@ export function IndoorGuidanceView({ lang, currentBand, city }: IndoorGuidanceVi
   const cards = [
     {
       icon: Wind,
-      title: 'Timed Ventilation',
-      badge: highOutdoor ? 'Keep Closed' : 'Non-Peak Window',
-      desc: 'Open rear windows away from arterial traffic only when outdoor AQI is Good to Moderate.',
+      title: t(lang, 'indoor_card_vent_title'),
+      badge: highOutdoor ? t(lang, 'indoor_badge_closed') : t(lang, 'indoor_badge_nonpeak'),
+      desc: t(lang, 'indoor_card_vent_desc'),
     },
     {
       icon: Fan,
-      title: 'Kitchen & Smoke Control',
-      badge: 'Every Meal',
-      desc: 'Run kitchen exhaust fans while cooking and avoid incense, coils, or candles indoors.',
+      title: t(lang, 'indoor_card_kitchen_title'),
+      badge: t(lang, 'indoor_card_kitchen_badge'),
+      desc: t(lang, 'indoor_card_kitchen_desc'),
     },
     {
       icon: Droplets,
-      title: 'Wet Mopping',
-      badge: 'Daily Dust Control',
-      desc: 'Replace dry sweeping with damp mopping to prevent settled particulates resuspending.',
+      title: t(lang, 'indoor_card_mop_title'),
+      badge: t(lang, 'indoor_card_mop_badge'),
+      desc: t(lang, 'indoor_card_mop_desc'),
     },
     {
       icon: ShieldAlert,
-      title: 'Sleep Zone Priority',
-      badge: 'Children & Elders',
-      desc: 'Prioritize closed-door cleaner rooms or non-ozone HEPA filtration for sleeping zones.',
+      title: t(lang, 'indoor_card_sleep_title'),
+      badge: t(lang, 'indoor_card_sleep_badge'),
+      desc: t(lang, 'indoor_card_sleep_desc'),
     },
   ];
 
@@ -44,8 +45,8 @@ export function IndoorGuidanceView({ lang, currentBand, city }: IndoorGuidanceVi
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 items-stretch bg-white border border-[#E2E7E1] rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
         <div className="lg:col-span-5 min-h-[240px] bg-[#DCE9DD]">
           <img
-            src="/src/assets/images/indoor_ventilation_home_1795249096895.jpg"
-            alt="Sunlit family home interior with louvered windows and indoor plants"
+            src={indoorVentilationImg}
+            alt={t(lang, 'indoor_title')}
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover"
           />
@@ -56,18 +57,14 @@ export function IndoorGuidanceView({ lang, currentBand, city }: IndoorGuidanceVi
               {city} · {t(lang, `band_${currentBand}`)}
             </p>
             <h2 className="mt-1.5 font-display text-xl font-bold text-[#252D28]">
-              {highOutdoor
-                ? 'Prioritize Indoor Particle Containment'
-                : 'Balance Timed Cross-Ventilation with Dust Control'}
+              {highOutdoor ? t(lang, 'indoor_hero_high') : t(lang, 'indoor_hero_mod')}
             </h2>
             <p className="mt-2.5 text-sm leading-relaxed text-[#89918A]">
-              {highOutdoor
-                ? 'Keep street-facing windows shut during peak traffic and run exhaust ventilation during cooking.'
-                : 'Use quiet off-peak hours for brief cross-ventilation while keeping arterial roadside windows shaded.'}
+              {highOutdoor ? t(lang, 'indoor_hero_high_desc') : t(lang, 'indoor_hero_mod_desc')}
             </p>
           </div>
           <p className="mt-6 pt-4 border-t border-[#E2E7E1] text-xs text-[#89918A]">
-            Aligned with WHO, CPCB, and US EPA public health guidance. Informational only.
+            {t(lang, 'indoor_disclaimer')}
           </p>
         </div>
       </div>

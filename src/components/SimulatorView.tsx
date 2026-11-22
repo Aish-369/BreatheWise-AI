@@ -14,6 +14,7 @@ interface SimulatorViewProps {
   lang: LanguageCode;
   routines: ActivityRoutine[];
   currentPm25: number | null;
+  currentPm10?: number | null;
   onRunScenario: (mod: ScenarioModification) => Promise<ScenarioComparisonResult>;
 }
 
@@ -38,11 +39,16 @@ export function SimulatorView({
   lang,
   routines,
   currentPm25,
+  currentPm10 = null,
   onRunScenario,
 }: SimulatorViewProps) {
   const [label, setLabel] = useState('Evening traffic pollution spike');
   const [pm25Override, setPm25Override] = useState<number>(currentPm25 ?? 68);
   const [usePmOverride, setUsePmOverride] = useState(true);
+  const [usePm10Override, setUsePm10Override] = useState(false);
+  const [pm10Override, setPm10Override] = useState<number>(currentPm10 ?? 140);
+  const [useAqiOverride, setUseAqiOverride] = useState(false);
+  const [aqiOverride, setAqiOverride] = useState<number>(180);
   const [simulateStale, setSimulateStale] = useState(false);
   const [simulateUnavailable, setSimulateUnavailable] = useState(false);
   const [overrideRoutineId, setOverrideRoutineId] = useState<string>(routines[0]?.id ?? '');
@@ -62,6 +68,10 @@ export function SimulatorView({
       setUsePmOverride(true);
       setPm25Override(mod.pm25Override);
     }
+    setUsePm10Override(typeof mod.pm10Override === 'number');
+    if (typeof mod.pm10Override === 'number') setPm10Override(mod.pm10Override);
+    setUseAqiOverride(typeof mod.aqiOverride === 'number');
+    if (typeof mod.aqiOverride === 'number') setAqiOverride(mod.aqiOverride);
     setSimulateStale(Boolean(mod.simulateStale));
     setSimulateUnavailable(Boolean(mod.simulateUnavailable));
     setForecastTrendOverride(mod.forecastTrendOverride ?? 'none');
@@ -81,6 +91,8 @@ export function SimulatorView({
       const mod: ScenarioModification = {
         label: label.trim() || 'Custom Hypothetical Scenario',
         pm25Override: usePmOverride && !simulateUnavailable ? pm25Override : null,
+        pm10Override: usePm10Override && !simulateUnavailable ? pm10Override : null,
+        aqiOverride: useAqiOverride && !simulateUnavailable ? aqiOverride : null,
         simulateStale,
         simulateUnavailable,
         overrideRoutineId: applyRoutineOverride && overrideRoutineId ? overrideRoutineId : undefined,
@@ -128,6 +140,16 @@ export function SimulatorView({
             },
           },
           {
+            title: 'Dust Event (PM10)',
+            metric: '260 µg/m³',
+            sub: 'Road / construction dust storm',
+            mod: {
+              label: 'What if PM10 rises to 260 µg/m³?',
+              pm25Override: 48,
+              pm10Override: 260,
+            },
+          },
+          {
             title: 'Afternoon Clear',
             metric: '32 µg/m³',
             sub: 'Dispersion improves air',
@@ -135,16 +157,6 @@ export function SimulatorView({
               label: 'What if afternoon air clears to 32 µg/m³?',
               pm25Override: 32,
               forecastTrendOverride: 'improving' as const,
-            },
-          },
-          {
-            title: 'Shift Indoors',
-            metric: 'Indoor',
-            sub: 'Move outdoor routine inside',
-            mod: {
-              label: 'What if outdoor activity moves indoors?',
-              overrideRoutineId: routines.find((r) => r.environment === 'outdoor')?.id,
-              overrideEnvironment: 'indoor' as const,
             },
           },
           {
@@ -160,7 +172,7 @@ export function SimulatorView({
           <button
             key={preset.title}
             type="button"
-            onClick={() => runPreset(preset.mod)}
+            onClick={() => void runPreset(preset.mod)}
             className="text-left bg-white border border-[#E2E7E1] rounded-xl p-4 hover:border-[#263C32] hover:bg-[#DCE9DD]/25 transition-colors cursor-pointer shadow-[0_1px_3px_rgba(37,45,40,0.03)]"
           >
             <p className="font-mono text-xs font-semibold text-[#263C32]">{preset.metric}</p>
@@ -181,8 +193,11 @@ export function SimulatorView({
           </h2>
 
           <div>
-            <label className="block text-xs text-[#89918A] mb-1">Scenario Label</label>
+            <label htmlFor="sim-label-input" className="block text-xs text-[#89918A] mb-1">
+              Scenario Label
+            </label>
             <input
+              id="sim-label-input"
               type="text"
               required
               value={label}
@@ -211,6 +226,7 @@ export function SimulatorView({
                 </div>
                 <input
                   type="range"
+                  aria-label="Hypothetical PM2.5 slider"
                   min={10}
                   max={300}
                   value={pm25Override}
@@ -219,11 +235,68 @@ export function SimulatorView({
                 />
               </div>
             )}
+
+            <label className="flex items-center gap-2 text-xs font-medium text-[#252D28] pt-1">
+              <input
+                type="checkbox"
+                checked={usePm10Override}
+                onChange={(e) => setUsePm10Override(e.target.checked)}
+                className="accent-[#263C32]"
+              />
+              <span>{t(lang, 'ui_pm10_override')}</span>
+            </label>
+            {usePm10Override && (
+              <div className="p-3 rounded-xl bg-[#F7F7F1] border border-[#E2E7E1] space-y-1.5">
+                <div className="flex justify-between text-xs font-mono tabular-nums">
+                  <span className="text-[#89918A]">PM10</span>
+                  <span className="font-semibold text-[#263C32]">{pm10Override} µg/m³</span>
+                </div>
+                <input
+                  type="range"
+                  aria-label={t(lang, 'ui_pm10_override')}
+                  min={20}
+                  max={500}
+                  value={pm10Override}
+                  onChange={(e) => setPm10Override(Number(e.target.value))}
+                  className="w-full accent-[#263C32] cursor-pointer"
+                />
+              </div>
+            )}
+
+            <label className="flex items-center gap-2 text-xs font-medium text-[#252D28] pt-1">
+              <input
+                type="checkbox"
+                checked={useAqiOverride}
+                onChange={(e) => setUseAqiOverride(e.target.checked)}
+                className="accent-[#263C32]"
+              />
+              <span>{t(lang, 'ui_aqi_override')}</span>
+            </label>
+            {useAqiOverride && (
+              <div className="p-3 rounded-xl bg-[#F7F7F1] border border-[#E2E7E1] space-y-1.5">
+                <div className="flex justify-between text-xs font-mono tabular-nums">
+                  <span className="text-[#89918A]">India NAQI</span>
+                  <span className="font-semibold text-[#263C32]">{aqiOverride}</span>
+                </div>
+                <input
+                  type="range"
+                  aria-label={t(lang, 'ui_aqi_override')}
+                  min={15}
+                  max={450}
+                  value={aqiOverride}
+                  onChange={(e) => setAqiOverride(Number(e.target.value))}
+                  className="w-full accent-[#263C32] cursor-pointer"
+                />
+              </div>
+            )}
           </div>
 
           <div className="border-t border-[#E2E7E1] pt-4">
-            <label className="block text-xs text-[#89918A] mb-1">Forecast Trend</label>
+            <label htmlFor="sim-forecast-trend" className="block text-xs text-[#89918A] mb-1">
+              Forecast Trend
+            </label>
             <select
+              id="sim-forecast-trend"
               value={forecastTrendOverride}
               onChange={(e) =>
                 setForecastTrendOverride(
@@ -252,6 +325,7 @@ export function SimulatorView({
               {applyRoutineOverride && (
                 <div className="space-y-2">
                   <select
+                    aria-label="Select routine to override"
                     value={overrideRoutineId}
                     onChange={(e) => setOverrideRoutineId(e.target.value)}
                     className="w-full px-3 py-2 text-xs bg-[#F7F7F1] border border-[#E2E7E1] rounded-lg"
@@ -264,16 +338,18 @@ export function SimulatorView({
                   </select>
                   <div className="grid grid-cols-2 gap-2">
                     <select
+                      aria-label="Override environment"
                       value={overrideEnvironment}
                       onChange={(e) =>
                         setOverrideEnvironment(e.target.value as 'outdoor' | 'indoor')
                       }
                       className="px-3 py-2 text-xs bg-[#F7F7F1] border border-[#E2E7E1] rounded-lg"
                     >
-                      <option value="indoor">Move Indoors</option>
-                      <option value="outdoor">Keep Outdoors</option>
+                      <option value="indoor">{t(lang, 'env_indoor')}</option>
+                      <option value="outdoor">{t(lang, 'env_outdoor')}</option>
                     </select>
                     <select
+                      aria-label="Override time window"
                       value={overrideWindow}
                       onChange={(e) => setOverrideWindow(e.target.value as TimeWindow)}
                       className="px-3 py-2 text-xs font-mono bg-[#F7F7F1] border border-[#E2E7E1] rounded-lg"
@@ -330,7 +406,7 @@ export function SimulatorView({
                 No scenario executed yet
               </p>
               <p className="text-xs text-[#89918A] max-w-md mx-auto">
-                Select a preset card above or adjust PM2.5 and routine controls to visualize the delta against baseline evidence.
+                Select a preset card above or adjust PM2.5, PM10, AQI, and routine controls to visualize the delta against baseline evidence.
               </p>
             </div>
           ) : (

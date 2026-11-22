@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 import {
   Activity,
@@ -20,30 +20,62 @@ import {
   X,
 } from 'lucide-react';
 import type {
-  ActivityRoutine,
   ActivityRoutineInput,
-  EnvironmentalSnapshot,
-  FamilyMember,
+  DataProviderRecord,
   FamilyMemberInput,
-  ForecastSlot,
   HouseholdInput,
-  HouseholdProfile,
   LanguageCode,
-  ProtectionPlanResult,
-  ProviderAdapterStatus,
-  ScenarioComparisonResult,
+  LocationInput,
   ScenarioModification,
 } from './shared/types';
+import {
+  addMemberApi,
+  addRoutineApi,
+  clearLocalApi,
+  createLocationApi,
+  deleteLocationApi,
+  deleteMemberApi,
+  deleteRoutineApi,
+  fetchBootstrap,
+  fetchProvidersApi,
+  importCamsApi,
+  resetDemoApi,
+  runScenarioApi,
+  saveHouseholdApi,
+  toggleRoutineCompletionApi,
+  updateLocationApi,
+  updateMemberApi,
+  updateRoutineApi,
+  updateSettingsApi,
+  type BootstrapPayload,
+} from './utils/api';
 import { t } from './i18n/translations';
 import { LandingPage } from './components/LandingPage';
-import { DashboardView } from './components/DashboardView';
-import { FamilyOnboardingView } from './components/FamilyOnboardingView';
-import { EnvironmentView } from './components/EnvironmentView';
-import { PlannerView } from './components/PlannerView';
-import { SimulatorView } from './components/SimulatorView';
-import { ComparisonView } from './components/ComparisonView';
-import { HistoryView } from './components/HistoryView';
-import { SettingsView } from './components/SettingsView';
+
+const DashboardView = lazy(() =>
+  import('./components/DashboardView').then((m) => ({ default: m.DashboardView }))
+);
+const FamilyOnboardingView = lazy(() =>
+  import('./components/FamilyOnboardingView').then((m) => ({ default: m.FamilyOnboardingView }))
+);
+const EnvironmentView = lazy(() =>
+  import('./components/EnvironmentView').then((m) => ({ default: m.EnvironmentView }))
+);
+const PlannerView = lazy(() =>
+  import('./components/PlannerView').then((m) => ({ default: m.PlannerView }))
+);
+const SimulatorView = lazy(() =>
+  import('./components/SimulatorView').then((m) => ({ default: m.SimulatorView }))
+);
+const ComparisonView = lazy(() =>
+  import('./components/ComparisonView').then((m) => ({ default: m.ComparisonView }))
+);
+const HistoryView = lazy(() =>
+  import('./components/HistoryView').then((m) => ({ default: m.HistoryView }))
+);
+const SettingsView = lazy(() =>
+  import('./components/SettingsView').then((m) => ({ default: m.SettingsView }))
+);
 
 type ActiveSection =
   | 'overview'
@@ -54,29 +86,6 @@ type ActiveSection =
   | 'locations'
   | 'reports'
   | 'settings';
-
-interface BootstrapPayload {
-  household: HouseholdProfile;
-  members: FamilyMember[];
-  routines: ActivityRoutine[];
-  environment: {
-    primarySnapshot: EnvironmentalSnapshot;
-    secondarySnapshots: EnvironmentalSnapshot[];
-    comparisonCities: {
-      pune: EnvironmentalSnapshot[];
-      ahilyanagar: EnvironmentalSnapshot[];
-    };
-    forecasts: ForecastSlot[];
-    providerStatuses: ProviderAdapterStatus[];
-    mode: 'live' | 'demo_fixture' | 'unavailable';
-  };
-  plan: ProtectionPlanResult;
-  history: {
-    plans: ProtectionPlanResult[];
-    scenarios: ScenarioComparisonResult[];
-    snapshots: EnvironmentalSnapshot[];
-  };
-}
 
 export default function App() {
   const [viewMode, setViewMode] = useState<'landing' | 'workspace'>('landing');
@@ -93,29 +102,55 @@ export default function App() {
 
   const [simulateOutage, setSimulateOutage] = useState(false);
   const [useFixtures, setUseFixtures] = useState(true);
+  const initializedFromServer = useRef(false);
 
   const [data, setData] = useState<BootstrapPayload | null>(null);
+  const [providers, setProviders] = useState<DataProviderRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [clearedEmpty, setClearedEmpty] = useState(false);
 
+  const closeHeaderMenus = useCallback(() => {
+    setLocationMenuOpen(false);
+    setAlertsMenuOpen(false);
+    setProfileMenuOpen(false);
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        closeHeaderMenus();
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [closeHeaderMenus]);
+
   const loadBootstrap = useCallback(
-    async (opts?: { persist?: boolean; outage?: boolean; fixtures?: boolean }) => {
-      const outage = opts?.outage ?? simulateOutage;
-      const fixtures = opts?.fixtures ?? useFixtures;
+    async (opts?: { persist?: boolean; outage?: boolean; fixtures?: boolean; city?: string }) => {
+      const hasOverride = typeof opts?.outage === 'boolean' || typeof opts?.fixtures === 'boolean';
+      const outage = opts?.outage ?? (initializedFromServer.current ? simulateOutage : undefined);
+      const fixtures = opts?.fixtures ?? (initializedFromServer.current ? useFixtures : undefined);
       const persist = opts?.persist ?? false;
 
       setLoading(true);
       setErrorMsg(null);
       try {
-        const res = await fetch(
-          `/api/bootstrap?simulateOutage=${outage}&useFixtures=${fixtures}&persist=${persist}`
-        );
-        if (!res.ok) throw new Error(`Server responded with ${res.status}`);
-        const payload = (await res.json()) as BootstrapPayload;
+        const payload = await fetchBootstrap({
+          city: opts?.city,
+          simulateOutage: hasOverride || initializedFromServer.current ? outage : undefined,
+          useFixtures: hasOverride || initializedFromServer.current ? fixtures : undefined,
+          persist,
+        });
         setData(payload);
         setClearedEmpty(false);
-        if (payload.household?.language) {
+        if (payload.settings) {
+          setSimulateOutage(payload.settings.simulateOutage);
+          setUseFixtures(payload.settings.useDemoFixtures);
+          setLang(payload.settings.language);
+          initializedFromServer.current = true;
+        } else if (payload.household?.language) {
           setLang(payload.household.language);
         }
       } catch (err) {
@@ -129,28 +164,50 @@ export default function App() {
 
   useEffect(() => {
     void loadBootstrap();
-  }, [loadBootstrap]);
-
-  const closeHeaderMenus = () => {
-    setLocationMenuOpen(false);
-    setAlertsMenuOpen(false);
-    setProfileMenuOpen(false);
-  };
+    void fetchProvidersApi()
+      .then((res) => setProviders(res.providers))
+      .catch(() => {
+        /* non-fatal fallback; SettingsView still loads or uses metadata */
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLanguageChange = async (nextLang: LanguageCode) => {
     setLang(nextLang);
     if (data?.household) {
-      await fetch('/api/household', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: data.household.name,
-          city: data.household.city,
-          locality: data.household.locality ?? '',
-          language: nextLang,
-        }),
+      await updateSettingsApi({
+        language: nextLang,
+        useDemoFixtures: useFixtures,
+        simulateOutage,
+        defaultCity: data.household.city,
       });
     }
+  };
+
+  const handleToggleOutage = async (nextOutage: boolean) => {
+    setSimulateOutage(nextOutage);
+    if (data?.household) {
+      await updateSettingsApi({
+        language: lang,
+        useDemoFixtures: useFixtures,
+        simulateOutage: nextOutage,
+        defaultCity: data.household.city,
+      });
+    }
+    await loadBootstrap({ outage: nextOutage, fixtures: useFixtures });
+  };
+
+  const handleToggleFixtures = async (nextFixtures: boolean) => {
+    setUseFixtures(nextFixtures);
+    if (data?.household) {
+      await updateSettingsApi({
+        language: lang,
+        useDemoFixtures: nextFixtures,
+        simulateOutage,
+        defaultCity: data.household.city,
+      });
+    }
+    await loadBootstrap({ outage: simulateOutage, fixtures: nextFixtures });
   };
 
   const navigateSection = (target?: string) => {
@@ -185,94 +242,97 @@ export default function App() {
   };
 
   const handleSaveHousehold = async (input: HouseholdInput) => {
-    const res = await fetch('/api/household', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
-    });
-    if (!res.ok) throw new Error('Failed to save household');
+    await saveHouseholdApi(input);
     setLang(input.language);
     await loadBootstrap();
   };
 
-  const handleQuickSwitchCity = async (city: string) => {
+  const handleQuickSwitchCity = async (city: string, locality = '') => {
     closeHeaderMenus();
     if (!data?.household) return;
     await handleSaveHousehold({
       name: data.household.name,
       city,
-      locality: city === 'Pune' ? 'Shivajinagar / Deccan' : '',
+      locality,
       language: lang,
+      sensitivityTags: data.household.sensitivityTags,
     });
   };
 
   const handleAddMember = async (input: FamilyMemberInput) => {
-    const res = await fetch('/api/members', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
-    });
-    if (!res.ok) throw new Error('Failed to add family member');
+    await addMemberApi(input);
+    await loadBootstrap();
+  };
+
+  const handleUpdateMember = async (id: string, input: FamilyMemberInput) => {
+    await updateMemberApi(id, input);
     await loadBootstrap();
   };
 
   const handleDeleteMember = async (id: string) => {
-    const res = await fetch(`/api/members/${encodeURIComponent(id)}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Failed to delete member');
+    await deleteMemberApi(id);
     await loadBootstrap();
   };
 
   const handleAddRoutine = async (input: ActivityRoutineInput) => {
-    const res = await fetch('/api/routines', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
-    });
-    if (!res.ok) throw new Error('Failed to add activity routine');
+    await addRoutineApi(input);
+    await loadBootstrap();
+  };
+
+  const handleUpdateRoutine = async (id: string, input: ActivityRoutineInput) => {
+    await updateRoutineApi(id, input);
+    await loadBootstrap();
+  };
+
+  const handleToggleRoutineCompletion = async (id: string, completed: boolean) => {
+    await toggleRoutineCompletionApi(id, completed);
     await loadBootstrap();
   };
 
   const handleDeleteRoutine = async (id: string) => {
-    const res = await fetch(`/api/routines/${encodeURIComponent(id)}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Failed to delete routine');
+    await deleteRoutineApi(id);
+    await loadBootstrap();
+  };
+
+  const handleCreateLocation = async (input: LocationInput) => {
+    await createLocationApi(input);
+    await loadBootstrap();
+  };
+
+  const handleUpdateLocation = async (id: string, input: LocationInput) => {
+    await updateLocationApi(id, input);
+    await loadBootstrap();
+  };
+
+  const handleDeleteLocation = async (id: string) => {
+    await deleteLocationApi(id);
     await loadBootstrap();
   };
 
   const handleImportCams = async (rawText: string) => {
-    const res = await fetch('/api/environment/import-cams', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rawText }),
-    });
-    const body = (await res.json()) as { error?: string; importedCount?: number; city?: string };
-    if (!res.ok) {
-      return { ok: false, message: body.error ?? 'Failed to import CAMS forecast.' };
+    try {
+      const body = await importCamsApi(rawText);
+      await loadBootstrap();
+      return {
+        ok: true,
+        message: `Imported ${body.importedCount} forecast slot(s) for ${body.city}.`,
+      };
+    } catch (err) {
+      return {
+        ok: false,
+        message: err instanceof Error ? err.message : 'Failed to import CAMS forecast.',
+      };
     }
-    await loadBootstrap();
-    return {
-      ok: true,
-      message: `Imported ${body.importedCount} forecast slot(s) for ${body.city}.`,
-    };
   };
 
   const handleRunScenario = async (mod: ScenarioModification) => {
-    const res = await fetch('/api/scenarios/run', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        modification: mod,
-        simulateOutage,
-        useFixtures,
-      }),
-    });
-    if (!res.ok) throw new Error('Failed to run scenario');
-    const scenarioResult = (await res.json()) as ScenarioComparisonResult;
+    const scenarioResult = await runScenarioApi(mod, { simulateOutage, useFixtures });
     await loadBootstrap();
     return scenarioResult;
   };
 
   const handleResetDemo = async () => {
-    await fetch('/api/local/reset-demo', { method: 'POST' });
+    await resetDemoApi();
     setSimulateOutage(false);
     setUseFixtures(true);
     setClearedEmpty(false);
@@ -280,7 +340,7 @@ export default function App() {
   };
 
   const handleClearLocal = async () => {
-    await fetch('/api/local/clear', { method: 'DELETE' });
+    await clearLocalApi();
     setClearedEmpty(true);
     setData(null);
   };
@@ -290,7 +350,7 @@ export default function App() {
       <MotionConfig reducedMotion="user">
         <LandingPage
           lang={lang}
-          onChangeLang={handleLanguageChange}
+          onChangeLang={(next) => void handleLanguageChange(next)}
           onEnterWorkspace={navigateSection}
         />
       </MotionConfig>
@@ -326,11 +386,25 @@ export default function App() {
   }
   if (data?.plan.isDemoFixture) {
     activeAlerts.push({
-      title: 'Demonstration Fixtures Active',
+      title: t(lang, 'cls_demo_fixture'),
       detail: t(lang, 'demo_fixture_notice'),
       kind: 'info',
     });
   }
+
+  const savedLocations = data?.locations ?? [];
+  const quickCities =
+    savedLocations.length > 0
+      ? savedLocations
+      : [
+          {
+            id: 'fallback-pune',
+            city: data?.household?.city ?? 'Pune',
+            locality: data?.household?.locality ?? '',
+            label: data?.household?.city ?? 'Pune',
+            isPrimary: true,
+          },
+        ];
 
   return (
     <MotionConfig reducedMotion="user">
@@ -377,6 +451,7 @@ export default function App() {
                   key={item.id}
                   type="button"
                   onClick={() => navigateSection(item.id)}
+                  aria-current={active ? 'page' : undefined}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 text-[13px] font-medium rounded-lg transition-all text-left cursor-pointer ${
                     active
                       ? 'bg-gradient-to-r from-[#DCE9DD]/75 to-[#DCE9DD]/30 text-[#263C32] shadow-2xs'
@@ -401,7 +476,7 @@ export default function App() {
                   {data?.household?.name ?? 'BreatheWise AI'}
                 </p>
                 <p className="text-[11px] text-[#89918A]">
-                  {data?.household?.city ?? 'Pune'} · {data?.members.length ?? 0} members
+                  {data?.household?.city ?? 'Pune'} · {data?.members.length ?? 0} {t(lang, 'tab_members').toLowerCase()}
                 </p>
               </div>
               <div className="flex items-center gap-1 pt-2 border-t border-[#E2E7E1]">
@@ -409,7 +484,7 @@ export default function App() {
                   <button
                     key={code}
                     type="button"
-                    onClick={() => handleLanguageChange(code)}
+                    onClick={() => void handleLanguageChange(code)}
                     className={`flex-1 py-1 text-[11px] font-medium rounded-md transition-colors cursor-pointer ${
                       lang === code
                         ? 'bg-[#263C32] text-white'
@@ -426,7 +501,7 @@ export default function App() {
 
         {/* Mobile Drawer */}
         {mobileMenuOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden flex">
+          <div className="fixed inset-0 z-50 lg:hidden flex" role="dialog" aria-modal="true" aria-label="Workspace menu">
             <div
               className="fixed inset-0 bg-[#252D28]/35 backdrop-blur-xs"
               onClick={() => setMobileMenuOpen(false)}
@@ -474,7 +549,7 @@ export default function App() {
                     <button
                       key={code}
                       type="button"
-                      onClick={() => handleLanguageChange(code)}
+                      onClick={() => void handleLanguageChange(code)}
                       className={`px-2 py-1 rounded-md cursor-pointer ${
                         lang === code
                           ? 'bg-[#263C32] text-white font-medium'
@@ -497,6 +572,7 @@ export default function App() {
               <button
                 type="button"
                 aria-label="Open navigation menu"
+                aria-expanded={mobileMenuOpen}
                 onClick={() => setMobileMenuOpen(true)}
                 className="lg:hidden p-2 rounded-lg border border-[#E2E7E1] text-[#252D28] cursor-pointer"
               >
@@ -511,13 +587,14 @@ export default function App() {
               </div>
             </div>
 
-            {/* Interactive Controls: Location Selector, Evidence Alerts, Profile & Refresh */}
+            {/* Interactive Controls: Dynamic Location Selector, Evidence Alerts, Profile & Refresh */}
             <div className="flex items-center gap-2 shrink-0 relative">
-              {/* Location Selector Dropdown */}
               {data?.household && (
                 <div className="relative">
                   <button
                     type="button"
+                    aria-expanded={locationMenuOpen}
+                    aria-label={t(lang, 'ui_location_label')}
                     onClick={() => {
                       setLocationMenuOpen((o) => !o);
                       setAlertsMenuOpen(false);
@@ -531,23 +608,30 @@ export default function App() {
                   </button>
 
                   {locationMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-56 rounded-xl bg-white border border-[#E2E7E1] shadow-lg p-1.5 z-30 text-xs">
+                    <div className="absolute right-0 mt-2 w-64 rounded-xl bg-white border border-[#E2E7E1] shadow-lg p-1.5 z-30 text-xs">
                       <p className="px-2.5 py-1.5 text-[11px] font-medium text-[#89918A]">
                         {t(lang, 'ui_location_label')}
                       </p>
-                      {['Pune', 'Ahilyanagar'].map((cityOption) => (
+                      {quickCities.map((loc) => (
                         <button
-                          key={cityOption}
+                          key={loc.id}
                           type="button"
-                          onClick={() => void handleQuickSwitchCity(cityOption)}
-                          className={`w-full text-left px-2.5 py-2 rounded-lg flex items-center justify-between cursor-pointer ${
-                            data.household.city === cityOption
+                          onClick={() => void handleQuickSwitchCity(loc.city, loc.locality)}
+                          className={`w-full text-left px-2.5 py-2 rounded-lg flex items-center justify-between gap-2 cursor-pointer ${
+                            data.household.city === loc.city
                               ? 'bg-[#DCE9DD]/65 font-semibold text-[#263C32]'
                               : 'text-[#252D28] hover:bg-[#F7F7F1]'
                           }`}
                         >
-                          <span>{cityOption}</span>
-                          <span className="text-[10px] text-[#89918A]">Demo</span>
+                          <span className="truncate">
+                            {loc.city}
+                            {loc.label && loc.label !== loc.city ? ` (${loc.label})` : ''}
+                          </span>
+                          {loc.isPrimary && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-white text-[#263C32] shrink-0">
+                              Primary
+                            </span>
+                          )}
                         </button>
                       ))}
                       <div className="my-1 border-t border-[#E2E7E1]" />
@@ -556,7 +640,7 @@ export default function App() {
                         onClick={() => navigateSection('locations')}
                         className="w-full text-left px-2.5 py-2 rounded-lg text-[#263C32] font-medium hover:bg-[#F7F7F1] cursor-pointer"
                       >
-                        Compare Pune vs. Ahilyanagar
+                        {t(lang, 'ui_nav_manage_locations')}
                       </button>
                     </div>
                   )}
@@ -567,6 +651,7 @@ export default function App() {
               <div className="relative">
                 <button
                   type="button"
+                  aria-expanded={alertsMenuOpen}
                   aria-label={t(lang, 'ui_alerts_title')}
                   onClick={() => {
                     setAlertsMenuOpen((o) => !o);
@@ -625,6 +710,7 @@ export default function App() {
               <div className="relative">
                 <button
                   type="button"
+                  aria-expanded={profileMenuOpen}
                   aria-label="Household profile and language menu"
                   onClick={() => {
                     setProfileMenuOpen((o) => !o);
@@ -648,7 +734,8 @@ export default function App() {
                         {data?.household?.name ?? 'Local Household'}
                       </p>
                       <p className="text-[11px] text-[#89918A]">
-                        {data?.members.length ?? 0} members · {data?.household?.city ?? 'Pune'}
+                        {data?.members.length ?? 0} {t(lang, 'tab_members').toLowerCase()} ·{' '}
+                        {data?.household?.city ?? 'Pune'}
                       </p>
                     </div>
                     <div className="flex gap-1 px-1.5 py-1.5">
@@ -713,14 +800,14 @@ export default function App() {
             {clearedEmpty ? (
               <div className="bg-white border border-[#E2E7E1] rounded-2xl p-10 text-center space-y-4">
                 <h2 className="font-display text-lg font-semibold text-[#252D28]">
-                  Local Household Data Cleared
+                  {t(lang, 'action_clearLocal')}
                 </h2>
                 <p className="text-xs text-[#89918A] max-w-md mx-auto">
-                  All local household profiles, routines, plans, and scenarios have been removed from SQLite.
+                  {t(lang, 'ui_confirm_clear_desc')}
                 </p>
                 <button
                   type="button"
-                  onClick={handleResetDemo}
+                  onClick={() => void handleResetDemo()}
                   className="px-4 py-2 text-xs font-medium bg-[#263C32] text-white rounded-lg hover:bg-[#1C2D25] cursor-pointer"
                 >
                   {t(lang, 'action_resetDemo')}
@@ -742,120 +829,135 @@ export default function App() {
                 {t(lang, 'loading')}
               </div>
             ) : (
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  {activeTab === 'overview' && (
-                    <DashboardView
-                      lang={lang}
-                      household={data.household}
-                      members={data.members}
-                      plan={data.plan}
-                      primarySnapshot={data.environment.primarySnapshot}
-                      forecasts={data.environment.forecasts}
-                      onNavigate={navigateSection}
-                      onSaveSnapshot={() => void loadBootstrap({ persist: true })}
-                    />
-                  )}
-                  {activeTab === 'family' && (
-                    <FamilyOnboardingView
-                      key={`family-${familySubMode}`}
-                      lang={lang}
-                      household={data.household}
-                      members={data.members}
-                      initialMode={familySubMode}
-                      onSaveHousehold={handleSaveHousehold}
-                      onAddMember={handleAddMember}
-                      onDeleteMember={handleDeleteMember}
-                      onDoneOnboarding={() => navigateSection('overview')}
-                    />
-                  )}
-                  {activeTab === 'air-quality' && (
-                    <EnvironmentView
-                      key={`air-${airSubTab}`}
-                      lang={lang}
-                      city={data.household.city}
-                      currentBand={data.plan.aqiBand}
-                      primarySnapshot={data.environment.primarySnapshot}
-                      secondarySnapshots={data.environment.secondarySnapshots}
-                      forecasts={data.environment.forecasts}
-                      providerStatuses={data.environment.providerStatuses}
-                      initialSubTab={airSubTab}
-                      onImportCams={handleImportCams}
-                    />
-                  )}
-                  {activeTab === 'planner' && (
-                    <PlannerView
-                      lang={lang}
-                      members={data.members}
-                      routines={data.routines}
-                      plan={data.plan}
-                      forecasts={data.environment.forecasts}
-                      onAddRoutine={handleAddRoutine}
-                      onDeleteRoutine={handleDeleteRoutine}
-                    />
-                  )}
-                  {activeTab === 'simulator' && (
-                    <SimulatorView
-                      lang={lang}
-                      routines={data.routines}
-                      currentPm25={data.environment.primarySnapshot.pollutants.pm25 ?? null}
-                      onRunScenario={handleRunScenario}
-                    />
-                  )}
-                  {activeTab === 'locations' && (
-                    <ComparisonView
-                      lang={lang}
-                      puneSnapshots={data.environment.comparisonCities.pune}
-                      ahilyanagarSnapshots={data.environment.comparisonCities.ahilyanagar}
-                      onSwitchHouseholdCity={async (city) => {
-                        await handleSaveHousehold({
-                          name: data.household.name,
-                          city,
-                          locality: '',
-                          language: lang,
-                        });
-                        navigateSection('overview');
-                      }}
-                    />
-                  )}
-                  {activeTab === 'reports' && (
-                    <HistoryView
-                      lang={lang}
-                      household={data.household}
-                      currentPlan={data.plan}
-                      plans={data.history.plans}
-                      scenarios={data.history.scenarios}
-                      snapshots={data.history.snapshots}
-                    />
-                  )}
-                  {activeTab === 'settings' && (
-                    <SettingsView
-                      key={`settings-${settingsSubTab}`}
-                      lang={lang}
-                      simulateOutage={simulateOutage}
-                      useFixtures={useFixtures}
-                      initialSubTab={settingsSubTab}
-                      onChangeLang={handleLanguageChange}
-                      onToggleOutage={(next) => {
-                        setSimulateOutage(next);
-                        void loadBootstrap({ outage: next });
-                      }}
-                      onToggleFixtures={(next) => {
-                        setUseFixtures(next);
-                        void loadBootstrap({ fixtures: next });
-                      }}
-                      onResetDemo={handleResetDemo}
-                      onClearLocal={handleClearLocal}
-                    />
-                  )}
-                </motion.div>
-              </AnimatePresence>
+              <Suspense
+                fallback={
+                  <div className="bg-white border border-[#E2E7E1] rounded-2xl p-8 text-xs text-[#89918A]">
+                    {t(lang, 'loading')}
+                  </div>
+                }
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    {activeTab === 'overview' && (
+                      <DashboardView
+                        lang={lang}
+                        household={data.household}
+                        members={data.members}
+                        plan={data.plan}
+                        primarySnapshot={data.environment.primarySnapshot}
+                        forecasts={data.environment.forecasts}
+                        onNavigate={navigateSection}
+                        onSaveSnapshot={() => void loadBootstrap({ persist: true })}
+                      />
+                    )}
+                    {activeTab === 'family' && (
+                      <FamilyOnboardingView
+                        key={`family-${familySubMode}`}
+                        lang={lang}
+                        household={data.household}
+                        members={data.members}
+                        initialMode={familySubMode}
+                        onSaveHousehold={handleSaveHousehold}
+                        onAddMember={handleAddMember}
+                        onUpdateMember={handleUpdateMember}
+                        onDeleteMember={handleDeleteMember}
+                        onDoneOnboarding={() => navigateSection('overview')}
+                      />
+                    )}
+                    {activeTab === 'air-quality' && (
+                      <EnvironmentView
+                        key={`air-${airSubTab}`}
+                        lang={lang}
+                        city={data.household.city}
+                        currentBand={data.plan.aqiBand}
+                        primarySnapshot={data.environment.primarySnapshot}
+                        secondarySnapshots={data.environment.secondarySnapshots}
+                        forecasts={data.environment.forecasts}
+                        providerStatuses={data.environment.providerStatuses}
+                        initialSubTab={airSubTab}
+                        onImportCams={handleImportCams}
+                      />
+                    )}
+                    {activeTab === 'planner' && (
+                      <PlannerView
+                        lang={lang}
+                        members={data.members}
+                        routines={data.routines}
+                        plan={data.plan}
+                        forecasts={data.environment.forecasts}
+                        onAddRoutine={handleAddRoutine}
+                        onUpdateRoutine={handleUpdateRoutine}
+                        onToggleCompletion={handleToggleRoutineCompletion}
+                        onDeleteRoutine={handleDeleteRoutine}
+                        onRecalculatePlan={() => void loadBootstrap({ persist: true })}
+                      />
+                    )}
+                    {activeTab === 'simulator' && (
+                      <SimulatorView
+                        lang={lang}
+                        routines={data.routines}
+                        currentPm25={data.environment.primarySnapshot.pollutants.pm25 ?? null}
+                        currentPm10={data.environment.primarySnapshot.pollutants.pm10 ?? null}
+                        onRunScenario={handleRunScenario}
+                      />
+                    )}
+                    {activeTab === 'locations' && (
+                      <ComparisonView
+                        lang={lang}
+                        activeCity={data.household.city}
+                        locations={data.locations}
+                        puneSnapshots={data.environment.comparisonCities.pune}
+                        ahilyanagarSnapshots={data.environment.comparisonCities.ahilyanagar}
+                        byCitySnapshots={data.environment.comparisonCities.byCity}
+                        onSwitchHouseholdCity={async (city) => {
+                          await handleSaveHousehold({
+                            name: data.household.name,
+                            city,
+                            locality: '',
+                            language: lang,
+                            sensitivityTags: data.household.sensitivityTags,
+                          });
+                          navigateSection('overview');
+                        }}
+                        onCreateLocation={handleCreateLocation}
+                        onUpdateLocation={handleUpdateLocation}
+                        onDeleteLocation={handleDeleteLocation}
+                      />
+                    )}
+                    {activeTab === 'reports' && (
+                      <HistoryView
+                        lang={lang}
+                        household={data.household}
+                        currentPlan={data.plan}
+                        plans={data.history.plans}
+                        scenarios={data.history.scenarios}
+                        snapshots={data.history.snapshots}
+                      />
+                    )}
+                    {activeTab === 'settings' && (
+                      <SettingsView
+                        key={`settings-${settingsSubTab}`}
+                        lang={lang}
+                        simulateOutage={simulateOutage}
+                        useFixtures={useFixtures}
+                        providers={providers}
+                        initialSubTab={settingsSubTab}
+                        onChangeLang={(next) => void handleLanguageChange(next)}
+                        onToggleOutage={(next) => void handleToggleOutage(next)}
+                        onToggleFixtures={(next) => void handleToggleFixtures(next)}
+                        onResetDemo={handleResetDemo}
+                        onClearLocal={handleClearLocal}
+                      />
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </Suspense>
             )}
           </main>
         </div>

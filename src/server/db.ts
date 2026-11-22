@@ -16,6 +16,7 @@ import type {
   ProtectionPlanResult,
   SavedLocation,
   ScenarioComparisonResult,
+  SensitivityTag,
   UserSettings,
   UserSettingsInput,
 } from '../shared/types';
@@ -83,8 +84,8 @@ export function createDemoHousehold(db: DatabaseSync): HouseholdProfile {
     const householdId = 'hh-demo-pune';
 
     db.prepare(
-      `INSERT INTO households (id, name, city, locality, language, is_demo_profile, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO households (id, name, city, locality, language, is_demo_profile, sensitivity_tags_json, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       householdId,
       'Deshmukh Family (Demo Profile)',
@@ -92,6 +93,7 @@ export function createDemoHousehold(db: DatabaseSync): HouseholdProfile {
       'Shivajinagar / Deccan',
       'en',
       1,
+      '[]',
       now,
       now
     );
@@ -243,6 +245,15 @@ export function createDemoHousehold(db: DatabaseSync): HouseholdProfile {
   });
 }
 
+function safeJsonParse<T>(raw: unknown, fallback: T): T {
+  if (typeof raw !== 'string' || !raw.trim()) return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 function mapHouseholdRow(row: Record<string, unknown>): HouseholdProfile {
   return {
     id: String(row.id),
@@ -251,6 +262,7 @@ function mapHouseholdRow(row: Record<string, unknown>): HouseholdProfile {
     locality: String(row.locality ?? ''),
     language: (String(row.language) as HouseholdProfile['language']) ?? 'en',
     isDemoProfile: Number(row.is_demo_profile) === 1,
+    sensitivityTags: safeJsonParse<SensitivityTag[]>(row.sensitivity_tags_json, []),
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
   };
@@ -278,6 +290,7 @@ function mapRoutineRow(r: Record<string, unknown>): ActivityRoutine {
     preferredWindow: String(r.preferred_window) as ActivityRoutine['preferredWindow'],
     memberIds: JSON.parse(String(r.member_ids_json)) as string[],
     notes: String(r.notes ?? ''),
+    completedDate: r.completed_date === null || r.completed_date === undefined ? null : String(r.completed_date),
     createdAt: String(r.created_at),
   };
 }
@@ -323,10 +336,11 @@ export function upsertHousehold(
   return runInTransaction(db, () => {
     const existing = getActiveHousehold(db);
     const now = new Date().toISOString();
+    const sensitivityJson = JSON.stringify(input.sensitivityTags ?? []);
     if (existing) {
       db.prepare(
         `UPDATE households
-         SET name = ?, city = ?, locality = ?, language = ?, is_demo_profile = ?, updated_at = ?
+         SET name = ?, city = ?, locality = ?, language = ?, is_demo_profile = ?, sensitivity_tags_json = ?, updated_at = ?
          WHERE id = ?`
       ).run(
         input.name,
@@ -334,6 +348,7 @@ export function upsertHousehold(
         input.locality ?? '',
         input.language,
         isDemoProfile ? 1 : 0,
+        sensitivityJson,
         now,
         existing.id
       );
@@ -352,8 +367,8 @@ export function upsertHousehold(
 
     const id = `hh-${Date.now()}-${shortUuid()}`;
     db.prepare(
-      `INSERT INTO households (id, name, city, locality, language, is_demo_profile, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO households (id, name, city, locality, language, is_demo_profile, sensitivity_tags_json, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       id,
       input.name,
@@ -361,6 +376,7 @@ export function upsertHousehold(
       input.locality ?? '',
       input.language,
       isDemoProfile ? 1 : 0,
+      sensitivityJson,
       now,
       now
     );
@@ -566,6 +582,7 @@ export function upsertRoutine(
     preferredWindow: input.preferredWindow,
     memberIds: input.memberIds,
     notes: input.notes ?? '',
+    completedDate: input.completedDate ?? null,
     createdAt: now,
   };
 }
@@ -599,6 +616,30 @@ export function updateRoutine(
     routineId,
     householdId
   );
+
+  const row = db
+    .prepare('SELECT * FROM activity_routines WHERE id = ? AND household_id = ?')
+    .get(routineId, householdId) as Record<string, unknown> | undefined;
+  return row ? mapRoutineRow(row) : null;
+}
+
+export function setRoutineCompletion(
+  db: DatabaseSync,
+  householdId: string,
+  routineId: string,
+  completed: boolean,
+  dateStr: string = new Date().toISOString().slice(0, 10)
+): ActivityRoutine | null {
+  const now = new Date().toISOString();
+  const nextCompletedDate = completed ? dateStr : null;
+  const res = db
+    .prepare(
+      `UPDATE activity_routines
+       SET completed_date = ?, updated_at = ?
+       WHERE id = ? AND household_id = ?`
+    )
+    .run(nextCompletedDate, now, routineId, householdId);
+  if (Number(res.changes) === 0) return null;
 
   const row = db
     .prepare('SELECT * FROM activity_routines WHERE id = ? AND household_id = ?')
@@ -909,44 +950,28 @@ export function listDataProvidersWithLicenses(db: DatabaseSync): DataProviderRec
 
 // ---------- Snapshots, Forecasts, Plans, Recommendations, Evidence, Scenarios ----------
 
-export function saveSnapshot(db: DatabaseSync, snap: EnvironmentalSnapshot): void {
-  db.prepare(
-    `INSERT OR REPLACE INTO environmental_snapshots (
-      id, provider, provider_label, data_type, city, location_label, station_or_grid_id,
-      spatial_resolution_note, pollutants_json, reported_aqi_india, measured_at, retrieved_at,
-      freshness, license_attribution, warnings_json, is_demo_fixture, is_available
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(
-    snap.id,
-    snap.provider,
-    snap.providerLabel,
-    snap.dataType,
-    snap.city,
-    snap.locationLabel,
-    snap.stationOrGridId,
-    snap.spatialResolutionNote,
-    JSON.stringify(snap.pollutants),
-    snap.reportedAqiIndia ?? null,
-    snap.measuredAt,
-    snap.retrievedAt,
-    snap.freshness,
-    snap.licenseAttribution,
-    JSON.stringify(snap.warnings),
-    snap.isDemoFixture ? 1 : 0,
-    snap.isAvailable ? 1 : 0
+function mapSnapshotRow(r: Record<string, unknown>): EnvironmentalSnapshot {
+  const weatherParsed = safeJsonParse<EnvironmentalSnapshot['weather'] | undefined>(
+    r.weather_json,
+    undefined
   );
-}
+  const coordsParsed = safeJsonParse<EnvironmentalSnapshot['coordinates']>(
+    r.coordinates_json,
+    null
+  );
+  const qualityParsed = safeJsonParse<EnvironmentalSnapshot['qualityMetadata'] | undefined>(
+    r.quality_json,
+    undefined
+  );
 
-export function listSnapshots(db: DatabaseSync, limit = 30): EnvironmentalSnapshot[] {
-  const rows = db
-    .prepare('SELECT * FROM environmental_snapshots ORDER BY retrieved_at DESC LIMIT ?')
-    .all(limit) as Array<Record<string, unknown>>;
-
-  return rows.map((r) => ({
+  return {
     id: String(r.id),
     provider: String(r.provider) as EnvironmentalSnapshot['provider'],
     providerLabel: String(r.provider_label),
     dataType: String(r.data_type) as EnvironmentalSnapshot['dataType'],
+    classification: (r.classification
+      ? String(r.classification)
+      : undefined) as EnvironmentalSnapshot['classification'],
     city: String(r.city),
     locationLabel: String(r.location_label),
     stationOrGridId: String(r.station_or_grid_id),
@@ -960,7 +985,106 @@ export function listSnapshots(db: DatabaseSync, limit = 30): EnvironmentalSnapsh
     warnings: JSON.parse(String(r.warnings_json)),
     isDemoFixture: Number(r.is_demo_fixture) === 1,
     isAvailable: Number(r.is_available) === 1,
-  }));
+    coordinates: coordsParsed,
+    weather:
+      weatherParsed && Object.keys(weatherParsed).length > 0 ? weatherParsed : undefined,
+    qualityMetadata:
+      qualityParsed && Object.keys(qualityParsed).length > 0 ? qualityParsed : undefined,
+  };
+}
+
+export function saveSnapshot(db: DatabaseSync, snap: EnvironmentalSnapshot): void {
+  const classification = snap.classification ?? (snap.isDemoFixture ? 'demo_fixture' : snap.isAvailable ? 'verified_live' : 'unavailable');
+  const weatherJson = JSON.stringify(snap.weather ?? {});
+  const coordsJson = snap.coordinates ? JSON.stringify(snap.coordinates) : null;
+  const qualityJson = JSON.stringify(snap.qualityMetadata ?? {});
+
+  // Deduplicate repeated polls of identical provider/station/measurement timestamp
+  if (snap.measuredAt && snap.provider !== 'unavailable') {
+    const existing = db
+      .prepare(
+        `SELECT id FROM environmental_snapshots
+         WHERE provider = ? AND station_or_grid_id = ? AND measured_at = ?
+         LIMIT 1`
+      )
+      .get(snap.provider, snap.stationOrGridId, snap.measuredAt) as { id: string } | undefined;
+
+    if (existing) {
+      db.prepare(
+        `UPDATE environmental_snapshots
+         SET retrieved_at = ?, freshness = ?, classification = ?, warnings_json = ?,
+             weather_json = ?, coordinates_json = ?, quality_json = ?, is_available = ?
+         WHERE id = ?`
+      ).run(
+        snap.retrievedAt,
+        snap.freshness,
+        classification,
+        JSON.stringify(snap.warnings),
+        weatherJson,
+        coordsJson,
+        qualityJson,
+        snap.isAvailable ? 1 : 0,
+        existing.id
+      );
+      return;
+    }
+  }
+
+  db.prepare(
+    `INSERT OR REPLACE INTO environmental_snapshots (
+      id, provider, provider_label, data_type, classification, city, location_label, station_or_grid_id,
+      spatial_resolution_note, pollutants_json, reported_aqi_india, measured_at, retrieved_at,
+      freshness, license_attribution, warnings_json, is_demo_fixture, is_available,
+      weather_json, coordinates_json, quality_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    snap.id,
+    snap.provider,
+    snap.providerLabel,
+    snap.dataType,
+    classification,
+    snap.city,
+    snap.locationLabel,
+    snap.stationOrGridId,
+    snap.spatialResolutionNote,
+    JSON.stringify(snap.pollutants),
+    snap.reportedAqiIndia ?? null,
+    snap.measuredAt,
+    snap.retrievedAt,
+    snap.freshness,
+    snap.licenseAttribution,
+    JSON.stringify(snap.warnings),
+    snap.isDemoFixture ? 1 : 0,
+    snap.isAvailable ? 1 : 0,
+    weatherJson,
+    coordsJson,
+    qualityJson
+  );
+}
+
+export function listSnapshots(db: DatabaseSync, limit = 30): EnvironmentalSnapshot[] {
+  const rows = db
+    .prepare('SELECT * FROM environmental_snapshots ORDER BY retrieved_at DESC LIMIT ?')
+    .all(limit) as Array<Record<string, unknown>>;
+
+  return rows.map(mapSnapshotRow);
+}
+
+export function listCitySnapshots(
+  db: DatabaseSync,
+  city: string,
+  limit = 15
+): EnvironmentalSnapshot[] {
+  const rows = db
+    .prepare(
+      `SELECT * FROM environmental_snapshots
+       WHERE lower(city) = lower(?) AND is_available = 1
+       ORDER BY COALESCE(measured_at, retrieved_at) DESC
+       LIMIT ?`
+    )
+    .all(city, limit) as Array<Record<string, unknown>>;
+
+  return rows.map(mapSnapshotRow);
 }
 
 export function saveForecastSlots(db: DatabaseSync, city: string, slots: ForecastSlot[]): void {
@@ -1030,8 +1154,8 @@ export function savePlanHistory(
 ): void {
   runInTransaction(db, () => {
     db.prepare(
-      `INSERT OR REPLACE INTO protection_plans (id, household_id, city, generated_at, aqi_value, aqi_band, freshness, is_demo_fixture, plan_json)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT OR REPLACE INTO protection_plans (id, household_id, city, generated_at, aqi_value, aqi_band, freshness, is_demo_fixture, rule_set_version, plan_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       plan.id,
       householdId,
@@ -1041,6 +1165,7 @@ export function savePlanHistory(
       plan.aqiBand,
       plan.freshness,
       plan.isDemoFixture ? 1 : 0,
+      plan.ruleSetVersion ?? '2.0.0',
       JSON.stringify(plan)
     );
 

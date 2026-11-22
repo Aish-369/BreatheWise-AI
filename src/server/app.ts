@@ -6,6 +6,7 @@ import {
   HouseholdInputSchema,
   IdParamSchema,
   LocationInputSchema,
+  RoutineCompletionSchema,
   ScenarioModificationSchema,
   UserSettingsInputSchema,
 } from '../shared/types';
@@ -30,6 +31,7 @@ import {
   resetToDemoProfile,
   saveForecastSlots,
   seedDemoHouseholdIfEmpty,
+  setRoutineCompletion,
   updateLocation,
   updateMember,
   updateRoutine,
@@ -52,6 +54,15 @@ export interface CreateAppOptions {
 
 export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): express.Express {
   const app = express();
+  app.disable('x-powered-by');
+  app.use((_req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+    res.setHeader('Permissions-Policy', 'geolocation=(), camera=(), microphone=()');
+    next();
+  });
   app.use(express.json({ limit: '1mb' }));
 
   app.get(
@@ -161,6 +172,23 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
         throw new NotFoundError('Household not found.');
       }
       const routine = updateRoutine(db, household.id, routineId, parsed);
+      if (!routine) {
+        throw new NotFoundError(`Activity routine '${routineId}' not found.`);
+      }
+      res.json({ routine, routines: listRoutines(db, household.id) });
+    })
+  );
+
+  app.patch(
+    '/api/routines/:id/completion',
+    asyncHandler((req, res) => {
+      const routineId = IdParamSchema.parse(req.params.id);
+      const parsed = RoutineCompletionSchema.parse(req.body);
+      const household = getActiveHousehold(db);
+      if (!household) {
+        throw new NotFoundError('Household not found.');
+      }
+      const routine = setRoutineCompletion(db, household.id, routineId, parsed.completed);
       if (!routine) {
         throw new NotFoundError(`Activity routine '${routineId}' not found.`);
       }

@@ -30,11 +30,11 @@ export function ForecastTrendChart({ slots, city, lang = 'en' }: ForecastTrendCh
             {t(lang, 'dash_expectedPm25Trend')} · {city}
           </h2>
           <p className="mt-2 text-xs text-[#89918A] leading-relaxed">
-            No coarse-grid forecast series is currently loaded for {city}. BreatheWise AI never plots estimated or interpolated curves without source data.
+            {t(lang, 'ui_chart_pm25_no_forecast', { city })}
           </p>
         </div>
-        <div className="mt-6 h-28 rounded-lg border border-dashed border-[#E2E7E1] bg-[#F7F7F1]/70 flex items-center justify-center text-xs text-[#89918A]">
-          Import Copernicus CAMS data to enable window comparisons
+        <div className="mt-6 h-28 rounded-lg border border-dashed border-[#E2E7E1] bg-[#F7F7F1]/70 flex items-center justify-center text-xs text-[#89918A] px-3 text-center">
+          {t(lang, 'ui_chart_import_cams_hint')}
         </div>
       </div>
     );
