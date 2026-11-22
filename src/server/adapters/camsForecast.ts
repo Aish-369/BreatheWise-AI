@@ -82,11 +82,12 @@ export async function fetchAutomaticCamsForecast(city: string): Promise<{
       };
     }
 
+    const localNow = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Kolkata', hour12: false }).replace(' ', 'T').slice(0, 16);
     const rows = times.map((time, index) => ({
       time,
       pm25: pm25[index] ?? null,
       pm10: pm10[index] ?? null,
-    })).filter((row) => Number.isFinite(Date.parse(row.time)));
+    })).filter((row) => Number.isFinite(Date.parse(row.time)) && row.time >= localNow);
 
     const grouped = new Map<string, { pm25: Array<number | null>; pm10: Array<number | null> }>();
     for (const row of rows) {
