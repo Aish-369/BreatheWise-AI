@@ -56,6 +56,16 @@ export function EnvironmentView({
 
   const allSnapshots = [primarySnapshot, ...secondarySnapshots];
 
+  const hasStationObservation = allSnapshots.some(
+    (snapshot) =>
+      snapshot.dataType === 'physical_station' &&
+      snapshot.isAvailable &&
+      snapshot.classification !== 'demo_fixture'
+  );
+  const nextForecast = forecasts.find(
+    (slot) => slot.expectedPm25 !== null || slot.expectedPm10 !== null
+  ) ?? null;
+
   const handleImport = async (e: React.FormEvent) => {
     e.preventDefault();
     setImporting(true);
@@ -97,6 +107,58 @@ export function EnvironmentView({
           ))}
         </div>
       </div>
+
+
+      {subTab === 'telemetry' && (
+        <section
+          aria-label="Air quality data availability"
+          className="rounded-2xl border border-[#E2E7E1] bg-white p-5 shadow-[0_1px_3px_rgba(37,45,40,0.04)]"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#89918A]">
+                Data availability · {city}
+              </p>
+              <h2 className="mt-1 font-display text-sm font-semibold text-[#252D28]">
+                {hasStationObservation
+                  ? 'Physical station observations'
+                  : 'No verified station observation is currently available'}
+              </h2>
+              <p className="mt-1 text-xs leading-relaxed text-[#89918A]">
+                {hasStationObservation
+                  ? 'Station observations are shown separately from regional model forecasts below.'
+                  : 'CPCB / OpenAQ station readings are not being replaced with estimates. Check the source status cards below for provider availability.'}
+              </p>
+            </div>
+            {nextForecast && (
+              <div className="shrink-0 rounded-xl border border-[#DCE9DD] bg-[#F7F7F1] px-4 py-3 sm:min-w-52">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-[#89918A]">
+                  Regional CAMS forecast · not live
+                </p>
+                <p className="mt-1 font-mono text-xl font-bold tabular-nums text-[#263C32]">
+                  {nextForecast.expectedPm25 ?? '—'}
+                  <span className="ml-1 text-[11px] font-medium">µg/m³ PM2.5</span>
+                </p>
+                <p className="mt-1 text-[11px] text-[#89918A]">
+                  {nextForecast.forecastDate} · {nextForecast.timeWindow}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSubTab('forecast')}
+                  className="mt-2 text-xs font-semibold text-[#263C32] underline underline-offset-2 cursor-pointer"
+                >
+                  View forecast details
+                </button>
+              </div>
+            )}
+          </div>
+          {!nextForecast && (
+            <p className="mt-3 rounded-lg border border-dashed border-[#E2E7E1] bg-[#F7F7F1]/70 p-3 text-xs text-[#89918A]">
+              No valid regional forecast is available for this city right now. The forecast panel will show the provider error state; no synthetic readings are displayed.
+            </p>
+          )}
+        </section>
+      )}
 
       {subTab === 'indoor' ? (
         <IndoorGuidanceView lang={lang} currentBand={currentBand} city={city} />
