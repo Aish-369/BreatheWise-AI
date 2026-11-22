@@ -58,7 +58,7 @@ const sessionHouseholdByRequest = new WeakMap<express.Request, string>();
 
 function getRequestHousehold(req: express.Request, db: DatabaseSync) {
   const id = sessionHouseholdByRequest.get(req);
-  return id ? getHouseholdById(db, id) : getRequestHousehold(req, db);
+  return id ? getHouseholdById(db, id) : getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db);
 }
 
 export interface CreateAppOptions {
