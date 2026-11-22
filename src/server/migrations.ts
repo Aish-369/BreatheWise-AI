@@ -396,7 +396,7 @@ const MIGRATIONS: Migration[] = [
       // Existing households must explicitly opt into synthetic demo data.
       db.exec('UPDATE user_settings SET use_demo_fixtures = 0;');
     },
-  },,
+  },
   {
     version: 5,
     name: '005_household_browser_sessions',
