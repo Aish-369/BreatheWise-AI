@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { parseCamsImport } from '../src/server/adapters/camsImporter';
-import { buildDemoFixtures } from '../src/server/adapters/fixtures';
+import { buildDemoFixtureForCity, buildDemoFixtures } from '../src/server/adapters/fixtures';
 import {
   addMember,
   clearAllLocalData,
@@ -21,6 +21,23 @@ import {
 import { generateProtectionPlan } from '../src/engine/intelligence';
 
 describe('SQLite Persistence & CAMS Importer Integration', () => {
+  it('creates deterministic, explicitly labelled demo AQI and forecast data for cities without fixtures', () => {
+    const now = '2026-11-22T08:00:00.000Z';
+    const first = buildDemoFixtureForCity('Nashik', now);
+    const second = buildDemoFixtureForCity('Nashik', now);
+
+    expect(first.snapshot.city).toBe('Nashik');
+    expect(first.snapshot.classification).toBe('demo_fixture');
+    expect(first.snapshot.isDemoFixture).toBe(true);
+    expect(first.snapshot.isAvailable).toBe(true);
+    expect(first.snapshot.measuredAt).toBeNull();
+    expect(first.snapshot.warnings.join(' ')).toContain('NOT LIVE MEASUREMENTS');
+    expect(first.snapshot.reportedAqiIndia).toBe(second.snapshot.reportedAqiIndia);
+    expect(first.forecasts).toHaveLength(5);
+    expect(first.forecasts.every((slot) => slot.isDemoFixture)).toBe(true);
+    expect(first.forecasts.every((slot) => slot.providerLabel.includes('Demo'))).toBe(true);
+  });
+
   it('23. validates and parses CAMS CSV and JSON forecast payloads and rejects invalid rows', () => {
     const csv = `city,grid_id,issued_at,forecast_date,time_window,expected_pm25,expected_pm10,trend
 Pune,CAMS-0.4,2026-11-20T08:00:00Z,2026-11-21,06:00-09:00,72,130,worsening
