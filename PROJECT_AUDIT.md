@@ -8,27 +8,37 @@
 
 ## Executive status
 
-The supplied `breathewise-source.zip` was extracted and inspected. Its source files match the current `fix/free-production-readiness` snapshot by Git blob SHA for `package.json`, `server.ts`, `src/server/db.ts`, `src/server/app.ts`, `src/server/service.ts`, and `src/server/migrations.ts`. The archive does not include `.git`, so it is a source snapshot, not a full Git clone.
+The supplied `breathewise-source.zip` was extracted and inspected. Its source files match the PR branch source for the main server/database files. The archive does not include `.git`, so it is a source snapshot, not a full Git clone.
 
 The application is **not yet production-ready with durable persistence**. The Express runtime still uses synchronous `node:sqlite` (`DatabaseSync`). The existing Supabase PostgreSQL schema is provisioned, but the application runtime is not connected to it. Do not point production traffic at PostgreSQL until the async repository refactor and integration tests are complete.
 
-## Git and branch audit
+## Git branch inventory and consolidation
 
-The repository currently has seven branch refs: `main` plus six development/fix branches.
+The repository was initially found with seven refs: `main` plus six development/fix branches.
 
-| Branch | Head commit | Related PR | Finding |
+| Branch | Original head commit | Related PR | Consolidation result |
 |---|---|---:|---|
-| `main` | `abfb601b4b4750cca7820c4517b25b5cf88bffca` | — | Production branch; preserve |
-| `fix/free-production-readiness` | `ceb60de3053e8fa719ed0416d3e3a006077e57fc` | #8 | Target consolidation/release branch; keep |
-| `hardening/production-readiness` | `5be0a3440fd51366aeeea62ecb6eea7a36ca7c7c` | #1, #2 | Both PRs merged into `main`; stale branch ref |
-| `fix/environmental-provider-reliability` | `22471919127c70d8cf5a735bf886f1f5d224121c` | #3 | PR merged into `main`; stale branch ref |
-| `hardening/session-rate-limits` | `39d0f5d3dc1dfa8c33b08439512135db70be8986` | #4, #5 | PR #4 merged; duplicate PR #5 closed; stale branch ref |
-| `fix/air-quality-page-reliability` | `79796e32601e5775a55ed860ed0ad92606b61e6f` | #6 | PR merged into `main`; stale branch ref |
-| `fix/air-quality-data-fallbacks` | `1fea56444299c86e7496119276fb20ed751733fd` | #7 | PR merged into `main`; stale branch ref |
+| `main` | `abfb601b4b4750cca7820c4517b25b5cf88bffca` | — | Production branch; preserved |
+| `fix/free-production-readiness` | `41cc0b8d57db2259334394777668adafea9b4a37` | #8 | Final consolidation branch |
+| `hardening/production-readiness` | `5be0a3440fd51366aeeea62ecb6eea7a36ca7c7c` | #1, #2 | Branch head included as an additional parent; PR #1 head is its ancestor |
+| `fix/environmental-provider-reliability` | `22471919127c70d8cf5a735bf886f1f5d224121c` | #3 | Branch head included as an additional parent |
+| `hardening/session-rate-limits` | `39d0f5d3dc1dfa8c33b08439512135db70be8986` | #4, #5 | Branch head included as an additional parent; duplicate PR #5 closed |
+| `fix/air-quality-page-reliability` | `79796e32601e5775a55ed860ed0ad92606b61e6f` | #6 | Branch head included as an additional parent |
+| `fix/air-quality-data-fallbacks` | `1fea56444299c86e7496119276fb20ed751733fd` | #7 | PR #7 head is the current `main` commit and is already in target ancestry |
 
-PRs #1, #2, #3, #4, #6 and #7 are merged. PR #5 duplicated the already-merged rate-limit change from PR #4 and has now been closed. PR #8 remains the only open development PR and targets `main` from `fix/free-production-readiness`.
+### Evidence that merged work is included
 
-The five stale branch refs are safe candidates for deletion because their corresponding PRs were merged. They have **not** been deleted in this audit: the connected GitHub actions available to this session support reading and updating refs but do not expose a branch-delete operation. Do not use force-push or delete `main` as a workaround.
+PRs #1, #2, #3, #4, #6 and #7 are merged. Their merge commits were each verified as ancestors of current `main`. PR #1's branch head is an ancestor of the PR #2 branch head. PR #5 duplicated the already-merged rate-limit change from PR #4 and is closed. PR #8 remains the only open development PR and targets `main`.
+
+The target branch was based on the current `main` commit, so the final source tree already contains the changes merged through PRs #1–#7. To preserve the original development commit histories as well, a consolidation commit was created with the exact existing target tree and the four non-ancestor development branch heads as additional parents. No source files were overwritten or reverted by this graph-consolidation commit.
+
+- Consolidation commit: `2a21e3fba8188d738618e86c47d360c12effbdba`
+- Parent 1: previous target `41cc0b8d57db2259334394777668adafea9b4a37`
+- Additional parents: `5be0a3440fd51366aeeea62ecb6eea7a36ca7c7c`, `22471919127c70d8cf5a735bf886f1f5d224121c`, `39d0f5d3dc1dfa8c33b08439512135db70be8986`, `79796e32601e5775a55ed860ed0ad92606b61e6f`
+- The `fix/air-quality-data-fallbacks` head `1fea56444299c86e7496119276fb20ed751733fd` equals current `main`, so it is already an ancestor.
+- The update was a normal fast-forward ref update with an expected-old-SHA check; no force push was used.
+
+**Important cleanup limitation:** the five obsolete remote branch refs still exist. The connected GitHub actions available here do not expose a branch-delete operation. They are safe cleanup candidates because their useful work is now in `main` and/or preserved in the target commit graph, but they have not been deleted. Delete only those five old refs after re-fetching and verifying their SHAs. Preserve `main` and `fix/free-production-readiness`.
 
 ## Code architecture findings
 
@@ -71,10 +81,11 @@ Render is still deploying `main`, not the release branch. No deployment was trig
 
 ## Verification evidence
 
-- GitHub Actions CI run #113 for PR #8 head `ceb60de3053e8fa719ed0416d3e3a006077e57fc`: **success** (type check, tests, production build and configured dependency audit as defined by the workflow).
+- GitHub Actions run #113 for the previous PR #8 head succeeded.
+- GitHub Actions run #115 for the audit documentation commit succeeded.
+- The branch-consolidation commit itself is a history-only merge commit with the same tree as the already-tested audit commit; a new workflow run should still be checked for the final head.
 - Local runtime: Node `v22.16.0`, npm `10.9.2`.
 - Local `npm ping` failed with `EAI_AGAIN` resolving `registry.npmjs.org`; the supplied archive has no `node_modules`. Local tests/build could not be re-run in this environment.
-- The CI result applies to the PR head before this audit document is added. The new documentation-only commit must receive its own CI run before its checks can be marked passed.
 
 ## Required remaining work
 
@@ -84,7 +95,7 @@ Render is still deploying `main`, not the release branch. No deployment was trig
 4. Verify all API and browser flows against PostgreSQL before switching production traffic.
 5. Verify CPCB/OpenAQ live connectivity only when valid credentials and upstream coverage are available; keep unavailable readings explicit.
 6. Configure a production health-check path and verify live startup/database readiness.
-7. Delete the five obsolete development branch refs after confirming merged PR history; keep `main` and `fix/free-production-readiness` only.
+7. Delete the five obsolete development branch refs after re-fetching and confirming their SHAs.
 8. Re-run CI after all code and documentation changes, then prepare the final clean source archive.
 
 ## Safety decisions
