@@ -25,27 +25,6 @@ interface EnvironmentViewProps {
   onImportCams: (rawText: string) => Promise<{ ok: boolean; message: string }>;
 }
 
-const SAMPLE_CAMS_CSV = `city,grid_id,forecast_date,time_window,expected_pm25,expected_pm10,trend
-Pune,CAMS-GLOBAL-0.4DEG,2026-11-21,06:00-09:00,74,130,worsening
-Pune,CAMS-GLOBAL-0.4DEG,2026-11-21,09:00-12:00,58,112,improving
-Pune,CAMS-GLOBAL-0.4DEG,2026-11-21,12:00-16:00,39,82,improving
-Pune,CAMS-GLOBAL-0.4DEG,2026-11-21,16:00-19:00,54,104,stable
-Pune,CAMS-GLOBAL-0.4DEG,2026-11-21,19:00-22:00,70,126,worsening`;
-
-const SAMPLE_CAMS_JSON = JSON.stringify(
-  {
-    city: 'Pune',
-    gridId: 'CAMS-GLOBAL-0.4DEG',
-    issuedAt: '2026-11-21T06:00:00.000Z',
-    slots: [
-      { forecastDate: '2026-11-21', timeWindow: '06:00-09:00', expectedPm25: 72, expectedPm10: 128, trend: 'worsening' },
-      { forecastDate: '2026-11-21', timeWindow: '12:00-16:00', expectedPm25: 38, expectedPm10: 80, trend: 'improving' },
-    ],
-  },
-  null,
-  2
-);
-
 export function EnvironmentView({
   lang,
   city,
@@ -58,7 +37,7 @@ export function EnvironmentView({
   onImportCams,
 }: EnvironmentViewProps) {
   const [subTab, setSubTab] = useState<'telemetry' | 'indoor' | 'forecast'>(initialSubTab);
-  const [camsText, setCamsText] = useState(SAMPLE_CAMS_CSV);
+  const [camsText, setCamsText] = useState('');
   const [importStatus, setImportStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [importing, setImporting] = useState(false);
 
@@ -179,20 +158,6 @@ export function EnvironmentView({
                   className="sr-only"
                 />
               </label>
-              <button
-                type="button"
-                onClick={() => setCamsText(SAMPLE_CAMS_CSV)}
-                className="px-3.5 py-2 text-xs font-medium border border-[#E2E7E1] bg-white text-[#252D28] rounded-lg hover:bg-[#DCE9DD]/40 cursor-pointer"
-              >
-                Reset Sample CSV
-              </button>
-              <button
-                type="button"
-                onClick={() => setCamsText(SAMPLE_CAMS_JSON)}
-                className="px-3.5 py-2 text-xs font-medium border border-[#E2E7E1] bg-white text-[#252D28] rounded-lg hover:bg-[#DCE9DD]/40 cursor-pointer"
-              >
-                {t(lang, 'cams_sample_json')}
-              </button>
             </div>
           </form>
 
