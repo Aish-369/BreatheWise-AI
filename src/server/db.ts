@@ -355,7 +355,7 @@ export function upsertHousehold(
 
       db.prepare(
         `INSERT INTO user_settings (household_id, language, use_demo_fixtures, simulate_outage, default_city, updated_at)
-         VALUES (?, ?, 1, 0, ?, ?)
+         VALUES (?, ?, 0, 0, ?, ?)
          ON CONFLICT(household_id) DO UPDATE SET
            language = excluded.language,
            default_city = excluded.default_city,
