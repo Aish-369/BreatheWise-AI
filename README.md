@@ -250,7 +250,7 @@ npm test
 npm run build
 ```
 
-The project's testing documentation reports 39 automated tests across four test suites covering intelligence rules, data adapters, SQLite migrations, API validation, localization, and data-quality behavior.
+The repository includes automated Vitest suites covering intelligence rules, data adapters, SQLite migrations, API validation, localization, and data-quality behavior. Run the commands above against the exact branch you intend to deploy; a successful build alone does not verify external provider availability or browser workflows.
 
 Interactive browser automation with Playwright is not included in the currently documented verification suite.
 
@@ -269,6 +269,21 @@ Detailed documentation is available in the `docs/` directory:
 | `RELEASE_NOTES.md` | Version history and release information |
 
 ---
+
+
+## 🚧 Production Deployment Status
+
+This repository is still undergoing production hardening. **Do not use the current public deployment for real family or personal data yet.** The current backend selects a single active household from the database and does not authenticate or isolate visitors into separate households. On a public deployment, visitors may therefore share the same household data. This is a release-blocking privacy issue and must be fixed and tested before production use.
+
+The free Render filesystem is ephemeral; a SQLite database stored on the service filesystem may be lost after a restart or redeploy. Do not rely on it for durable user data.
+
+This hardening branch:
+- Turns synthetic AQI fixtures off by default and keeps them available only when explicitly enabled.
+- Adds a database migration that disables previously enabled fixture preferences.
+- Corrects product metadata to describe the deterministic TypeScript intelligence engine rather than an unused Gemini integration.
+- Adds a GitHub Actions workflow for type-checking, automated tests, and production build checks.
+
+These changes do **not** yet implement multi-household authentication/isolation, durable hosted persistence, live provider verification, or browser-level end-to-end/accessibility testing. Do not describe the app as production-ready until those items are completed and verified.
 
 ## ⚠️ Important Disclaimer
 
