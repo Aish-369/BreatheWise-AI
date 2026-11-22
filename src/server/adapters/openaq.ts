@@ -234,8 +234,10 @@ export async function fetchOpenAqSnapshots(city: string): Promise<AdapterFetchRe
       const weather: WeatherFields = {};
       const validatedFields: string[] = [];
       const rejectedFields: string[] = [];
-      const parameterBySensorId = new Map(
-        (loc.sensors ?? []).map((sensor) => [sensor.id, sensor.parameter?.name?.toLowerCase() ?? ''])
+      const parameterBySensorId = new Map<number, string>(
+        (loc.sensors ?? []).map(
+          (sensor): [number, string] => [sensor.id, sensor.parameter?.name?.toLowerCase() ?? '']
+        )
       );
       let latestIso: string | null = null;
 
