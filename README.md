@@ -146,25 +146,28 @@ npm run build          # Production Vite client bundle
 
 ## Testing
 
-The automated Vitest suite contains **100 tests across 20 files**:
+The automated Vitest suite contains **116 tests across 24 files**, verified by the GitHub Actions CI run:
 
-- **Protection & Quality Engine (`tests/engine.test.ts`, `tests/unavailableProtectionPlan.test.ts`, `tests/plan*.test.ts` — 8 module suites):** Freshness thresholds, NAQI sub-index derivation, provider conflict detection, confidence scoring, forecast window optimization, age/pollutant/sensitivity actions, daily schedule transitions, summary construction, and What-If scenario diffs.
-- **Server, Persistence & Security (`tests/apiAndMigrations.test.ts`, `tests/dbAndAdapters.test.ts`, `tests/cpcbAdapter.test.ts`, `tests/errorsMiddleware.test.ts`, `tests/sessionCookieHelper.test.ts`, `tests/httpClient.test.ts`, `tests/rateLimit.test.ts`, `tests/phase5And6.test.ts`):** Versioned SQLite migrations (v1–v6), isolated browser sessions and CSRF origin enforcement, Zod error mapping without stack leaks, retry/timeout/TTL caching, CAMS import sanitization, and API rate limiting.
-- **Localization & Accessibility (`tests/i18nParity.test.ts`, `tests/frontendA11y.test.tsx`):** Key parity and Devanagari coverage across `en`/`hi`/`mr`, plus `@testing-library/react` + `jest-axe` WCAG accessibility audits across all main views.
+- **Protection & Quality Engine** (`tests/engine.test.ts`, `tests/unavailableProtectionPlan.test.ts`, and `tests/plan*.test.ts`): Freshness thresholds, NAQI sub-index derivation, provider conflict detection, confidence scoring, forecast window optimization, age/pollutant/sensitivity actions, daily schedule transitions, summary construction, and What-If scenario diffs.
+- **Server, Persistence & Security** (`tests/apiAndMigrations.test.ts`, `tests/dbAndAdapters.test.ts`, `tests/cpcbAdapter.test.ts`, `tests/errorsMiddleware.test.ts`, `tests/sessionCookieHelper.test.ts`, `tests/httpClient.test.ts`, `tests/rateLimit.test.ts`, `tests/phase5And6.test.ts`): Versioned SQLite migrations, isolated browser sessions, Zod error mapping without stack leaks, retry/timeout/TTL caching, CAMS import sanitization, and API rate limiting.
+- **Localization & Accessibility** (`tests/i18nParity.test.ts`, `tests/frontendA11y.test.tsx`): Key parity across `en`/`hi`/`mr` and automated axe checks for primary views.
+- **Frontend state & recovery** (`tests/useNavigationState.test.tsx`, `tests/useLocale.test.tsx`, `tests/useEntityCrudHandlers.test.tsx`, `tests/ErrorBoundary.test.tsx`): Navigation/deep-link state, Escape-key dismissal, locale persistence and failure handling, CRUD handler delegation, and UI error recovery.
 
-Measured V8 coverage (`npm run test:coverage`):
+Measured V8 coverage from the latest successful CI run (`npm run test:coverage`):
 
 | Folder             |   Files | Statements |   Branches |  Functions |      Lines |
 | ------------------ | ------: | ---------: | ---------: | ---------: | ---------: |
-| `src/engine`       |      13 |     97.12% |     86.15% |    100.00% |     98.37% |
+| `src/engine`       |      13 |     94.76% |     90.64% |    100.00% |     98.05% |
 | `src/i18n`         |      11 |    100.00% |     68.18% |    100.00% |    100.00% |
-| `src/shared`       |       4 |     97.37% |     76.92% |    100.00% |    100.00% |
-| `src/server`       |      44 |     84.15% |     64.51% |     90.25% |     86.79% |
-| `src/components`   |      80 |     37.10% |     37.28% |     35.35% |     38.02% |
-| `src/utils`        |       4 |      7.26% |      9.45% |     11.11% |      7.24% |
-| `src/hooks`        |       5 |      0.00% |      0.00% |      0.00% |      0.00% |
+| `src/shared`       |       4 |     97.36% |     76.92% |    100.00% |    100.00% |
+| `src/server`       |      44 |     79.25% |     60.16% |     80.00% |     85.79% |
+| `src/components`   |      80 |     44.68% |     44.09% |     41.66% |     45.80% |
+| `src/utils`        |       4 |      7.26% |      9.44% |     11.11% |      7.24% |
+| `src/hooks`        |       5 |     45.62% |     43.47% |     56.36% |     41.84% |
 | `src` (`App.tsx`)  |       1 |      0.00% |      0.00% |      0.00% |      0.00% |
-| **Total (`src/`)** | **162** | **60.16%** | **56.79%** | **52.76%** | **61.39%** |
+| **Total (`src/`)** | **162** | **62.82%** | **57.68%** | **56.87%** | **63.77%** |
+
+The latest verified CI run passes formatting, ESLint, TypeScript type-checking, all 116 tests, and the production build. Coverage is reported transparently; the remaining largest gaps are UI components, utility modules, the household data/mutation hooks, and the root `App.tsx`.
 
 ---
 
