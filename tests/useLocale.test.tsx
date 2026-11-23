@@ -107,11 +107,12 @@ describe('useLocale', () => {
       })
     );
 
-    await expect(
-      act(async () => {
-        await result.current.handleLanguageChange('mr');
-      })
-    ).rejects.toThrow('Settings save failed');
+    let pending: Promise<void>;
+    act(() => {
+      pending = result.current.handleLanguageChange('mr');
+    });
+
+    await expect(pending!).rejects.toThrow('Settings save failed');
     expect(result.current.lang).toBe('mr');
   });
 });
