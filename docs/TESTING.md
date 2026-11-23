@@ -8,12 +8,12 @@ All automated checks run against isolated temporary or `:memory:` SQLite databas
 npm run format:check  # Prettier formatting verification
 npm run lint           # ESLint with zero warnings
 npm run typecheck      # TypeScript type-checking (tsc --noEmit)
-npm run test:coverage  # Vitest suite with V8 coverage (150 tests across 31 files)
+npm run test:coverage  # Vitest suite with V8 coverage (151 tests across 31 files)
 npm run build          # Vite 8 production bundle check
 npx playwright test    # Chromium browser-level core journeys
 ```
 
-## 2. Test Coverage Breakdown (150 Tests across 31 Files)
+## 2. Test Coverage Breakdown (151 Tests across 31 Files)
 
 1. **`tests/engine.test.ts` (22 tests)**
    - Freshness boundaries (`<= 2h` fresh, `2–6h` aging, `> 6h` stale, missing/future timestamps unavailable)
@@ -69,6 +69,8 @@ npx playwright test    # Chromium browser-level core journeys
 ## 3. Latest Measured Coverage
 
 The latest successful GitHub Actions run reports 71.30% statement coverage, 61.06% branch coverage, 63.26% function coverage, and 72.53% line coverage across 162 source files. The `App.tsx` entry point is 100% covered, and the custom hooks folder is at 94.37% statement coverage. The largest remaining coverage gap is the component layer (51.06% statements).
+
+**Health probe regression tests (`tests/healthCheck.test.ts`, 2 tests)** cover both successful database readiness without a session cookie and the generic 503 response when SQLite cannot answer.
 
 ## 5. Hosting Readiness Audit
 
