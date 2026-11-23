@@ -10,7 +10,7 @@ test.describe('BreatheWise AI browser journeys', () => {
 
   test('opens the workspace and returns to the landing page', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: /open workspace/i }).click();
+    await page.getByRole('button', { name: /launch family workspace/i }).click();
 
     await expect(page.getByRole('navigation', { name: 'Workspace navigation' })).toBeVisible();
     await expect(page.getByRole('button', { name: /overview/i })).toBeVisible();
