@@ -18,7 +18,11 @@ vi.mock('../src/hooks/useHouseholdData', () => ({
 }));
 
 vi.mock('../src/components/LandingPage', () => ({
-  LandingPage: ({ lang, onEnterWorkspace, onChangeLang }: {
+  LandingPage: ({
+    lang,
+    onEnterWorkspace,
+    onChangeLang,
+  }: {
     lang: string;
     onEnterWorkspace: (target: string) => void;
     onChangeLang: (lang: 'mr') => void;
@@ -27,13 +31,25 @@ vi.mock('../src/components/LandingPage', () => ({
       'main',
       null,
       createElement('p', null, `Landing language: ${lang}`),
-      createElement('button', { onClick: () => onEnterWorkspace('overview') }, 'Enter workspace'),
-      createElement('button', { onClick: () => onChangeLang('mr') }, 'Change language')
+      createElement(
+        'button',
+        { onClick: () => onEnterWorkspace('overview') },
+        'Enter workspace'
+      ),
+      createElement(
+        'button',
+        { onClick: () => onChangeLang('mr') },
+        'Change language'
+      )
     ),
 }));
 
 vi.mock('../src/components/workspace/WorkspaceShell', () => ({
-  WorkspaceShell: ({ onBackToLanding, onRefresh, onChangeLang }: {
+  WorkspaceShell: ({
+    onBackToLanding,
+    onRefresh,
+    onChangeLang,
+  }: {
     onBackToLanding: () => void;
     onRefresh: () => void;
     onChangeLang: (lang: 'mr') => void;
@@ -44,7 +60,11 @@ vi.mock('../src/components/workspace/WorkspaceShell', () => ({
       createElement('p', null, 'Workspace loaded'),
       createElement('button', { onClick: onBackToLanding }, 'Back to landing'),
       createElement('button', { onClick: onRefresh }, 'Refresh data'),
-      createElement('button', { onClick: () => onChangeLang('mr') }, 'Workspace language')
+      createElement(
+        'button',
+        { onClick: () => onChangeLang('mr') },
+        'Workspace language'
+      )
     ),
 }));
 
