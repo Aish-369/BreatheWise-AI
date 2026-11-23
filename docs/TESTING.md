@@ -2,7 +2,7 @@
 
 ## 1. Running the Automated Suite
 
-All automated checks run against isolated temporary or `:memory:` SQLite databases and never touch production data (`./data/breathewise.db`). The latest GitHub Actions CI run verified dependency audit, formatting, lint, type-check, coverage tests, production build, Chromium installation, and browser journeys:
+All automated checks run against isolated temporary or `:memory:` SQLite databases and never touch production data (`./data/breathewise.db`). GitHub Actions run [#251](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45173931446) on 2026-11-23 verified dependency audit, formatting, lint, type-check, coverage tests, production build, Chromium installation, and browser journeys:
 
 ```bash
 npm run format:check  # Prettier formatting verification
@@ -68,7 +68,7 @@ npx playwright test    # Chromium browser-level core journeys
 
 ## 3. Latest Measured Coverage
 
-The latest successful GitHub Actions run reports 71.33% statement coverage, 61.06% branch coverage, 63.26% function coverage, and 72.57% line coverage across 162 source files. The `App.tsx` entry point is 100% covered, and the custom hooks folder is at 94.37% statement coverage. The largest remaining coverage gap is the component layer (51.06% statements).
+The latest successful GitHub Actions run reports 71.37% statement coverage, 61.09% branch coverage, 63.26% function coverage, and 72.60% line coverage across 162 source files. All 151 Vitest tests across 31 files passed, and all 3 Playwright browser journeys passed. The `App.tsx` entry point is 100% covered, and the custom hooks folder is at 94.37% statement coverage. The largest remaining coverage gap is the component layer (51.06% statements).
 
 **Health probe regression tests (`tests/healthCheck.test.ts`, 2 tests)** cover both successful database readiness without a session cookie and the generic 503 response when SQLite cannot answer.
 
