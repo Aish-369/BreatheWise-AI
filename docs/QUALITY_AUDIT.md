@@ -15,24 +15,24 @@ previously merged frontend test expansion is on the deployed branch.
 The strongest evidence-backed opportunities are:
 
 1.  **Testing depth:** the latest documented V8 statement coverage is 62.82%; component coverage
-    is 44.68%, utility coverage 7.26%, hooks 45.62%, and `App.tsx` 0%. Existing documentation
-    explicitly says browser-based Playwright/Chromium flows were not run in CI.
+     is 44.68%, utility coverage 7.26%, hooks 45.62%, and `App.tsx` 0%. Existing documentation
+     explicitly says browser-based Playwright/Chromium flows were not run in CI.
 2.  **TypeScript strictness mismatch:** `docs/TESTING.md` and README describe strict TypeScript
-    checking, but the current `tsconfig.json` does not enable `strict`, `noImplicitAny`, or
-    `strictNullChecks`. The current typecheck passes, but it is not evidence of strict-mode
-   coverage.
+     checking, but the current `tsconfig.json` does not enable `strict`, `noImplicitAny`, or
+     `strictNullChecks`. The current typecheck passes, but it is not evidence of strict-mode
+    coverage.
 3.  **Persistence / hosting risk:** production currently creates a local `node:sqlite` database at
-    `data/breathewise.db`. Render service metadata reports the Free plan and does not show a
-   persistent disk. The existing project audit already warns that ephemeral filesystems may reset
-    on redeploy/restart. Durable production persistence is therefore not verified and must not be
-    claimed.
+     `data/breathewise.db`. Render service metadata reports the Free plan and does not show a
+    persistent disk. The existing project audit already warns that ephemeral filesystems may reset
+     on redeploy/restart. Durable production persistence is therefore not verified and must not be
+     claimed.
 4.  **Documentation drift:** README's Getting Started section still says `npm test` has 100 tests
-    across 20 files, while the later Testing section and `docs/TESTING.md` report 116 tests across
-    24 files.
+     across 20 files, while the later Testing section and `docs/TESTING.md` report 116 tests across
+     24 files.
 5.  **Operational hardening:** the Render service has no configured health-check path. Vite
-    development config sets `server.allowedHosts: true`; this is development-server configuration,
-   not the Express production server, but should be reviewed and restricted where compatible with
-    the development environment.
+     development config sets `server.allowedHosts: true`; this is development-server configuration,
+    not the Express production server, but should be reviewed and restricted where compatible with
+     the development environment.
 
 No Hack2Skill evaluation attempt was used. No production data, environment variables, database
 schema, or runtime code was changed during this audit.
@@ -43,7 +43,7 @@ schema, or runtime code was changed during this audit.
 - Main commit: `b260ad673468771689810482a57df978c47e81d1`
 - Latest CI run: [Run #158](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45145531103)
 - CI result: Success; all 10 workflow steps completed successfully.
--  CI checks: npm install, production dependency audit, Prettier, ESLint (zero warnings),
+- CI checks: npm install, production dependency audit, Prettier, ESLint (zero warnings),
   TypeScript check, Vitest coverage, and Vite production build.
 - Latest Render deploy: `dep-dc208qu1egvs738s3tf0`
 - Render deploy result: `live`
@@ -51,7 +51,7 @@ schema, or runtime code was changed during this audit.
 - Render service branch: `main`
 - Render plan / region: Free / Singapore.
 - Render health-check path: Not configured.
--  Render persistent disk: No disk is shown in the retrieved service metadata; verify explicitly
+- Render persistent disk: No disk is shown in the retrieved service metadata; verify explicitly
   before making persistence guarantees.
 - Open pull requests at audit time: None.
 
@@ -75,12 +75,12 @@ locale, CRUD handlers, and ErrorBoundary tests.
 **Evidence**
 
 - `server.ts` calls `getDb()` during production startup.
--  `src/server/db/connection.ts` resolves the database to `<process.cwd()>/data/breathewise.db`
+- `src/server/db/connection.ts` resolves the database to `<process.cwd()>/data/breathewise.db`
   and creates the directory if needed.
 - `src/server/db/connection.ts` uses `DatabaseSync`.
--  Render service metadata reports the Free plan and no configured health-check path; no
+- Render service metadata reports the Free plan and no configured health-check path; no
   persistent disk was present in the returned service details.
--  `docs/PROJECT_AUDIT.md` and README already document the ephemeral filesystem limitation and
+- `docs/PROJECT_AUDIT.md` and README already document the ephemeral filesystem limitation and
   state that the Supabase schema is not yet connected to the runtime.
 
 **Risk**
@@ -123,7 +123,8 @@ confirming the repository/runtime can support it reliably.
 ### P1 — Align TypeScript configuration with documentation
 
 **Evidence**
--  `tsconfig.json` currently does not set `strict: true`, `noImplicitAny: true`, or
+
+- `tsconfig.json` currently does not set `strict: true`, `noImplicitAny: true`, or
   `strictNullChecks: true`.
 - README and testing documentation describe the check as strict TypeScript checking.
 
@@ -220,7 +221,7 @@ for this project's toolchain and lockfile.
 - [x] No production/runtime/database changes made.
 - [ ] Local clean-install test run: not executed in this connected GitHub audit environment.
 - [ ] Interactive browser/E2E validation: not executed.
--  [ ] Live app browser verification: not completed; direct page fetch was unavailable from the
+- [ ] Live app browser verification: not completed; direct page fetch was unavailable from the
   inspection environment.
 
 ## Recommended execution order
@@ -233,7 +234,7 @@ for this project's toolchain and lockfile.
 6. Phase 5: keyboard/screen-reader accessibility workflows beyond static axe checks.
 7. Phase 6: improve challenge alignment and data provenance communication.
 8. Phase 7–8: complete E2E/release validation; only then decide whether to spend the final
-   Hack2Skill evaluation attempt.
+    Hack2Skill evaluation attempt.
 
 **Score integrity:** 97+/100 remains a target, not a promise. No evaluator score has been re-run;
 these audit findings do not establish that the score has improved.
