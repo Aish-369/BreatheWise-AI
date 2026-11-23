@@ -69,7 +69,7 @@ describe('engine/plan/actions', () => {
     expect(rec.id).toBe('rec-unavailable');
     expect(rec.severity).toBe('unavailable');
     expect(rec.confidenceOrLimitationKey).toBe('evidence_unavailable');
-    expect(rec.evidenceTrail.householdContext).toContain('1 household member(s) in Pune');
+    expect(rec.evidenceTrail?.householdContext).toContain('1 household member(s) in Pune');
   });
 
   it('builds open-ventilation and good band guidance when AQI is Good', () => {
