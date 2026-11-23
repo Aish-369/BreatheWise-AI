@@ -46,7 +46,6 @@ npm run build          # Vite 8 production bundle check
    - Multilingual PDF report model (`buildPdfReportModel`) for `en`, `mr`, and `hi`
    - 100% key parity across `en`, `mr`, and `hi` dictionaries plus zero missing literal `t(lang, '...')` keys across `src/`
 
-
 5. **Frontend state and recovery (`tests/useNavigationState.test.tsx`, `tests/useLocale.test.tsx`, `tests/useEntityCrudHandlers.test.tsx`, `tests/ErrorBoundary.test.tsx`)**
    - Navigation defaults, valid/invalid deep links, sub-tab resets, header-menu dismissal, and Escape-key behavior
    - Locale state, settings persistence payload, no-household behavior, and rejected persistence requests
