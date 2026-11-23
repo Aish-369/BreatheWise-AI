@@ -41,7 +41,7 @@ describe('useLocale', () => {
   });
 
   it('changes language and persists all current settings for an existing household', async () => {
-    const runAction = vi.fn(async (action: () => Promise<unknown>) => action());
+    const runAction = vi.fn(<T>(action: () => Promise<T>): Promise<T> => action());
     const { result } = renderHook(() =>
       useLocale({
         household,
