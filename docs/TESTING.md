@@ -7,8 +7,8 @@ All automated checks run against isolated temporary or `:memory:` SQLite databas
 ```bash
 npm run format:check  # Prettier formatting verification
 npm run lint           # ESLint with zero warnings
-npm run typecheck      # TypeScript strict type-checking (tsc --noEmit)
-npm run test:coverage  # Vitest suite with V8 coverage (116 tests across 24 files)
+npm run typecheck      # TypeScript type-checking (tsc --noEmit)
+npm run test:coverage  # Vitest suite with V8 coverage (138 tests across 28 files)
 npm run build          # Vite 8 production bundle check
 ```
 
@@ -46,14 +46,25 @@ npm run build          # Vite 8 production bundle check
    - Multilingual PDF report model (`buildPdfReportModel`) for `en`, `mr`, and `hi`
    - 100% key parity across `en`, `mr`, and `hi` dictionaries plus zero missing literal `t(lang, '...')` keys across `src/`
 
-5. **Frontend state and recovery (`tests/useNavigationState.test.tsx`, `tests/useLocale.test.tsx`, `tests/useEntityCrudHandlers.test.tsx`, `tests/ErrorBoundary.test.tsx`)**
+5. **Frontend state and recovery (`tests/App.test.tsx`, `tests/useNavigationState.test.tsx`, `tests/useLocale.test.tsx`, `tests/useHouseholdData.test.tsx`, `tests/useHouseholdMutations.test.tsx`, `tests/useEntityCrudHandlers.test.tsx`, `tests/ErrorBoundary.test.tsx`)**
+   - Root landing/workspace routing, language delegation, and workspace refresh
+   - Bootstrap loading, provider-registry fallback, bootstrap errors, and persisted settings
+   - Household save, fixture/outage toggles, CAMS import success/failure, scenario execution, and local-data clearing
    - Navigation defaults, valid/invalid deep links, sub-tab resets, header-menu dismissal, and Escape-key behavior
-   - Locale state, settings persistence payload, no-household behavior, and rejected persistence requests
-   - Member, routine, and location CRUD handler delegation and promise rejection propagation
-   - Error-boundary fallback, default error message, and recovery behavior
+   - Locale persistence, CRUD handler delegation, and error-boundary recovery
+
+6. **Frontend API client (`tests/apiClient.test.ts`, 8 tests)**
+   - Request methods and headers, bootstrap query parameters, URL encoding, and JSON body serialization
+   - Structured API errors, non-JSON server errors, and network failure normalization
 
 ---
 
-## 3. Environment Note (Headless Browser Testing)
+## 3. Latest Measured Coverage
+
+The latest successful GitHub Actions run reports 67.07% statement coverage, 59.52% branch coverage, 60.98% function coverage, and 68.02% line coverage across 162 source files. The `App.tsx` entry point is now 100% covered, and the custom hooks folder is at 94.37% statement coverage. The largest remaining coverage gap is the component layer (44.68% statements) and utility layer (19.14% statements).
+
+---
+
+## 4. Environment Note (Headless Browser Testing)
 
 Chromium / Playwright binaries are not installed inside the build container, so visual browser DOM automation and client-side PDF binary download clicks were not executed in an interactive browser engine inside the container. UI components are verified via strict TypeScript compilation (`tsc --noEmit`), Vite 8 production bundling, i18n key parity checks, and live Express HTTP integration tests serving the compiled `dist/` bundle.
