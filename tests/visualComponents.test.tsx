@@ -124,11 +124,7 @@ describe('PollutantBreakdownChart', () => {
 
   it('renders without an optional station navigation action', () => {
     render(
-      <PollutantBreakdownChart
-        pollutants={{ pm25: null }}
-        locationLabel="No station"
-        lang="en"
-      />
+      <PollutantBreakdownChart pollutants={{ pm25: null }} locationLabel="No station" lang="en" />
     );
 
     expect(screen.getByText('No station')).toBeTruthy();
@@ -217,3 +213,4 @@ describe('EnvironmentView', () => {
     expect(screen.getByText('Forecast tab content')).toBeTruthy();
   });
 });
+##[group]
