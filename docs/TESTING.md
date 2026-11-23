@@ -91,3 +91,8 @@ The CI workflow installs Playwright and Chromium as ephemeral test tooling (with
 - `DISABLE_HMR` and file-watch behavior are intentionally unchanged.
 
 The current runtime still uses synchronous SQLite. A durable multi-instance production architecture requires a separately planned asynchronous PostgreSQL repository migration, household-isolation tests, persistence/restart tests, and a controlled deployment. No production database, secret, or hosting setting is changed by these configuration options. The connected Render service audit also found that the Health Check Path is currently unset; configure it to `/healthz` only after reviewing the production settings change.
+
+
+## 4. Rate-limit middleware regression coverage
+
+`tests/rateLimitMiddleware.test.ts` exercises the Express middleware over real HTTP requests: standard rate-limit response headers, configured request limits, structured `429 RATE_LIMITED` responses with `Retry-After`, and isolation between client IP buckets. These two additional test cases are included in the `quality/testing-hardening-97plus` branch and must be confirmed by that branch's CI run before being counted as verified.
