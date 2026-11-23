@@ -4,23 +4,29 @@
 
 **Rule:** IMPLEMENTED is not VERIFIED. Only passing acceptance checks make a task VERIFIED.
 
-| ID       | Priority   | Area            | Task                                                                                                                  | Status        | Acceptance evidence                                                                           |
-| -------- | ---------- | --------------- | --------------------------------------------------------------------------------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------- |
-| BW-001   | P0         | Persistence     | Implement asynchronous PostgreSQL repositories and connection pooling; refactor every SQLite caller safely.           | NOT_STARTED   | All production routes/services/repositories use the intended DB and integration tests pass.   |
-| BW-002   | P0         | Database        | Create/version PostgreSQL migrations with schema parity, constraints, indexes and transactions.                       | NOT_STARTED   | Fresh-database migration, repeatability and rollback checks pass.                             |
-| BW-003   | P0         | Security        | Prove household isolation for every PostgreSQL read/write and session operation.                                      | NOT_STARTED   | Cross-session tests prove no household can access another household's data.                   |
-| BW-004   | P0         | Hosting         | Configure server-only database credentials and verify persistence across restart/redeploy.                            | BLOCKED       | Requires BW-001–003 and authorized hosting configuration; no secrets in code/client.          |
-| BW-005   | P1         | QA              | Install dependencies and run format, lint, typecheck, unit tests, coverage and build.                                 | BLOCKED       | Commands execute with recorded exit codes and results.                                        |
-| BW-006   | P1         | E2E             | Run Playwright/Chromium core journeys and expand missing user-flow coverage.                                          | NOT_STARTED   | Browser tests pass with trace/screenshot evidence on failure.                                 |
-| BW-007   | P1         | Documentation   | Reconcile test-count and coverage statements across README and testing docs.                                          | IN_PROGRESS   | Counts/coverage match a dated successful CI run.                                              |
-| BW-008   | P1         | Security        | Complete auth/session, CSRF, rate-limit, RLS, dependency and data-isolation review.                                   | NOT_STARTED   | Findings fixed or explicitly accepted; regression tests pass.                                 |
-| BW-009   | P1         | Operations      | Verify hosting health-check configuration and database readiness behavior.                                            | NOT_STARTED   | Host probes a verified unauthenticated readiness endpoint.                                    |
-| BW-010   | P1         | Architecture    | Preserve SQLite only as an explicit local/test adapter if needed; prevent production fallback to ephemeral storage.   | NOT_STARTED   | Environment/database selection is explicit and tested.                                        |
-| BW-011   | P2         | Performance     | Evaluate in-memory rate-limiter behavior and multi-instance requirements.                                             | NOT_STARTED   | Single-instance limitation documented or shared store implemented and tested.                 |
-| BW-012   | P2         | Frontend        | Verify responsive layouts, keyboard access, accessibility and core user journeys.                                     | NOT_STARTED   | Automated and browser/manual checks recorded.                                                 |
-| BW-013   | P2         | Data/AI         | Verify provider connectivity, provenance, forecast-vs-observation labeling and outage behavior.                       | NOT_STARTED   | Tests/live checks prove no fabricated readings and unavailable data stays explicit.           |
-| BW-014   | P2         | Documentation   | Refresh architecture, database, security, testing, deployment and release docs after implementation.                  | NOT_STARTED   | Documentation matches the verified final code and deployment.                                 |
-| BW-015   | P2         | Git/release     | Reconcile quality branches and prepare a clean reviewed release PR.                                                   | IN_PROGRESS   | Unique branch work is inspected and preserved; no blind deletion or merge.                    |
+## P0 — Release blockers
+
+- **BW-001 — Persistence — NOT_STARTED:** Implement asynchronous PostgreSQL repositories and connection pooling; refactor every SQLite caller safely. Acceptance: all production routes, services and repositories use the intended database, and integration tests pass.
+- **BW-002 — Database — NOT_STARTED:** Create and version PostgreSQL migrations with schema parity, constraints, indexes and transactions. Acceptance: fresh-database migration, repeatability and rollback checks pass.
+- **BW-003 — Security — NOT_STARTED:** Prove household isolation for every PostgreSQL read/write and session operation. Acceptance: cross-session tests prove no household can access another household's data.
+- **BW-004 — Hosting — BLOCKED:** Configure server-only database credentials and verify persistence across restart/redeploy. Acceptance: BW-001–003 are complete and hosting configuration is authorized; no secrets appear in code or client bundles.
+
+## P1 — Quality and security
+
+- **BW-005 — QA — BLOCKED:** Install dependencies and run format, lint, typecheck, unit tests, coverage and build. Acceptance: commands execute with recorded exit codes and results.
+- **BW-006 — E2E — NOT_STARTED:** Run Playwright/Chromium core journeys and expand missing user-flow coverage. Acceptance: browser tests pass with trace/screenshot evidence on failure.
+- **BW-007 — Documentation — IN_PROGRESS:** Reconcile test-count and coverage statements across README and testing docs. Acceptance: counts and coverage match a dated successful CI run.
+- **BW-008 — Security — NOT_STARTED:** Complete auth/session, CSRF, rate-limit, RLS, dependency and data-isolation review. Acceptance: findings are fixed or explicitly accepted, with regression tests.
+- **BW-009 — Operations — NOT_STARTED:** Verify hosting health-check configuration and database readiness behavior. Acceptance: host probes a verified unauthenticated readiness endpoint.
+- **BW-010 — Architecture — NOT_STARTED:** Preserve SQLite only as an explicit local/test adapter if needed; prevent production fallback to ephemeral storage. Acceptance: environment/database selection is explicit and tested.
+
+## P2 — Product maturity
+
+- **BW-011 — Performance — NOT_STARTED:** Evaluate in-memory rate-limiter behavior and multi-instance requirements. Acceptance: single-instance limitation is documented or a shared store is implemented and tested.
+- **BW-012 — Frontend — NOT_STARTED:** Verify responsive layouts, keyboard access, accessibility and core user journeys. Acceptance: automated and browser/manual checks are recorded.
+- **BW-013 — Data/AI — NOT_STARTED:** Verify provider connectivity, provenance, forecast-vs-observation labeling and outage behavior. Acceptance: tests/live checks prove no fabricated readings and unavailable data stays explicit.
+- **BW-014 — Documentation — NOT_STARTED:** Refresh architecture, database, security, testing, deployment and release docs after implementation. Acceptance: documentation matches verified final code and deployment.
+- **BW-015 — Git/release — IN_PROGRESS:** Reconcile quality branches and prepare a clean reviewed release PR. Acceptance: unique branch work is inspected and preserved; no blind deletion or merge.
 
 ## Verified corrections
 
