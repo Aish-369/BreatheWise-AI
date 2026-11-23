@@ -146,7 +146,7 @@ npm run build          # Production Vite client bundle
 
 ## Testing
 
-The automated Vitest suite contains **138 tests across 28 files**, verified by the GitHub Actions CI run:
+The automated Vitest suite contains **146 tests across 29 files**, verified by the GitHub Actions CI run:
 
 - **Protection & Quality Engine** (`tests/engine.test.ts`, `tests/unavailableProtectionPlan.test.ts`, and `tests/plan*.test.ts`): Freshness thresholds, NAQI sub-index derivation, provider conflict detection, confidence scoring, forecast window optimization, age/pollutant/sensitivity actions, daily schedule transitions, summary construction, and What-If scenario diffs.
 - **Server, Persistence & Security** (`tests/apiAndMigrations.test.ts`, `tests/dbAndAdapters.test.ts`, `tests/cpcbAdapter.test.ts`, `tests/errorsMiddleware.test.ts`, `tests/sessionCookieHelper.test.ts`, `tests/httpClient.test.ts`, `tests/rateLimit.test.ts`, `tests/phase5And6.test.ts`): Versioned SQLite migrations, isolated browser sessions, Zod error mapping without stack leaks, retry/timeout/TTL caching, CAMS import sanitization, and API rate limiting.
