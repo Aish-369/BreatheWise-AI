@@ -57,7 +57,6 @@ npm run build          # Vite 8 production bundle check
    - Request methods and headers, bootstrap query parameters, URL encoding, and JSON body serialization
    - Structured API errors, non-JSON server errors, and network failure normalization
 
-
 7. **Feature views (`tests/featureViews.test.tsx`)**
    - Indoor guidance behavior for unavailable, poor, and moderate outdoor conditions
    - Trust/provenance tiers and safeguards
