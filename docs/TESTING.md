@@ -68,7 +68,7 @@ npx playwright test    # Chromium browser-level core journeys
 
 ## 3. Latest Measured Coverage
 
-The latest successful GitHub Actions run reports 71.30% statement coverage, 61.06% branch coverage, 63.26% function coverage, and 72.53% line coverage across 162 source files. The `App.tsx` entry point is 100% covered, and the custom hooks folder is at 94.37% statement coverage. The largest remaining coverage gap is the component layer (51.06% statements).
+The latest successful GitHub Actions run reports 71.33% statement coverage, 61.06% branch coverage, 63.26% function coverage, and 72.57% line coverage across 162 source files. The `App.tsx` entry point is 100% covered, and the custom hooks folder is at 94.37% statement coverage. The largest remaining coverage gap is the component layer (51.06% statements).
 
 **Health probe regression tests (`tests/healthCheck.test.ts`, 2 tests)** cover both successful database readiness without a session cookie and the generic 503 response when SQLite cannot answer.
 
