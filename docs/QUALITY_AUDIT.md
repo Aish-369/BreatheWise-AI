@@ -22,21 +22,19 @@ No Hack2Skill evaluation attempt was used. No production data, environment varia
 
 ## Verified repository baseline
 
-| Item | Verified result |
-|---|---|
-| Default branch | `main` |
-| Main commit | `b260ad673468771689810482a57df978c47e81d1` |
-| Latest CI run | [Run #158](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45145531103) |
-| CI result | Success; all 10 workflow steps completed successfully |
-| CI checks | npm install, production dependency audit, Prettier, ESLint (zero warnings), TypeScript check, Vitest coverage, Vite production build |
-| Latest Render deploy | `dep-dc208qu1egvs738s3tf0` |
-| Render deploy result | `live` |
-| Render deployed commit | `b260ad673468771689810482a57df978c47e81d1` |
-| Render service branch | `main` |
-| Render plan / region | Free / Singapore |
-| Render health-check path | Not configured |
-| Render persistent disk | No disk is shown in the retrieved service metadata; verify explicitly before making persistence guarantees |
-| Open pull requests at audit time | None |
+- Default branch: `main`
+- Main commit: `b260ad673468771689810482a57df978c47e81d1`
+- Latest CI run: [Run #158](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45145531103)
+- CI result: Success; all 10 workflow steps completed successfully.
+- CI checks: npm install, production dependency audit, Prettier, ESLint (zero warnings), TypeScript check, Vitest coverage, and Vite production build.
+- Latest Render deploy: `dep-dc208qu1egvs738s3tf0`
+- Render deploy result: `live`
+- Render deployed commit: `b260ad673468771689810482a57df978c47e81d1`
+- Render service branch: `main`
+- Render plan / region: Free / Singapore.
+- Render health-check path: Not configured.
+- Render persistent disk: No disk is shown in the retrieved service metadata; verify explicitly before making persistence guarantees.
+- Open pull requests at audit time: None.
 
 ## Current project structure and architecture
 
