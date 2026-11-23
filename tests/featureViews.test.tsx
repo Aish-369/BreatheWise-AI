@@ -91,7 +91,7 @@ describe('SettingsView', () => {
     lang: 'en' as const,
     simulateOutage: false,
     useDemoFixtures: false,
-    providers: [],
+    providers: [] as import('../src/shared/types').DataProviderRecord[],
     onChangeLang: vi.fn(),
     onToggleOutage: vi.fn(),
     onToggleDemoFixtures: vi.fn(),

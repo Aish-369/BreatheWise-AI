@@ -105,7 +105,7 @@ export function FamilyOnboardingView({
       state={state}
       dispatch={dispatch}
       matchedCities={matchedCities}
-      selectedCityMeta={selectedCityMeta}
+      selectedCityMeta={selectedCityMeta ?? undefined}
       onSaveHousehold={(e) => void handleSaveHousehold(e)}
       onAddMember={(e) => void handleAddMember(e)}
       onSaveEditMember={(e) => void handleSaveEditMember(e)}

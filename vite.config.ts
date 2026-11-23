@@ -5,6 +5,10 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 
 const rootDir = import.meta.dirname;
+const allowedHosts = (process.env.VITE_ALLOWED_HOSTS ?? '')
+  .split(',')
+  .map((host) => host.trim())
+  .filter(Boolean);
 
 export default defineConfig(() => {
   return {
@@ -56,7 +60,9 @@ export default defineConfig(() => {
       },
     },
     server: {
-      allowedHosts: true,
+      // Localhost and IP addresses remain allowed by Vite defaults. Add exact
+      // preview hostnames through VITE_ALLOWED_HOSTS when remote preview is required.
+      allowedHosts,
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',

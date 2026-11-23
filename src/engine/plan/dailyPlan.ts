@@ -3,7 +3,7 @@ import { findCleanerForecastWindow } from './windowSelection';
 import type { EngineInput, EvidenceBundle } from './types';
 
 export function buildUnavailableDailyPlan(input: EngineInput, todayDate: string): DailyPlanItem[] {
-  return input.routines.map((routine) => ({
+  return input.routines.map((routine): DailyPlanItem => ({
     routineId: routine.id,
     routineTitle: routine.title,
     environment: routine.environment,

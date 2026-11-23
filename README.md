@@ -129,7 +129,7 @@ cp .env.example .env   # Optional: add DATA_GOV_IN_API_KEY and/or OPENAQ_API_KEY
 npm run dev            # Starts Express + Vite dev server on http://localhost:3000
 ```
 
-External API keys in `.env` are optional; local illustrative-data and CAMS-import workflows run without external credentials. Never expose keys in `VITE_*` variables or commit `.env`.
+External API keys in `.env` are optional; local illustrative-data and CAMS-import workflows run without external credentials. Never expose keys in `VITE_*` variables or commit `.env`. `BREATHEWISE_DB_PATH` optionally selects the SQLite file path. `VITE_ALLOWED_HOSTS` accepts a comma-separated allowlist of exact Vite development/preview hostnames; localhost and IP addresses use Vite defaults.
 
 ### Verification & Quality Checks
 
@@ -168,9 +168,9 @@ Measured V8 coverage from the latest successful CI run (`npm run test:coverage`)
 | `src/utils`        |       4 |     55.44% |     51.96% |     44.44% |     55.51% |
 | `src/hooks`        |       5 |     94.37% |     82.60% |     96.36% |     93.61% |
 | `src` (`App.tsx`)  |       1 |    100.00% |    100.00% |    100.00% |    100.00% |
-| **Total (`src/`)** | **162** | **71.28%** | **61.04%** | **63.21%** | **72.51%** |
+| **Total (`src/`)** | **162** | **71.33%** | **61.06%** | **63.26%** | **72.57%** |
 
-The latest verified CI run passes formatting, ESLint, TypeScript type-checking, all 146 tests, and the production build. Coverage is reported transparently; the largest remaining gaps are UI components and utility modules. The root `App.tsx` and household mutation hook now have high measured coverage.
+The latest verified CI run passes production dependency audit, formatting, ESLint, TypeScript type-checking, all 151 tests, the production build, Chromium installation, and all 3 Playwright browser journeys. Coverage is reported transparently; the largest remaining gaps are UI components and utility modules. The root `App.tsx` and household mutation hook now have high measured coverage.
 
 ---
 
@@ -178,10 +178,10 @@ The latest verified CI run passes formatting, ESLint, TypeScript type-checking, 
 
 - **Non-Medical Aid:** BreatheWise AI is an informational daily planning aid, not a medical device or clinical diagnostic tool. Household sensitivity tags reflect user preferences only.
 - **Provider Coverage & Live Feeds:** Live station reads depend on optional server-side `DATA_GOV_IN_API_KEY` (CPCB) and `OPENAQ_API_KEY` credentials and outbound network availability; coarse-grid CAMS forecasts (~40 km) do not represent street-level pollution peaks. Outages hold outdoor plans rather than fabricating data.
-- **Local SQLite & Ephemeral Hosting Caveat:** The runtime stores data in local `node:sqlite`. Free/ephemeral hosting containers (such as Render Free) may reset local filesystems on redeploy or restart—do not store sensitive personal data on ephemeral public deployments. `src/server/supabase/database.types.ts` documents the provisioned Supabase schema for a future async repository migration.
+- **Local SQLite & Ephemeral Hosting Caveat:** The runtime stores data in local `node:sqlite`. `BREATHEWISE_DB_PATH` can point the SQLite file to a mounted persistent volume; when unset, the path remains `./data/breathewise.db`. This option does not attach storage or guarantee durability. Free/ephemeral hosting containers (such as Render Free) may reset local filesystems on redeploy or restart—do not store sensitive personal data on ephemeral public deployments. The current Render audit did not verify a persistent disk. `src/server/supabase/database.types.ts` documents the provisioned Supabase schema for a future async repository migration.
 - **Browser Session Isolation (Not Account Auth):** Production mode isolates households via a cryptographically random 256-bit `HttpOnly; SameSite=Lax; Secure` cookie (`breathewise_session`, SHA-256 hashed in SQLite, 30-day TTL), strict same-origin HTTPS CSRF checks on mutating routes, Zod request validation, API/session rate limiters, CSP/HSTS headers, and `no-store` API caching.
 - **Generated Artifacts & Offline Fonts:** `public/fonts/DejaVuSans*.ttf` (~1.4 MB combined) remain bundled so client-side Devanagari/Unicode PDF exports work offline without external font requests; UI images are WebP-compressed (~305 KB total).
-- **Testing Boundaries:** Vitest tests run offline using temporary SQLite databases, `jsdom` accessibility audits, and stubbed HTTP transport for retry/cache paths; end-to-end headless browser rendering and live external provider integration tests are not executed in CI.
+- **Testing Boundaries:** Vitest tests run using temporary SQLite databases, `jsdom` accessibility audits, and stubbed HTTP transport for retry/cache paths. CI also installs Chromium and runs the Playwright landing-page, workspace-navigation, and guided-onboarding journeys. Live external provider integration tests are not executed in CI.
 
 ---
 

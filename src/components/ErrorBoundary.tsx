@@ -45,7 +45,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                   Workspace Interrupted
                 </h1>
                 <p className="text-xs text-[#565F58]">
-                  Your local SQLite household data remains safely stored.
+                  Your household data is stored separately from this view.
                 </p>
               </div>
             </div>
