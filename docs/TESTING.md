@@ -62,7 +62,6 @@ npm run build          # Vite 8 production bundle check
    - Trust/provenance tiers and safeguards
    - Settings tab navigation, preference callbacks, and clear-data confirmation/cancellation
 
-
 8. **PDF rendering (`tests/pdfStandardRenderer.test.ts`)**
    - WinAnsi fallback glyph sanitization when bundled fonts are unavailable
    - DejaVu regular/bold font embedding when assets are available
