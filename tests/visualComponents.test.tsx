@@ -213,4 +213,3 @@ describe('EnvironmentView', () => {
     expect(screen.getByText('Forecast tab content')).toBeTruthy();
   });
 });
-##[group]
