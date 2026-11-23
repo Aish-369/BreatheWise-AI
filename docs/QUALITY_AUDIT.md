@@ -15,24 +15,24 @@ previously merged frontend test expansion is on the deployed branch.
 The strongest evidence-backed opportunities are:
 
 1.  **Testing depth:** the latest documented V8 statement coverage is 62.82%; component coverage
-   is 44.68%, utility coverage 7.26%, hooks 45.62%, and `App.tsx` 0%. Existing documentation
-   explicitly says browser-based Playwright/Chromium flows were not run in CI.
+    is 44.68%, utility coverage 7.26%, hooks 45.62%, and `App.tsx` 0%. Existing documentation
+    explicitly says browser-based Playwright/Chromium flows were not run in CI.
 2.  **TypeScript strictness mismatch:** `docs/TESTING.md` and README describe strict TypeScript
-   checking, but the current `tsconfig.json` does not enable `strict`, `noImplicitAny`, or
-   `strictNullChecks`. The current typecheck passes, but it is not evidence of strict-mode
+    checking, but the current `tsconfig.json` does not enable `strict`, `noImplicitAny`, or
+    `strictNullChecks`. The current typecheck passes, but it is not evidence of strict-mode
    coverage.
 3.  **Persistence / hosting risk:** production currently creates a local `node:sqlite` database at
-   `data/breathewise.db`. Render service metadata reports the Free plan and does not show a
+    `data/breathewise.db`. Render service metadata reports the Free plan and does not show a
    persistent disk. The existing project audit already warns that ephemeral filesystems may reset
-   on redeploy/restart. Durable production persistence is therefore not verified and must not be
-   claimed.
+    on redeploy/restart. Durable production persistence is therefore not verified and must not be
+    claimed.
 4.  **Documentation drift:** README's Getting Started section still says `npm test` has 100 tests
-   across 20 files, while the later Testing section and `docs/TESTING.md` report 116 tests across
-   24 files.
+    across 20 files, while the later Testing section and `docs/TESTING.md` report 116 tests across
+    24 files.
 5.  **Operational hardening:** the Render service has no configured health-check path. Vite
-   development config sets `server.allowedHosts: true`; this is development-server configuration,
+    development config sets `server.allowedHosts: true`; this is development-server configuration,
    not the Express production server, but should be reviewed and restricted where compatible with
-   the development environment.
+    the development environment.
 
 No Hack2Skill evaluation attempt was used. No production data, environment variables, database
 schema, or runtime code was changed during this audit.
@@ -73,6 +73,7 @@ locale, CRUD handlers, and ErrorBoundary tests.
 ### P0 — Clarify and protect production data durability
 
 **Evidence**
+
 - `server.ts` calls `getDb()` during production startup.
 -  `src/server/db/connection.ts` resolves the database to `<process.cwd()>/data/breathewise.db`
   and creates the directory if needed.
@@ -97,6 +98,7 @@ as part of score optimization without a separate migration plan and explicit app
 
 **Evidence**
 Latest documented V8 coverage:
+
 - Total statements: 62.82%.
 - Components: 44.68%.
 - Utils: 7.26%.
@@ -193,6 +195,7 @@ limitation. Consider a shared store only if multi-instance scaling is planned an
 ## Current CI workflow
 
 `.github/workflows/ci.yml` runs:
+
 1. `npm ci --legacy-peer-deps`
 2. `npm audit --omit=dev --audit-level=high`
 3. `npm run format:check`
@@ -229,7 +232,7 @@ for this project's toolchain and lockfile.
 5. Phase 4: measure performance before changing it.
 6. Phase 5: keyboard/screen-reader accessibility workflows beyond static axe checks.
 7. Phase 6: improve challenge alignment and data provenance communication.
-8.  Phase 7–8: complete E2E/release validation; only then decide whether to spend the final
+8. Phase 7–8: complete E2E/release validation; only then decide whether to spend the final
    Hack2Skill evaluation attempt.
 
 **Score integrity:** 97+/100 remains a target, not a promise. No evaluator score has been re-run;
