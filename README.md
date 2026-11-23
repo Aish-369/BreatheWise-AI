@@ -154,7 +154,7 @@ The automated Vitest suite contains **151 tests across 30 files**, verified by t
 - **Frontend state & recovery** (`tests/App.test.tsx`, `tests/useNavigationState.test.tsx`, `tests/useLocale.test.tsx`, `tests/useHouseholdData.test.tsx`, `tests/useHouseholdMutations.test.tsx`, `tests/useEntityCrudHandlers.test.tsx`, `tests/ErrorBoundary.test.tsx`): Root landing/workspace routing, bootstrap loading and failure recovery, household mutation workflows, navigation/deep-link state, locale persistence, CRUD delegation, and UI error recovery.
 - **Frontend API client** (`tests/apiClient.test.ts`): Request methods and headers, URL parameter encoding, identifier escaping, structured server errors, non-JSON failures, and network error normalization.
 - **Feature views** (`tests/featureViews.test.tsx`): Indoor guidance for unavailable, poor, and moderate air-quality bands; provenance tiers and safeguards; settings tabs, preference callbacks, and clear-data confirmation.
-- **PDF rendering** (`tests/pdfStandardRenderer.test.ts`): WinAnsi glyph sanitization, DejaVu font embedding, report section rendering, and multi-page pagination.
+- **PDF rendering** (`tests/pdfStandardRenderer.test.ts`, `tests/pdfCanvasRenderer.test.ts`): WinAnsi glyph sanitization, DejaVu font embedding, Devanagari font loading, multilingual canvas rendering, and multi-page pagination.
 
 Measured V8 coverage from the latest successful CI run (`npm run test:coverage`):
 
