@@ -15,24 +15,24 @@ previously merged frontend test expansion is on the deployed branch.
 The strongest evidence-backed opportunities are:
 
 1.  **Testing depth:** the latest documented V8 statement coverage is 62.82%; component coverage
-     is 44.68%, utility coverage 7.26%, hooks 45.62%, and `App.tsx` 0%. Existing documentation
-     explicitly says browser-based Playwright/Chromium flows were not run in CI.
+    is 44.68%, utility coverage 7.26%, hooks 45.62%, and `App.tsx` 0%. Existing documentation
+    explicitly says browser-based Playwright/Chromium flows were not run in CI.
 2.  **TypeScript strictness mismatch:** `docs/TESTING.md` and README describe strict TypeScript
-     checking, but the current `tsconfig.json` does not enable `strict`, `noImplicitAny`, or
-     `strictNullChecks`. The current typecheck passes, but it is not evidence of strict-mode
+    checking, but the current `tsconfig.json` does not enable `strict`, `noImplicitAny`, or
+    `strictNullChecks`. The current typecheck passes, but it is not evidence of strict-mode
     coverage.
 3.  **Persistence / hosting risk:** production currently creates a local `node:sqlite` database at
-     `data/breathewise.db`. Render service metadata reports the Free plan and does not show a
+    `data/breathewise.db`. Render service metadata reports the Free plan and does not show a
     persistent disk. The existing project audit already warns that ephemeral filesystems may reset
-     on redeploy/restart. Durable production persistence is therefore not verified and must not be
-     claimed.
+    on redeploy/restart. Durable production persistence is therefore not verified and must not be
+    claimed.
 4.  **Documentation drift:** README's Getting Started section still says `npm test` has 100 tests
-     across 20 files, while the later Testing section and `docs/TESTING.md` report 116 tests across
-     24 files.
+    across 20 files, while the later Testing section and `docs/TESTING.md` report 116 tests across
+    24 files.
 5.  **Operational hardening:** the Render service has no configured health-check path. Vite
-     development config sets `server.allowedHosts: true`; this is development-server configuration,
+    development config sets `server.allowedHosts: true`; this is development-server configuration,
     not the Express production server, but should be reviewed and restricted where compatible with
-     the development environment.
+    the development environment.
 
 No Hack2Skill evaluation attempt was used. No production data, environment variables, database
 schema, or runtime code was changed during this audit.
@@ -222,7 +222,7 @@ for this project's toolchain and lockfile.
 - [ ] Local clean-install test run: not executed in this connected GitHub audit environment.
 - [ ] Interactive browser/E2E validation: not executed.
 - [ ] Live app browser verification: not completed; direct page fetch was unavailable from the
-  inspection environment.
+      inspection environment.
 
 ## Recommended execution order
 
@@ -234,7 +234,7 @@ for this project's toolchain and lockfile.
 6. Phase 5: keyboard/screen-reader accessibility workflows beyond static axe checks.
 7. Phase 6: improve challenge alignment and data provenance communication.
 8. Phase 7–8: complete E2E/release validation; only then decide whether to spend the final
-    Hack2Skill evaluation attempt.
+   Hack2Skill evaluation attempt.
 
 **Score integrity:** 97+/100 remains a target, not a promise. No evaluator score has been re-run;
 these audit findings do not establish that the score has improved.
