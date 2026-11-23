@@ -57,6 +57,12 @@ npm run build          # Vite 8 production bundle check
    - Request methods and headers, bootstrap query parameters, URL encoding, and JSON body serialization
    - Structured API errors, non-JSON server errors, and network failure normalization
 
+
+7. **Feature views (`tests/featureViews.test.tsx`)**
+   - Indoor guidance behavior for unavailable, poor, and moderate outdoor conditions
+   - Trust/provenance tiers and safeguards
+   - Settings tab navigation, preference callbacks, and clear-data confirmation/cancellation
+
 ---
 
 ## 3. Latest Measured Coverage
@@ -68,8 +74,3 @@ The latest successful GitHub Actions run reports 67.66% statement coverage, 60.1
 ## 4. Environment Note (Headless Browser Testing)
 
 Chromium / Playwright binaries are not installed inside the build container, so visual browser DOM automation and client-side PDF binary download clicks were not executed in an interactive browser engine inside the container. UI components are verified via TypeScript compilation (`tsc --noEmit`), Vite 8 production bundling, i18n key parity checks, and live Express HTTP integration tests serving the compiled `dist/` bundle.
-
-7. **Feature views (`tests/featureViews.test.tsx`)**
-   - Indoor guidance behavior for unavailable, poor, and moderate outdoor conditions
-   - Trust/provenance tiers and safeguards
-   - Settings tab navigation, preference callbacks, and clear-data confirmation/cancellation
