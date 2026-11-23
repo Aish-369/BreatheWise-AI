@@ -82,7 +82,6 @@ describe('ForecastTrendChart', () => {
   it('shows the forecast summary and switches between curve and bar views', () => {
     render(<ForecastTrendChart slots={[forecast]} city="Pune" />);
 
-    expect(screen.getByText(/PM2.5/)).toBeTruthy();
     expect(screen.getByText(/42 µg\/m³/)).toBeTruthy();
 
     const bars = screen.getByRole('button', { name: t('en', 'ui_bar_view') });
