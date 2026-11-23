@@ -5,7 +5,10 @@ import { DatabaseSync } from 'node:sqlite';
 import { getSchemaVersion, runMigrations } from '../migrations';
 
 const DATA_DIR = path.resolve(process.cwd(), 'data');
-const DB_PATH = path.join(DATA_DIR, 'breathewise.db');
+const configuredDatabasePath = process.env.BREATHEWISE_DB_PATH?.trim();
+const DB_PATH = configuredDatabasePath
+  ? path.resolve(configuredDatabasePath)
+  : path.join(DATA_DIR, 'breathewise.db');
 
 let dbInstance: DatabaseSync | null = null;
 
