@@ -156,7 +156,7 @@ The automated Vitest suite contains **151 tests across 31 files**, verified by t
 - **Feature views** (`tests/featureViews.test.tsx`): Indoor guidance for unavailable, poor, and moderate air-quality bands; provenance tiers and safeguards; settings tabs, preference callbacks, and clear-data confirmation.
 - **PDF rendering** (`tests/pdfStandardRenderer.test.ts`): WinAnsi glyph sanitization, DejaVu font embedding, report section rendering, and multi-page pagination.
 
-Measured V8 coverage from the latest successful CI run (`npm run test:coverage`):
+Measured V8 coverage from successful GitHub Actions run [#251](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45173931446) (`npm run test:coverage`, 2026-11-23):
 
 | Folder             |   Files | Statements |   Branches |  Functions |      Lines |
 | ------------------ | ------: | ---------: | ---------: | ---------: | ---------: |
@@ -164,11 +164,11 @@ Measured V8 coverage from the latest successful CI run (`npm run test:coverage`)
 | `src/i18n`         |      11 |    100.00% |     68.18% |    100.00% |    100.00% |
 | `src/shared`       |       4 |     97.36% |     76.92% |    100.00% |    100.00% |
 | `src/server`       |      44 |     79.25% |     60.16% |     80.00% |     85.79% |
-| `src/components`   |      80 |     51.06% |     52.75% |     53.57% |     52.67% |
+| `src/components`   |      80 |     51.06% |     52.73% |     53.57% |     52.67% |
 | `src/utils`        |       4 |     55.44% |     51.96% |     44.44% |     55.51% |
 | `src/hooks`        |       5 |     94.37% |     82.60% |     96.36% |     93.61% |
 | `src` (`App.tsx`)  |       1 |    100.00% |    100.00% |    100.00% |    100.00% |
-| **Total (`src/`)** | **162** | **71.33%** | **61.06%** | **63.26%** | **72.57%** |
+| **Total (`src/`)** | **162** | **71.37%** | **61.09%** | **63.26%** | **72.60%** |
 
 The latest verified CI run passes production dependency audit, formatting, ESLint, TypeScript type-checking, all 151 tests, the production build, Chromium installation, and all 3 Playwright browser journeys. Coverage is reported transparently; the largest remaining gaps are UI components and utility modules. The root `App.tsx` and household mutation hook now have high measured coverage.
 
