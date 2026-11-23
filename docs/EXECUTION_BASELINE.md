@@ -1,17 +1,18 @@
 # BreatheWise AI — Execution Baseline
 
-**Execution date:** 2026-11-23  
-**Repository:** Aish-369/BreatheWise-AI  
-**Verified default branch:** main  
-**Verified main commit:** 24bfd52fdbdce314fb42e5f3656140fc5b4a2f7c  
-**Current migration workstream:** feat/postgres-persistence  
-**Migration PR:** #15 (open; documentation/checklist only)
+- **Execution date:** 2026-11-23
+- **Repository:** Aish-369/BreatheWise-AI
+- **Verified default branch:** main
+- **Verified main commit:** 24bfd52fdbdce314fb42e5f3656140fc5b4a2f7c
+- **Current migration workstream:** feat/postgres-persistence
+- **Migration PR:** #15 (open; documentation/checklist only)
 
 ## GitHub state
 
 The repository is accessible and the connected GitHub account has push/admin permissions. The source ZIP used for local inspection does not contain Git metadata, so local branch history cannot be inspected from that extracted folder. GitHub API inspection confirms the default branch and remote refs.
 
 Remote refs observed:
+
 - main — 24bfd52fdbdce314fb42e5f3656140fc5b4a2f7c
 - feat/postgres-persistence — 5845edcd260edd7e2d418c5fe14cfbec4499c535
 - quality/phase-1b-browser-e2e — 6c0efe3b3620ad63cd4e9eada3c48fe269f944a3
