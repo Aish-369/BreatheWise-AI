@@ -34,6 +34,11 @@ jobs:
         run: npm run format:check
       - name: Lint (ESLint, zero warnings)
         run: npm run lint
+      - name: Diagnostic strict TypeScript trial (temporary)
+        run: |
+          npx tsc --noEmit --strict --pretty false > /tmp/strict-ts-errors.txt 2>&1 || true
+          echo "Strict TypeScript diagnostic lines: $(wc -l < /tmp/strict-ts-errors.txt)"
+          head -n 220 /tmp/strict-ts-errors.txt
       - name: Type-check
         run: npm run typecheck
       - name: Unit, accessibility, and API tests with coverage
