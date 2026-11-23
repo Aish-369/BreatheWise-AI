@@ -75,6 +75,6 @@ The latest successful GitHub Actions run reports 71.28% statement coverage, 61.0
 
 ---
 
-## 4. Environment Note (Headless Browser Testing)
+## 4. Browser-Level End-to-End Testing
 
-Chromium / Playwright binaries are not installed inside the build container, so visual browser DOM automation and client-side PDF binary download clicks were not executed in an interactive browser engine inside the container. UI components are verified via TypeScript compilation (`tsc --noEmit`), Vite 8 production bundling, i18n key parity checks, and live Express HTTP integration tests serving the compiled `dist/` bundle.
+The CI workflow installs Playwright and Chromium as ephemeral test tooling (without changing the application lockfile), then runs `npx playwright test`. The browser suite starts the production-mode Express server against the CI workspace's isolated SQLite database and covers the public landing page, workspace entry/return navigation, and guided household onboarding entry. Failed tests retain traces and screenshots locally for diagnosis. These checks complement—not replace—the Vitest component, API, and engine tests.
