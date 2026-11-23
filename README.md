@@ -51,21 +51,40 @@ Given a **Pune (Shivajinagar)** snapshot at **NAQI 127 (`moderate`)** with **PM2
 src/
 ├── engine/
 │   ├── intelligence.ts           # Thin orchestrator preserving public engine API
-│   ├── quality.ts                # CPCB NAQI sub-indices, freshness, conflict & compatibility checks
-│   └── plan/                     # Pure planning pipeline (evidence, riskScoring, windowSelection, actions, dailyPlan, summary, scenario)
+│   ├── naqi.ts                   # India CPCB NAQI sub-index lookup and band classification
+│   ├── quality.ts                # Freshness, conflict, historical trend, and compatibility checks
+│   └── plan/                     # Pure planning pipeline (types, evidence, riskScoring, windowSelection, actions, contextActions, pollutantAndSensitivityActions, dailyPlan, summary, scenario)
 ├── server/
 │   ├── app.ts                    # Express middleware stack, security headers, rate limiting, router mounting
 │   ├── errors.ts                 # Centralized AppError hierarchy, assertFound, Zod/JSON error middleware
 │   ├── rateLimit.ts              # Fixed-window memory-bounded API rate limiter
-│   ├── service.ts                # Environment & bootstrap orchestration across providers, cache, and DB
-│   ├── adapters/                 # httpClient (retry/TTL cache), cpcb, openaq, camsForecast, camsImporter, fixtures
-│   ├── db/                       # SQLite repositories (connection, households, members, routines, locations, settings, snapshots, plans, sessions)
-│   └── routes/                   # Resource-scoped Express routers (session, healthAndBootstrap, household, members, routines, locations, environment, local)
-├── hooks/                        # useHouseholdData, useNavigationState, useLocale
-├── components/                   # Focused UI views + subcomponents (workspace, dashboard, family, planner, simulator, comparison, environment, history, settings, trust, landing, charts)
-├── i18n/                         # Strict key-parity dictionaries (en, mr, hi) with compile-time AssertExactKeys guard
-├── shared/                       # Canonical Zod schemas, TypeScript domain contracts, Indian city metadata
-└── utils/                        # Typed API client + modular Devanagari-safe PDF exporters
+│   ├── service.ts                # Bootstrap & household plan orchestration
+│   ├── serviceEnvironment.ts     # Environment provider aggregation, fixture selection, and TTL fallback
+│   ├── adapters/
+│   │   ├── fixtures/             # City snapshots, forecasts, and fallback builders (citySnapshots, cityForecasts, cityFallback)
+│   │   └── *.ts                  # httpClient (retry/TTL cache), cpcb (+ cpcbMapper), openaq (+ openaqMapper), camsForecast, camsImporter, fixtures
+│   ├── db/                       # SQLite repositories (connection, demoSeed, households, members, routines, locations, settings, snapshots, plans, sessions)
+│   ├── migrations/               # Ordered schema migrations (helpers, 001–006, index)
+│   ├── routes/                   # Resource-scoped Express routers (session, healthAndBootstrap, household, members, routines, locations, environment, local)
+│   └── supabase/                 # Generated Supabase Postgres schema types (excluded from manual edits/lint)
+├── hooks/                        # Memoized React hooks (useHouseholdData, useHouseholdMutations, useEntityCrudHandlers, useNavigationState, useLocale)
+├── components/
+│   ├── workspace/                # WorkspaceShell, WorkspaceHeader, WorkspaceSidebar, WorkspaceMobileDrawer, HeaderDropdownMenus, WorkspaceStatusBanner, WorkspaceViewRouter, navConfig
+│   ├── dashboard/                # DashboardHeroCard, DashboardSummaryCard, DashboardHeaderBanners, DashboardTimelineCard, FamilyMemberCards, RecommendationsList, RecommendationCard, dashboardHelpers
+│   ├── family/                   # GuidedOnboardingWizard, OnboardingWizardSteps, HouseholdPreferencesForm, MemberProfileCard, MemberEditForm, AddMemberForm, FamilyViewHeader, FamilyViewBody, FamilyOverviewBanner, familyFormReducer
+│   ├── planner/                  # PlannerHeaderBar, DayPartSummaryStrip, RoutineTimelineCard, RoutineDisplayCard, RoutineEditForm, RoutineFormFields, AddRoutineForm, plannerFormReducer
+│   ├── simulator/                # ScenarioPresets, ScenarioParametersForm, OverrideSlidersSection, RoutineOverrideSection, ScenarioResultPanel, ScenarioScheduleDiffList, simulatorReducer
+│   ├── comparison/               # SavedLocationsPanel, SavedLocationRow, AddLocationForm, CityComparisonPanel, MetricComparisonGrid, CityDetailCard, locationsFormReducer
+│   ├── environment/              # TelemetryStationTab, CamsForecastTab, StationSnapshotCard, DataAvailabilityBanner
+│   ├── charts/                   # ForecastCurveSvg, ForecastBarView
+│   ├── history/                  # HistoryKpiStrip, HistoryTables, PlanInspectionModal
+│   ├── settings/                 # PreferencesPanel, ConfirmClearModal
+│   ├── trust/                    # ProviderRegistryCard
+│   ├── landing/                  # LandingHeaderAndHero, LandingHeroPreview, HeroPreviewBody, LandingCapabilitiesSection, LandingScaleAndTrustSections
+│   └── *.tsx                     # Lazy-loaded views (DashboardView, FamilyOnboardingView, EnvironmentView, PlannerView, SimulatorView, ComparisonView, HistoryView, SettingsView) + LandingPage, AqiGauge, ForecastTrendChart, PollutantBreakdownChart, IndoorGuidanceView, TrustView, ErrorBoundary
+├── i18n/                         # Compile-time AssertExactKeys parity + locales/ ({en,mr,hi}Core, {en,mr,hi}Sections)
+├── shared/                       # domainTypes, planAndApiTypes, types barrel, indianCities catalog
+└── utils/                        # Typed API client (api.ts) + Devanagari-safe PDF exporters (pdfExport, pdfCanvasRenderer, pdfStandardRenderer)
 ```
 
 ---
@@ -115,22 +134,48 @@ External API keys in `.env` are optional; local illustrative-data and CAMS-impor
 ### Verification & Quality Checks
 
 ```bash
-npm run lint           # ESLint (typescript-eslint + react-hooks + jsx-a11y, zero warnings)
+npm run lint           # ESLint (typescript-eslint + react-hooks + jsx-a11y recommended at error level, zero warnings)
 npm run typecheck      # TypeScript strict check (tsc --noEmit)
 npm run format:check   # Prettier formatting check
-npm test               # Vitest suite (52 tests across 7 files)
+npm test               # Vitest suite (100 tests across 20 files)
+npm run test:coverage  # Vitest + V8 coverage report across src/
 npm run build          # Production Vite client bundle
 ```
 
 ---
 
-## Assumptions, Limitations & Production Notes
+## Testing
+
+The automated Vitest suite contains **100 tests across 20 files**:
+
+- **Protection & Quality Engine (`tests/engine.test.ts`, `tests/unavailableProtectionPlan.test.ts`, `tests/plan*.test.ts` — 8 module suites):** Freshness thresholds, NAQI sub-index derivation, provider conflict detection, confidence scoring, forecast window optimization, age/pollutant/sensitivity actions, daily schedule transitions, summary construction, and What-If scenario diffs.
+- **Server, Persistence & Security (`tests/apiAndMigrations.test.ts`, `tests/dbAndAdapters.test.ts`, `tests/cpcbAdapter.test.ts`, `tests/errorsMiddleware.test.ts`, `tests/sessionCookieHelper.test.ts`, `tests/httpClient.test.ts`, `tests/rateLimit.test.ts`, `tests/phase5And6.test.ts`):** Versioned SQLite migrations (v1–v6), isolated browser sessions and CSRF origin enforcement, Zod error mapping without stack leaks, retry/timeout/TTL caching, CAMS import sanitization, and API rate limiting.
+- **Localization & Accessibility (`tests/i18nParity.test.ts`, `tests/frontendA11y.test.tsx`):** Key parity and Devanagari coverage across `en`/`hi`/`mr`, plus `@testing-library/react` + `jest-axe` WCAG accessibility audits across all main views.
+
+Measured V8 coverage (`npm run test:coverage`):
+
+| Folder             |   Files | Statements |   Branches |  Functions |      Lines |
+| ------------------ | ------: | ---------: | ---------: | ---------: | ---------: |
+| `src/engine`       |      13 |     97.12% |     86.15% |    100.00% |     98.37% |
+| `src/i18n`         |      11 |    100.00% |     68.18% |    100.00% |    100.00% |
+| `src/shared`       |       4 |     97.37% |     76.92% |    100.00% |    100.00% |
+| `src/server`       |      44 |     84.15% |     64.51% |     90.25% |     86.79% |
+| `src/components`   |      80 |     37.10% |     37.28% |     35.35% |     38.02% |
+| `src/utils`        |       4 |      7.26% |      9.45% |     11.11% |      7.24% |
+| `src/hooks`        |       5 |      0.00% |      0.00% |      0.00% |      0.00% |
+| `src` (`App.tsx`)  |       1 |      0.00% |      0.00% |      0.00% |      0.00% |
+| **Total (`src/`)** | **162** | **60.16%** | **56.79%** | **52.76%** | **61.39%** |
+
+---
+
+## Decisions and Assumptions
 
 - **Non-Medical Aid:** BreatheWise AI is an informational daily planning aid, not a medical device or clinical diagnostic tool. Household sensitivity tags reflect user preferences only.
-- **Provider Coverage:** Live station reads depend on optional server-side `DATA_GOV_IN_API_KEY` (CPCB) and `OPENAQ_API_KEY` credentials and outbound network availability; coarse-grid CAMS forecasts (~40 km) do not represent street-level pollution peaks.
-- **Local SQLite & Ephemeral Hosting Caveat:** The runtime stores data in local SQLite (`node:sqlite`). Free/ephemeral hosting containers (such as Render Free) may reset local filesystems on redeploy or restart—do not store sensitive personal data on ephemeral public deployments.
-- **Browser Session Isolation (Not Account Auth):** Production mode isolates households via a cryptographically random 256-bit `HttpOnly; SameSite=Lax; Secure` cookie (with SHA-256 token hashes stored in SQLite, 30-day TTL), CSRF same-origin HTTPS checks on unsafe routes, strict CSP/HSTS headers, and `no-store` API caching. There is no password login or cross-device sync.
-- **Testing Scope:** The 52 Vitest tests cover engine decision rules, NAQI/freshness quality checks, CPCB/OpenAQ adapters, SQLite migrations, API validation/session isolation, and rate limiting. Automated Playwright browser tests and live external provider integration tests are not part of the offline test suite.
+- **Provider Coverage & Live Feeds:** Live station reads depend on optional server-side `DATA_GOV_IN_API_KEY` (CPCB) and `OPENAQ_API_KEY` credentials and outbound network availability; coarse-grid CAMS forecasts (~40 km) do not represent street-level pollution peaks. Outages hold outdoor plans rather than fabricating data.
+- **Local SQLite & Ephemeral Hosting Caveat:** The runtime stores data in local `node:sqlite`. Free/ephemeral hosting containers (such as Render Free) may reset local filesystems on redeploy or restart—do not store sensitive personal data on ephemeral public deployments. `src/server/supabase/database.types.ts` documents the provisioned Supabase schema for a future async repository migration.
+- **Browser Session Isolation (Not Account Auth):** Production mode isolates households via a cryptographically random 256-bit `HttpOnly; SameSite=Lax; Secure` cookie (`breathewise_session`, SHA-256 hashed in SQLite, 30-day TTL), strict same-origin HTTPS CSRF checks on mutating routes, Zod request validation, API/session rate limiters, CSP/HSTS headers, and `no-store` API caching.
+- **Generated Artifacts & Offline Fonts:** `public/fonts/DejaVuSans*.ttf` (~1.4 MB combined) remain bundled so client-side Devanagari/Unicode PDF exports work offline without external font requests; UI images are WebP-compressed (~305 KB total).
+- **Testing Boundaries:** Vitest tests run offline using temporary SQLite databases, `jsdom` accessibility audits, and stubbed HTTP transport for retry/cache paths; end-to-end headless browser rendering and live external provider integration tests are not executed in CI.
 
 ---
 

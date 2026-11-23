@@ -2,42 +2,45 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import type { LanguageCode } from '../../shared/types';
 import { t } from '../../i18n/translations';
-import { AqiGauge } from '../AqiGauge';
+import { HeroPreviewBody, type HeroPreviewData } from './HeroPreviewBody';
 
-interface LandingHeroPreviewProps {
-  lang: LanguageCode;
+function buildPreviewData(
+  lang: LanguageCode,
+  city: 'pune' | 'ahilyanagar',
+  shifted: boolean
+): HeroPreviewData {
+  if (city === 'pune') {
+    return {
+      city: 'Pune · Shivajinagar',
+      aqi: shifted ? 127 : 148,
+      band: 'moderate',
+      bandLabel: t(lang, 'band_moderate'),
+      pm25: shifted ? 68 : 74,
+      pm10: 124,
+      freshness: t(lang, 'fresh_fresh'),
+      source: 'Illustrative reference · Not live',
+      walkTime: shifted ? '12:00–16:00' : '06:00–09:00',
+      walkStatus: shifted ? 'Shifted (Est. PM2.5 ~44 µg/m³)' : 'Peak Morning Traffic',
+    };
+  }
+  return {
+    city: 'Ahilyanagar · Municipal Center',
+    aqi: 108,
+    band: 'moderate',
+    bandLabel: t(lang, 'band_moderate'),
+    pm25: 54,
+    pm10: 112,
+    freshness: t(lang, 'fresh_aging'),
+    source: 'Illustrative reference · Not live',
+    walkTime: '06:00–09:00',
+    walkStatus: 'No forecast loaded · Hold shift',
+  };
 }
 
-export function LandingHeroPreview({ lang }: LandingHeroPreviewProps) {
+export function LandingHeroPreview({ lang }: { lang: LanguageCode }) {
   const [previewCity, setPreviewCity] = useState<'pune' | 'ahilyanagar'>('pune');
   const [previewShifted, setPreviewShifted] = useState(true);
-
-  const previewData =
-    previewCity === 'pune'
-      ? {
-          city: 'Pune · Shivajinagar',
-          aqi: previewShifted ? 127 : 148,
-          band: 'moderate' as const,
-          bandLabel: t(lang, 'band_moderate'),
-          pm25: previewShifted ? 68 : 74,
-          pm10: 124,
-          freshness: t(lang, 'fresh_fresh'),
-          source: 'Illustrative reference · Not live',
-          walkTime: previewShifted ? '12:00–16:00' : '06:00–09:00',
-          walkStatus: previewShifted ? 'Shifted (Est. PM2.5 ~44 µg/m³)' : 'Peak Morning Traffic',
-        }
-      : {
-          city: 'Ahilyanagar · Municipal Center',
-          aqi: 108,
-          band: 'moderate' as const,
-          bandLabel: t(lang, 'band_moderate'),
-          pm25: 54,
-          pm10: 112,
-          freshness: t(lang, 'fresh_aging'),
-          source: 'Illustrative reference · Not live',
-          walkTime: '06:00–09:00',
-          walkStatus: 'No forecast loaded · Hold shift',
-        };
+  const previewData = buildPreviewData(lang, previewCity, previewShifted);
 
   return (
     <motion.div
@@ -84,59 +87,7 @@ export function LandingHeroPreview({ lang }: LandingHeroPreviewProps) {
           )}
         </div>
 
-        <div className="py-2 grid grid-cols-1 sm:grid-cols-12 gap-5 items-center">
-          <div className="sm:col-span-5 flex justify-center">
-            <AqiGauge
-              aqi={previewData.aqi}
-              band={previewData.band}
-              bandLabel={previewData.bandLabel}
-              isAvailable
-              darkSurface
-              size="sm"
-            />
-          </div>
-          <div className="sm:col-span-7 space-y-2.5">
-            <p className="text-xs text-[#DCE9DD]">{previewData.source}</p>
-            <p className="text-base font-display font-semibold text-white">{previewData.city}</p>
-            <div className="grid grid-cols-3 gap-2 pt-1 text-xs font-mono tabular-nums">
-              <div className="rounded-lg bg-white/8 p-2">
-                <span className="block text-[10px] text-[#DCE9DD]">PM2.5</span>
-                <span className="font-semibold text-white">{previewData.pm25} µg</span>
-              </div>
-              <div className="rounded-lg bg-white/8 p-2">
-                <span className="block text-[10px] text-[#DCE9DD]/80">PM10</span>
-                <span className="font-semibold text-white">{previewData.pm10} µg</span>
-              </div>
-              <div className="rounded-lg bg-white/8 p-2">
-                <span className="block text-[10px] text-[#DCE9DD]/80">Status</span>
-                <span className="font-sans font-medium text-[#DCE9DD]">
-                  {previewData.freshness.split(' ')[0]}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2 pt-4 border-t border-white/10 text-xs">
-          <div className="rounded-lg bg-white/8 px-3.5 py-2.5 flex items-center justify-between gap-3">
-            <div>
-              <p className="font-medium text-white">Morning walk · Older adult</p>
-              <p className="text-[11px] text-[#DCE9DD]">{previewData.walkStatus}</p>
-            </div>
-            <span className="font-mono text-[#DCE9DD] tabular-nums shrink-0">
-              {previewData.walkTime}
-            </span>
-          </div>
-          <div className="rounded-lg bg-white/8 px-3.5 py-2.5 flex items-center justify-between gap-3">
-            <div>
-              <p className="font-medium text-white">School commute · School-age member</p>
-              <p className="text-[11px] text-[#DCE9DD]">
-                Low-traffic route · Wash face after return
-              </p>
-            </div>
-            <span className="font-mono text-[#DCE9DD] tabular-nums shrink-0">06:00–09:00</span>
-          </div>
-        </div>
+        <HeroPreviewBody data={previewData} />
       </div>
     </motion.div>
   );

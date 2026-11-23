@@ -54,7 +54,7 @@ export function EnvironmentView({
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-bold text-[#252D28]">{t(lang, 'env_title')}</h1>
-          <p className="mt-1 text-sm text-[#89918A]">{t(lang, 'env_subtitle')}</p>
+          <p className="mt-1 text-sm text-[#565F58]">{t(lang, 'env_subtitle')}</p>
         </div>
 
         <div className="inline-flex items-center gap-0.5 p-0.5 bg-white border border-[#E2E7E1] rounded-lg shrink-0">
@@ -64,7 +64,7 @@ export function EnvironmentView({
               type="button"
               onClick={() => setSubTab(tab)}
               className={`px-3.5 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-                subTab === tab ? 'bg-[#263C32] text-white' : 'text-[#89918A] hover:text-[#252D28]'
+                subTab === tab ? 'bg-[#263C32] text-white' : 'text-[#565F58] hover:text-[#252D28]'
               }`}
             >
               {tab === 'telemetry'

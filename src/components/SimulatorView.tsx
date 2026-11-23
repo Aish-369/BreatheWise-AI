@@ -73,7 +73,7 @@ export function SimulatorView({
     <div className="space-y-7">
       <div>
         <h1 className="font-display text-2xl font-bold text-[#252D28]">{t(lang, 'sim_title')}</h1>
-        <p className="mt-1 text-sm text-[#89918A]">{t(lang, 'sim_subtitle')}</p>
+        <p className="mt-1 text-sm text-[#565F58]">{t(lang, 'sim_subtitle')}</p>
       </div>
 
       <div className="px-4 py-3 rounded-xl bg-gradient-to-r from-[#263C32] to-[#1D2F27] text-[#DCE9DD] font-mono text-xs font-medium tracking-wide shadow-xs">

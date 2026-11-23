@@ -58,7 +58,7 @@ export function ScenarioPresets({ onSelectPreset }: ScenarioPresetsProps) {
         >
           <p className="font-mono text-xs font-semibold text-[#263C32]">{preset.metric}</p>
           <p className="mt-1 font-display text-sm font-semibold text-[#252D28]">{preset.title}</p>
-          <p className="mt-0.5 text-[11px] text-[#89918A]">{preset.sub}</p>
+          <p className="mt-0.5 text-[11px] text-[#565F58]">{preset.sub}</p>
         </button>
       ))}
     </div>

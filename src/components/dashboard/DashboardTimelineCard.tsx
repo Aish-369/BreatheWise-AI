@@ -32,7 +32,7 @@ export function DashboardTimelineCard({
 
       <div className="p-5">
         {dailyPlan.length === 0 ? (
-          <p className="text-xs text-[#89918A]">{t(lang, 'ui_no_routines')}</p>
+          <p className="text-xs text-[#565F58]">{t(lang, 'ui_no_routines')}</p>
         ) : (
           <div className="relative pl-5 space-y-4 before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-px before:bg-[#E2E7E1]">
             {dailyPlan.map((item) => {
@@ -58,12 +58,12 @@ export function DashboardTimelineCard({
                       </span>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#89918A]">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#565F58]">
                       <span>
                         {t(lang, `env_${item.environment}`)} · {item.applicableMembers.join(', ')}
                       </span>
                       <span className="inline-flex items-center gap-1 font-mono text-[11px] text-[#252D28] tabular-nums">
-                        <Clock className="w-3 h-3 text-[#829C83]" />
+                        <Clock className="w-3 h-3 text-[#4D6B50]" />
                         {item.suggestedWindow
                           ? `${item.originalWindow} → ${item.suggestedWindow}`
                           : item.originalWindow}

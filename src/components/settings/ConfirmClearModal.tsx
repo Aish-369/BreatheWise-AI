@@ -31,7 +31,7 @@ export function ConfirmClearModal({ lang, open, onCancel, onConfirm }: ConfirmCl
             {t(lang, 'ui_confirm_clear_title')}
           </h3>
         </div>
-        <p className="text-xs leading-relaxed text-[#89918A]">{t(lang, 'ui_confirm_clear_desc')}</p>
+        <p className="text-xs leading-relaxed text-[#565F58]">{t(lang, 'ui_confirm_clear_desc')}</p>
         <div className="flex items-center justify-end gap-2.5 pt-2">
           <button
             type="button"

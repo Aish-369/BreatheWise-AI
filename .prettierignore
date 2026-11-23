@@ -7,3 +7,4 @@ public/
 *.db
 *.db-*
 debug.keystore
+src/server/supabase/database.types.ts

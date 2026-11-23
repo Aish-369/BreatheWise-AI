@@ -23,7 +23,7 @@ export function StationSnapshotCard({ lang, snapshot: s }: StationSnapshotCardPr
               {t(lang, classKey)}
             </span>
             {s.qualityMetadata?.fromCache && (
-              <span className="px-2 py-0.5 rounded bg-[#F7F7F1] border border-[#E2E7E1] text-[10px] font-mono text-[#89918A]">
+              <span className="px-2 py-0.5 rounded bg-[#F7F7F1] border border-[#E2E7E1] text-[10px] font-mono text-[#565F58]">
                 {t(lang, 'ui_cached_badge')}
               </span>
             )}
@@ -31,7 +31,7 @@ export function StationSnapshotCard({ lang, snapshot: s }: StationSnapshotCardPr
           <h2 className="mt-1.5 font-display text-base font-semibold text-[#252D28]">
             {s.providerLabel}
           </h2>
-          <p className="font-mono text-[11px] text-[#89918A]">
+          <p className="font-mono text-[11px] text-[#565F58]">
             {s.locationLabel} · {t(lang, `dtype_${s.dataType}`)}
           </p>
         </div>
@@ -39,7 +39,7 @@ export function StationSnapshotCard({ lang, snapshot: s }: StationSnapshotCardPr
           <span className="font-display text-2xl font-bold text-[#263C32] tabular-nums">
             {derived.aqi ?? '—'}
           </span>
-          <p className="text-[11px] text-[#89918A]">{t(lang, `fresh_${s.freshness}`)}</p>
+          <p className="text-[11px] text-[#565F58]">{t(lang, `fresh_${s.freshness}`)}</p>
         </div>
       </div>
 
@@ -55,15 +55,15 @@ export function StationSnapshotCard({ lang, snapshot: s }: StationSnapshotCardPr
 
       <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#E2E7E1] text-xs font-mono tabular-nums">
         <div>
-          <span className="block text-[10px] text-[#89918A]">PM2.5</span>
+          <span className="block text-[10px] text-[#565F58]">PM2.5</span>
           <span className="font-medium text-[#252D28]">{s.pollutants.pm25 ?? '—'} µg/m³</span>
         </div>
         <div>
-          <span className="block text-[10px] text-[#89918A]">PM10</span>
+          <span className="block text-[10px] text-[#565F58]">PM10</span>
           <span className="font-medium text-[#252D28]">{s.pollutants.pm10 ?? '—'} µg/m³</span>
         </div>
         <div>
-          <span className="block text-[10px] text-[#89918A]">NO2</span>
+          <span className="block text-[10px] text-[#565F58]">NO2</span>
           <span className="font-medium text-[#252D28]">{s.pollutants.no2 ?? '—'} µg/m³</span>
         </div>
       </div>
@@ -72,16 +72,16 @@ export function StationSnapshotCard({ lang, snapshot: s }: StationSnapshotCardPr
         s.weather?.temperatureC != null ||
         s.weather?.relativeHumidityPct != null ||
         s.weather?.windSpeedMs != null) && (
-        <div className="pt-2 border-t border-[#E2E7E1] flex flex-wrap items-center gap-3 text-[11px] text-[#89918A] font-mono">
+        <div className="pt-2 border-t border-[#E2E7E1] flex flex-wrap items-center gap-3 text-[11px] text-[#565F58] font-mono">
           {s.coordinates && (
             <span className="inline-flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-[#829C83]" />
+              <MapPin className="w-3 h-3 text-[#4D6B50]" />
               {s.coordinates.latitude.toFixed(3)}, {s.coordinates.longitude.toFixed(3)}
             </span>
           )}
           {s.weather?.temperatureC != null && (
             <span className="inline-flex items-center gap-1">
-              <CloudSun className="w-3 h-3 text-[#829C83]" />
+              <CloudSun className="w-3 h-3 text-[#4D6B50]" />
               {t(lang, 'ui_temp_label')} {s.weather.temperatureC}°C
             </span>
           )}

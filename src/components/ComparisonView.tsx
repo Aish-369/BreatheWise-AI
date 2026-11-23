@@ -58,7 +58,7 @@ export function ComparisonView({
     <div className="space-y-7">
       <div>
         <h1 className="font-display text-2xl font-bold text-[#252D28]">{t(lang, 'comp_title')}</h1>
-        <p className="mt-1 text-sm text-[#89918A]">{t(lang, 'comp_subtitle')}</p>
+        <p className="mt-1 text-sm text-[#565F58]">{t(lang, 'comp_subtitle')}</p>
       </div>
 
       <SavedLocationsPanel

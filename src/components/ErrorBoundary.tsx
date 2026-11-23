@@ -44,7 +44,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 <h1 className="font-display text-lg font-bold text-[#252D28]">
                   Workspace Interrupted
                 </h1>
-                <p className="text-xs text-[#89918A]">
+                <p className="text-xs text-[#565F58]">
                   Your local SQLite household data remains safely stored.
                 </p>
               </div>

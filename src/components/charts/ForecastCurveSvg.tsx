@@ -1,6 +1,73 @@
 import { motion } from 'motion/react';
 import type { ForecastSlot } from '../../shared/types';
 
+interface CurvePointData {
+  x: number;
+  y: number;
+  slot: ForecastSlot;
+  val: number;
+}
+
+function ForecastPointMarker({
+  pt,
+  idx,
+  height,
+  isBest,
+  isActive,
+  onSelectIndex,
+}: {
+  pt: CurvePointData;
+  idx: number;
+  height: number;
+  isBest: boolean;
+  isActive: boolean;
+  onSelectIndex: (idx: number) => void;
+}) {
+  return (
+    <g
+      role="button"
+      tabIndex={0}
+      aria-pressed={isActive}
+      aria-label={`${pt.slot.timeWindow}: PM2.5 ~${pt.val} µg/m³`}
+      className="cursor-pointer focus:outline-none"
+      onFocus={() => onSelectIndex(idx)}
+      onMouseEnter={() => onSelectIndex(idx)}
+      onClick={() => onSelectIndex(idx)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelectIndex(idx);
+        }
+      }}
+    >
+      <circle
+        cx={pt.x}
+        cy={pt.y}
+        r={isActive ? 6.5 : 4.5}
+        fill={isBest ? '#3B6E52' : '#263C32'}
+        stroke="#FFFFFF"
+        strokeWidth="2"
+      />
+      <text
+        x={pt.x}
+        y={pt.y - 11}
+        textAnchor="middle"
+        className="fill-[#252D28] font-mono text-[10px] font-medium tabular-nums"
+      >
+        {pt.val}
+      </text>
+      <text
+        x={pt.x}
+        y={height + 8}
+        textAnchor="middle"
+        className="fill-[#525C56] font-mono text-[10px] tabular-nums"
+      >
+        {pt.slot.timeWindow.slice(0, 5)}
+      </text>
+    </g>
+  );
+}
+
 interface ForecastCurveSvgProps {
   valid: ForecastSlot[];
   maxPm: number;
@@ -23,7 +90,7 @@ export function ForecastCurveSvg({
   const usableW = width - padX * 2;
   const usableH = height - padY * 2;
 
-  const points = valid.map((slot, idx) => {
+  const points: CurvePointData[] = valid.map((slot, idx) => {
     const x = valid.length === 1 ? width / 2 : padX + (idx / (valid.length - 1)) * usableW;
     const val = slot.expectedPm25 ?? 0;
     const y = padY + usableH - (val / maxPm) * usableH;
@@ -43,7 +110,7 @@ export function ForecastCurveSvg({
       <svg
         viewBox={`0 0 ${width} ${height + 18}`}
         className="w-full h-40 overflow-visible"
-        role="img"
+        role="group"
         aria-label="Coarse-grid expected PM2.5 trend curve"
       >
         <defs>
@@ -84,54 +151,17 @@ export function ForecastCurveSvg({
           />
         )}
 
-        {points.map((pt, idx) => {
-          const isBest = pt.val === minPm;
-          const isActive = idx === activeIndex;
-          return (
-            <g
-              key={pt.slot.id}
-              role="button"
-              tabIndex={0}
-              aria-pressed={isActive}
-              aria-label={`${pt.slot.timeWindow}: PM2.5 ~${pt.val} µg/m³`}
-              className="cursor-pointer focus:outline-none"
-              onFocus={() => onSelectIndex(idx)}
-              onMouseEnter={() => onSelectIndex(idx)}
-              onClick={() => onSelectIndex(idx)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onSelectIndex(idx);
-                }
-              }}
-            >
-              <circle
-                cx={pt.x}
-                cy={pt.y}
-                r={isActive ? 6.5 : 4.5}
-                fill={isBest ? '#3B6E52' : '#263C32'}
-                stroke="#FFFFFF"
-                strokeWidth="2"
-              />
-              <text
-                x={pt.x}
-                y={pt.y - 11}
-                textAnchor="middle"
-                className="fill-[#252D28] font-mono text-[10px] font-medium tabular-nums"
-              >
-                {pt.val}
-              </text>
-              <text
-                x={pt.x}
-                y={height + 8}
-                textAnchor="middle"
-                className="fill-[#525C56] font-mono text-[10px] tabular-nums"
-              >
-                {pt.slot.timeWindow.slice(0, 5)}
-              </text>
-            </g>
-          );
-        })}
+        {points.map((pt, idx) => (
+          <ForecastPointMarker
+            key={pt.slot.id}
+            pt={pt}
+            idx={idx}
+            height={height}
+            isBest={pt.val === minPm}
+            isActive={idx === activeIndex}
+            onSelectIndex={onSelectIndex}
+          />
+        ))}
       </svg>
     </div>
   );

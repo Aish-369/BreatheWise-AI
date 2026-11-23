@@ -10,12 +10,12 @@ interface AqiGaugeProps {
   size?: 'sm' | 'lg';
 }
 
-function bandStrokeColor(band: AqiBand): string {
+function bandStrokeColor(band: AqiBand, darkSurface: boolean): string {
   switch (band) {
     case 'good':
       return '#489C6E';
     case 'satisfactory':
-      return '#829C83';
+      return darkSurface ? '#829C83' : '#4D6B50';
     case 'moderate':
       return '#D99B38';
     case 'poor':
@@ -94,7 +94,7 @@ export function AqiGauge({
   const trackColor = darkSurface ? 'rgba(220, 233, 221, 0.16)' : '#DCE9DD';
   const valueColor = darkSurface ? '#FFFFFF' : '#252D28';
   const subColor = darkSurface ? '#DCE9DD' : '#525C56';
-  const accentColor = bandStrokeColor(band);
+  const accentColor = bandStrokeColor(band, darkSurface);
   const labelColor = isAvailable ? bandTextColor(band, darkSurface) : subColor;
 
   return (

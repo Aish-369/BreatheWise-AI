@@ -12,6 +12,42 @@ interface PreferencesPanelProps {
   onRequestClear: () => void;
 }
 
+function PrivacyVaultCard({
+  lang,
+  onRequestClear,
+}: {
+  lang: LanguageCode;
+  onRequestClear: () => void;
+}) {
+  return (
+    <div className="bg-white border border-[#E2E7E1] rounded-2xl p-6 space-y-5 shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
+      <div className="flex items-start gap-3">
+        <div className="w-9 h-9 rounded-lg bg-[#DCE9DD]/55 text-[#263C32] flex items-center justify-center shrink-0">
+          <ShieldCheck className="w-4 h-4" />
+        </div>
+        <div>
+          <h2 className="font-display text-sm font-semibold text-[#252D28]">
+            Local Data Privacy Vault
+          </h2>
+          <p className="mt-0.5 text-xs text-[#565F58]">
+            Household profiles, activity schedules, and history live strictly in local SQLite.
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-3 pt-2">
+        <button
+          type="button"
+          onClick={onRequestClear}
+          className="px-4 py-2 text-xs font-medium border border-[#B33A2E]/35 bg-white text-[#B33A2E] rounded-lg hover:bg-[#B33A2E]/5 cursor-pointer"
+        >
+          {t(lang, 'action_clearLocal')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function PreferencesPanel({
   lang,
   simulateOutage,
@@ -60,7 +96,7 @@ export function PreferencesPanel({
               <h3 className="text-sm font-semibold text-[#252D28]">
                 Illustrative environmental data
               </h3>
-              <p className="mt-1 text-xs leading-relaxed text-[#89918A]">
+              <p className="mt-1 text-xs leading-relaxed text-[#565F58]">
                 Show clearly labelled synthetic AQI, pollutant and forecast samples when live
                 providers have no data. Verified live readings always take priority.
               </p>
@@ -88,7 +124,7 @@ export function PreferencesPanel({
                 <h3 className="text-sm font-semibold text-[#252D28]">
                   {t(lang, 'outage_mode_label')}
                 </h3>
-                <p className="text-xs text-[#89918A]">
+                <p className="text-xs text-[#565F58]">
                   Verify unavailable-data safeguards without fabricating readings.
                 </p>
               </div>
@@ -109,31 +145,7 @@ export function PreferencesPanel({
         </div>
       </div>
 
-      <div className="bg-white border border-[#E2E7E1] rounded-2xl p-6 space-y-5 shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
-        <div className="flex items-start gap-3">
-          <div className="w-9 h-9 rounded-lg bg-[#DCE9DD]/55 text-[#263C32] flex items-center justify-center shrink-0">
-            <ShieldCheck className="w-4 h-4" />
-          </div>
-          <div>
-            <h2 className="font-display text-sm font-semibold text-[#252D28]">
-              Local Data Privacy Vault
-            </h2>
-            <p className="mt-0.5 text-xs text-[#89918A]">
-              Household profiles, activity schedules, and history live strictly in local SQLite.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onRequestClear}
-            className="px-4 py-2 text-xs font-medium border border-[#B33A2E]/35 bg-white text-[#B33A2E] rounded-lg hover:bg-[#B33A2E]/5 cursor-pointer"
-          >
-            {t(lang, 'action_clearLocal')}
-          </button>
-        </div>
-      </div>
+      <PrivacyVaultCard lang={lang} onRequestClear={onRequestClear} />
     </div>
   );
 }

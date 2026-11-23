@@ -38,7 +38,7 @@ export function HouseholdPreferencesForm({
         {t(lang, 'tab_preferences')}
       </h2>
       <div>
-        <label htmlFor="hh-label-input" className="block text-xs text-[#89918A] mb-1">
+        <label htmlFor="hh-label-input" className="block text-xs text-[#565F58] mb-1">
           Household Label
         </label>
         <input
@@ -51,7 +51,7 @@ export function HouseholdPreferencesForm({
         />
       </div>
       <div>
-        <label htmlFor="hh-city-search" className="block text-xs text-[#89918A] mb-1">
+        <label htmlFor="hh-city-search" className="block text-xs text-[#565F58] mb-1">
           {t(lang, 'ui_location_label')}
         </label>
         <input
@@ -80,11 +80,11 @@ export function HouseholdPreferencesForm({
           ))}
         </select>
         {selectedCityMeta?.disambiguationNote && (
-          <p className="mt-1 text-[11px] text-[#89918A]">{selectedCityMeta.disambiguationNote}</p>
+          <p className="mt-1 text-[11px] text-[#565F58]">{selectedCityMeta.disambiguationNote}</p>
         )}
       </div>
       <div>
-        <label htmlFor="hh-locality-input" className="block text-xs text-[#89918A] mb-1">
+        <label htmlFor="hh-locality-input" className="block text-xs text-[#565F58] mb-1">
           {t(lang, 'ui_locality_optional')}
         </label>
         <input
@@ -100,7 +100,7 @@ export function HouseholdPreferencesForm({
         <p className="text-xs font-semibold text-[#252D28]">
           {t(lang, 'ui_sensitivity_tags_title')}
         </p>
-        <p className="text-[11px] text-[#89918A] leading-relaxed">
+        <p className="text-[11px] text-[#565F58] leading-relaxed">
           {t(lang, 'ui_sensitivity_tags_desc')}
         </p>
         <div className="space-y-1.5 pt-1">

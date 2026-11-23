@@ -18,12 +18,12 @@ export function AddMemberForm({ lang, state, dispatch, onSubmit }: AddMemberForm
       className="bg-white border border-[#E2E7E1] rounded-2xl p-6 space-y-4 shadow-[0_1px_3px_rgba(37,45,40,0.04)]"
     >
       <h3 className="font-display text-sm font-semibold text-[#252D28] flex items-center gap-2">
-        <UserPlus className="w-4 h-4 text-[#829C83]" strokeWidth={1.8} />
+        <UserPlus className="w-4 h-4 text-[#4D6B50]" strokeWidth={1.8} />
         <span>{t(lang, 'action_add')}</span>
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         <div>
-          <label htmlFor="new-member-name" className="block text-xs text-[#89918A] mb-1">
+          <label htmlFor="new-member-name" className="block text-xs text-[#565F58] mb-1">
             Name
           </label>
           <input
@@ -39,7 +39,7 @@ export function AddMemberForm({ lang, state, dispatch, onSubmit }: AddMemberForm
           />
         </div>
         <div>
-          <label htmlFor="new-member-age" className="block text-xs text-[#89918A] mb-1">
+          <label htmlFor="new-member-age" className="block text-xs text-[#565F58] mb-1">
             Age Group
           </label>
           <select
@@ -61,7 +61,7 @@ export function AddMemberForm({ lang, state, dispatch, onSubmit }: AddMemberForm
           </select>
         </div>
         <div>
-          <label htmlFor="new-member-pref" className="block text-xs text-[#89918A] mb-1">
+          <label htmlFor="new-member-pref" className="block text-xs text-[#565F58] mb-1">
             Primary Activity
           </label>
           <select
@@ -84,7 +84,7 @@ export function AddMemberForm({ lang, state, dispatch, onSubmit }: AddMemberForm
           </select>
         </div>
         <div>
-          <label htmlFor="new-member-flex" className="block text-xs text-[#89918A] mb-1">
+          <label htmlFor="new-member-flex" className="block text-xs text-[#565F58] mb-1">
             Routine Flexibility
           </label>
           <select

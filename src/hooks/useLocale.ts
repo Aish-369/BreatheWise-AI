@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { HouseholdProfile, LanguageCode } from '../shared/types';
 import { updateSettingsApi } from '../utils/api';
 
@@ -29,5 +29,5 @@ export function useLocale({ household, useFixtures, simulateOutage, runAction }:
     [household, useFixtures, simulateOutage, runAction]
   );
 
-  return { lang, setLang, handleLanguageChange };
+  return useMemo(() => ({ lang, setLang, handleLanguageChange }), [lang, handleLanguageChange]);
 }

@@ -71,7 +71,7 @@ export function WorkspaceMobileDrawer({
                 }}
                 aria-current={active ? 'page' : undefined}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg text-left cursor-pointer ${
-                  active ? 'bg-[#DCE9DD]/70 text-[#263C32]' : 'text-[#89918A]'
+                  active ? 'bg-[#DCE9DD]/70 text-[#263C32]' : 'text-[#565F58]'
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" strokeWidth={1.75} />
@@ -80,7 +80,7 @@ export function WorkspaceMobileDrawer({
             );
           })}
         </nav>
-        <div className="p-4 border-t border-[#E2E7E1] flex items-center justify-between text-xs text-[#89918A]">
+        <div className="p-4 border-t border-[#E2E7E1] flex items-center justify-between text-xs text-[#565F58]">
           <span>{householdCity ?? 'Pune'}</span>
           <div className="inline-flex gap-1">
             {(['en', 'mr', 'hi'] as const).map((code) => (

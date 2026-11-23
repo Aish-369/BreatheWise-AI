@@ -47,19 +47,19 @@ export function DashboardSummaryCard({ lang, plan, onNavigate }: DashboardSummar
             <p className="font-mono text-xl font-bold text-[#8E5312] tabular-nums">
               {precautionCount}
             </p>
-            <p className="mt-0.5 text-[11px] text-[#89918A] leading-tight">
+            <p className="mt-0.5 text-[11px] text-[#565F58] leading-tight">
               {t(lang, 'ui_precautions_count')}
             </p>
           </div>
           <div className="rounded-xl bg-[#F7F7F1] border border-[#E2E7E1] p-3">
             <p className="font-mono text-xl font-bold text-[#263C32] tabular-nums">{shiftCount}</p>
-            <p className="mt-0.5 text-[11px] text-[#89918A] leading-tight">
+            <p className="mt-0.5 text-[11px] text-[#565F58] leading-tight">
               {t(lang, 'ui_shift_count')}
             </p>
           </div>
           <div className="rounded-xl bg-[#F6DFDC]/45 border border-[#E2E7E1] p-3">
             <p className="font-mono text-xl font-bold text-[#9A2E24] tabular-nums">{holdCount}</p>
-            <p className="mt-0.5 text-[11px] text-[#89918A] leading-tight">
+            <p className="mt-0.5 text-[11px] text-[#565F58] leading-tight">
               {t(lang, 'ui_hold_pending_data')}
             </p>
           </div>
@@ -84,7 +84,7 @@ export function DashboardSummaryCard({ lang, plan, onNavigate }: DashboardSummar
         <button
           type="button"
           onClick={() => onNavigate('settings-trust')}
-          className="text-xs font-medium text-[#89918A] hover:text-[#252D28] underline underline-offset-4 cursor-pointer"
+          className="text-xs font-medium text-[#565F58] hover:text-[#252D28] underline underline-offset-4 cursor-pointer"
         >
           {t(lang, 'tab_methodology')}
         </button>

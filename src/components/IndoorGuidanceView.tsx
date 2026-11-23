@@ -1,5 +1,5 @@
 import { Droplets, Fan, ShieldAlert, Wind } from 'lucide-react';
-import indoorVentilationImg from '../assets/images/indoor_ventilation_home_1795249096895.jpg';
+import indoorVentilationImg from '../assets/images/indoor_ventilation_home_1795249096895.webp';
 import type { AqiBand, LanguageCode } from '../shared/types';
 import { t } from '../i18n/translations';
 
@@ -70,7 +70,7 @@ export function IndoorGuidanceView({ lang, currentBand, city }: IndoorGuidanceVi
                   ? t(lang, 'indoor_hero_high')
                   : t(lang, 'indoor_hero_mod')}
             </h2>
-            <p className="mt-2.5 text-sm leading-relaxed text-[#89918A]">
+            <p className="mt-2.5 text-sm leading-relaxed text-[#565F58]">
               {outdoorUnavailable
                 ? 'No verified outdoor station measurement is available for this location. These indoor practices remain useful, but this page cannot currently classify outdoor air as safe or unsafe.'
                 : highOutdoor
@@ -78,7 +78,7 @@ export function IndoorGuidanceView({ lang, currentBand, city }: IndoorGuidanceVi
                   : t(lang, 'indoor_hero_mod_desc')}
             </p>
           </div>
-          <p className="mt-6 pt-4 border-t border-[#E2E7E1] text-xs text-[#89918A]">
+          <p className="mt-6 pt-4 border-t border-[#E2E7E1] text-xs text-[#565F58]">
             {t(lang, 'indoor_disclaimer')}
           </p>
         </div>
@@ -97,12 +97,12 @@ export function IndoorGuidanceView({ lang, currentBand, city }: IndoorGuidanceVi
                   <div className="w-9 h-9 rounded-lg bg-[#DCE9DD]/55 text-[#263C32] flex items-center justify-center">
                     <Icon className="w-4 h-4" />
                   </div>
-                  <span className="text-[11px] font-medium text-[#89918A]">{item.badge}</span>
+                  <span className="text-[11px] font-medium text-[#565F58]">{item.badge}</span>
                 </div>
                 <h3 className="mt-3.5 font-display text-sm font-semibold text-[#252D28]">
                   {item.title}
                 </h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-[#89918A]">{item.desc}</p>
+                <p className="mt-1.5 text-xs leading-relaxed text-[#565F58]">{item.desc}</p>
               </div>
             </div>
           );

@@ -73,11 +73,11 @@ export function WorkspaceSidebar({
               className={`w-full flex items-center gap-3 px-3 py-2.5 text-[13px] font-medium rounded-lg transition-all text-left cursor-pointer ${
                 active
                   ? 'bg-gradient-to-r from-[#DCE9DD]/75 to-[#DCE9DD]/30 text-[#263C32] shadow-2xs'
-                  : 'text-[#89918A] hover:text-[#252D28] hover:bg-[#F7F7F1]'
+                  : 'text-[#565F58] hover:text-[#252D28] hover:bg-[#F7F7F1]'
               }`}
             >
               <Icon
-                className={`w-4 h-4 shrink-0 ${active ? 'text-[#263C32]' : 'text-[#89918A]'}`}
+                className={`w-4 h-4 shrink-0 ${active ? 'text-[#263C32]' : 'text-[#565F58]'}`}
                 strokeWidth={1.75}
               />
               <span className="truncate">{item.label}</span>
@@ -92,7 +92,7 @@ export function WorkspaceSidebar({
             <p className="text-xs font-semibold text-[#252D28] truncate">
               {householdName ?? 'BreatheWise AI'}
             </p>
-            <p className="text-[11px] text-[#89918A]">
+            <p className="text-[11px] text-[#565F58]">
               {householdCity ?? 'Pune'} · {memberCount} {t(lang, 'tab_members').toLowerCase()}
             </p>
           </div>
@@ -103,7 +103,7 @@ export function WorkspaceSidebar({
                 type="button"
                 onClick={() => onChangeLang(code)}
                 className={`flex-1 py-1 text-[11px] font-medium rounded-md transition-colors cursor-pointer ${
-                  lang === code ? 'bg-[#263C32] text-white' : 'text-[#89918A] hover:text-[#252D28]'
+                  lang === code ? 'bg-[#263C32] text-white' : 'text-[#565F58] hover:text-[#252D28]'
                 }`}
               >
                 {code === 'en' ? 'EN' : code === 'mr' ? 'मराठी' : 'हिन्दी'}

@@ -1,5 +1,5 @@
 import { Activity, CalendarClock, Database, SlidersHorizontal, Users } from 'lucide-react';
-import heroFamilyMorningImg from '../../assets/images/hero_family_morning_1795249097204.jpg';
+import heroFamilyMorningImg from '../../assets/images/hero_family_morning_1795249097204.webp';
 import type { LanguageCode } from '../../shared/types';
 import { t } from '../../i18n/translations';
 
@@ -46,7 +46,7 @@ export function LandingCapabilitiesSection({
           <h2 className="font-display text-2xl font-bold text-[#252D28] text-balance">
             {t(lang, 'landing_flow_title')}
           </h2>
-          <p className="mt-1 text-sm text-[#89918A]">{t(lang, 'landing_flow_subtitle')}</p>
+          <p className="mt-1 text-sm text-[#565F58]">{t(lang, 'landing_flow_subtitle')}</p>
         </div>
         <button
           type="button"
@@ -89,7 +89,7 @@ export function LandingCapabilitiesSection({
                   <h3 className="mt-3.5 font-display text-sm font-semibold text-[#252D28]">
                     {card.title}
                   </h3>
-                  <p className="mt-1.5 text-xs leading-relaxed text-[#89918A]">{card.desc}</p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-[#565F58]">{card.desc}</p>
                 </div>
                 <p className="mt-4 pt-3 border-t border-[#E2E7E1] font-mono text-[11px] font-medium text-[#263C32]">
                   {card.stat}

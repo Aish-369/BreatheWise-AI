@@ -31,7 +31,7 @@ export function PlanInspectionModal({
             >
               {t(lang, 'ui_modal_plan_detail')}
             </h3>
-            <p className="font-mono text-[11px] text-[#89918A]">
+            <p className="font-mono text-[11px] text-[#565F58]">
               {plan.city} · AQI {plan.aqiValue ?? 'N/A'} ({t(lang, `band_${plan.aqiBand}`)}) ·{' '}
               {new Date(plan.generatedAt).toLocaleString()}
             </p>
@@ -40,7 +40,7 @@ export function PlanInspectionModal({
             type="button"
             aria-label={t(lang, 'action_close')}
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#89918A] hover:text-[#252D28] hover:bg-white cursor-pointer"
+            className="p-1.5 rounded-lg text-[#565F58] hover:text-[#252D28] hover:bg-white cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -52,7 +52,7 @@ export function PlanInspectionModal({
           </p>
 
           <div className="space-y-2.5">
-            <h4 className="font-display text-xs font-semibold uppercase tracking-wide text-[#89918A]">
+            <h4 className="font-display text-xs font-semibold uppercase tracking-wide text-[#565F58]">
               {t(lang, 'dash_actions_heading')}
             </h4>
             {plan.recommendations.map((rec) => (
@@ -66,7 +66,7 @@ export function PlanInspectionModal({
                 <p className="text-[#263C32]">
                   {t(lang, rec.suggestedActionKey, rec.suggestedActionParams)}
                 </p>
-                <p className="text-[11px] text-[#89918A]">
+                <p className="text-[11px] text-[#565F58]">
                   {rec.supportingEvidence.providerLabel} · PM2.5{' '}
                   {rec.supportingEvidence.pm25 ?? 'N/A'} µg/m³
                 </p>
@@ -75,7 +75,7 @@ export function PlanInspectionModal({
           </div>
 
           <div className="space-y-2">
-            <h4 className="font-display text-xs font-semibold uppercase tracking-wide text-[#89918A]">
+            <h4 className="font-display text-xs font-semibold uppercase tracking-wide text-[#565F58]">
               {t(lang, 'dash_planner_heading')}
             </h4>
             {plan.dailyPlan.map((item) => (
@@ -85,7 +85,7 @@ export function PlanInspectionModal({
               >
                 <div>
                   <p className="font-medium text-[#252D28]">{item.routineTitle}</p>
-                  <p className="text-[11px] text-[#89918A]">
+                  <p className="text-[11px] text-[#565F58]">
                     {t(lang, item.rationaleKey, item.rationaleParams)}
                   </p>
                 </div>

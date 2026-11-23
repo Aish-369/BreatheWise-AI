@@ -30,11 +30,13 @@ jobs:
         run: npm ci --legacy-peer-deps
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
+      - name: Check formatting
+        run: npm run format:check
       - name: Lint (ESLint, zero warnings)
         run: npm run lint
       - name: Type-check
         run: npm run typecheck
-      - name: Unit and API tests
-        run: npm test
+      - name: Unit, accessibility, and API tests with coverage
+        run: npm run test:coverage
       - name: Production build
         run: npm run build

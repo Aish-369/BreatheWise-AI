@@ -1,5 +1,4 @@
 import { useReducer } from 'react';
-import { RefreshCw } from 'lucide-react';
 import type {
   ActivityRoutine,
   ActivityRoutineInput,
@@ -10,6 +9,7 @@ import type {
 } from '../shared/types';
 import { t } from '../i18n/translations';
 import { createInitialPlannerState, plannerFormReducer } from './planner/plannerFormReducer';
+import { PlannerHeaderBar } from './planner/PlannerHeaderBar';
 import { DayPartSummaryStrip } from './planner/DayPartSummaryStrip';
 import { RoutineTimelineCard } from './planner/RoutineTimelineCard';
 import { AddRoutineForm } from './planner/AddRoutineForm';
@@ -62,8 +62,9 @@ export function PlannerView({
 
   const handleSaveEditRoutine = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!state.editingRoutineId || !state.editTitle.trim() || state.editMemberIds.length === 0)
+    if (!state.editingRoutineId || !state.editTitle.trim() || state.editMemberIds.length === 0) {
       return;
+    }
     dispatch({ type: 'setField', field: 'submitting', value: true });
     try {
       await onUpdateRoutine(state.editingRoutineId, {
@@ -89,51 +90,14 @@ export function PlannerView({
     return true;
   });
 
-  const filterTabs = [
-    { id: 'all', label: t(lang, 'ui_filter_all') },
-    { id: 'shifted', label: t(lang, 'ui_filter_shifted') },
-    { id: 'precautions', label: t(lang, 'ui_filter_precautions') },
-    { id: 'indoor', label: t(lang, 'ui_filter_indoor') },
-  ] as const;
-
   return (
-    <div className="space-y-7">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-[#252D28]">
-            {t(lang, 'plan_title')}
-          </h1>
-          <p className="mt-1 text-sm text-[#89918A]">{t(lang, 'plan_subtitle')}</p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={onRecalculatePlan}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-[#E2E7E1] text-[#263C32] rounded-lg hover:bg-[#DCE9DD]/45 cursor-pointer"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>{t(lang, 'action_recalculate')}</span>
-          </button>
-
-          <div className="inline-flex items-center gap-0.5 p-0.5 bg-white border border-[#E2E7E1] rounded-lg">
-            {filterTabs.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => dispatch({ type: 'setField', field: 'filter', value: f.id })}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer ${
-                  state.filter === f.id
-                    ? 'bg-[#263C32] text-white'
-                    : 'text-[#89918A] hover:text-[#252D28]'
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+    <div className="space-y-7" aria-label={t(lang, 'plan_title')}>
+      <PlannerHeaderBar
+        lang={lang}
+        filter={state.filter}
+        onSelectFilter={(filter) => dispatch({ type: 'setField', field: 'filter', value: filter })}
+        onRecalculatePlan={onRecalculatePlan}
+      />
 
       <DayPartSummaryStrip lang={lang} dailyPlan={plan.dailyPlan} forecasts={forecasts} />
 

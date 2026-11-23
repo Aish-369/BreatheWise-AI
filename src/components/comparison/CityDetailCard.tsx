@@ -69,7 +69,7 @@ export function CityDetailCard({
                   <p className="text-sm font-semibold text-[#252D28]">
                     {derived ? t(lang, `band_${derived.band}`) : t(lang, 'band_unavailable')}
                   </p>
-                  <p className="text-xs text-[#89918A]">
+                  <p className="text-xs text-[#565F58]">
                     {derived?.isDerived
                       ? t(lang, 'dash_derived_note')
                       : t(lang, 'dash_reported_note')}
@@ -85,11 +85,11 @@ export function CityDetailCard({
                   <div key={s.id} className="py-3 space-y-1">
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-semibold text-[#252D28]">{s.locationLabel}</span>
-                      <span className="font-mono text-[#89918A]">
+                      <span className="font-mono text-[#565F58]">
                         {t(lang, `fresh_${s.freshness}`)}
                       </span>
                     </div>
-                    <p className="text-[#89918A]">
+                    <p className="text-[#565F58]">
                       {s.providerLabel} · {t(lang, `dtype_${s.dataType}`)}
                     </p>
                     <p className="font-mono tabular-nums text-[#252D28]">
@@ -101,7 +101,7 @@ export function CityDetailCard({
               </div>
 
               {primary.warnings.length > 0 && (
-                <div className="space-y-1 text-xs text-[#89918A]">
+                <div className="space-y-1 text-xs text-[#565F58]">
                   <p className="font-semibold text-[#8E5312]">{t(lang, 'ui_alerts_title')}</p>
                   {primary.warnings.map((w, i) => (
                     <p key={i}>• {w}</p>

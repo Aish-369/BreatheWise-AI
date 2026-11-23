@@ -11,6 +11,44 @@ interface CamsForecastTabProps {
   onImportCams: (rawText: string) => Promise<{ ok: boolean; message: string }>;
 }
 
+function CamsForecastSideColumn({
+  lang,
+  city,
+  forecasts,
+}: {
+  lang: LanguageCode;
+  city: string;
+  forecasts: ForecastSlot[];
+}) {
+  return (
+    <div className="lg:col-span-6 space-y-5">
+      <div className="bg-white border border-[#E2E7E1] rounded-2xl p-6 shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
+        <ForecastTrendChart slots={forecasts} city={city} lang={lang} />
+      </div>
+
+      {forecasts.length > 0 && (
+        <div className="bg-white border border-[#E2E7E1] rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
+          <div className="divide-y divide-[#E2E7E1]">
+            {forecasts.map((f) => (
+              <div key={f.id} className="px-5 py-3 flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-mono font-medium text-[#252D28] tabular-nums">
+                    {f.timeWindow}
+                  </span>
+                  <span className="text-[#565F58]"> · {f.trend}</span>
+                </div>
+                <span className="font-mono tabular-nums text-[#252D28]">
+                  PM2.5 ~{f.expectedPm25 ?? '—'} µg/m³ · NAQI {f.expectedAqiIndia ?? '—'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CamsForecastTab({ lang, city, forecasts, onImportCams }: CamsForecastTabProps) {
   const [camsText, setCamsText] = useState('');
   const [importStatus, setImportStatus] = useState<{ ok: boolean; message: string } | null>(null);
@@ -48,10 +86,10 @@ export function CamsForecastTab({ lang, city, forecasts, onImportCams }: CamsFor
         className="lg:col-span-6 bg-white border border-[#E2E7E1] rounded-2xl p-6 space-y-4 shadow-[0_1px_3px_rgba(37,45,40,0.04)]"
       >
         <h2 className="font-display text-sm font-semibold text-[#252D28] flex items-center gap-2">
-          <Upload className="w-4 h-4 text-[#829C83]" strokeWidth={1.8} />
+          <Upload className="w-4 h-4 text-[#4D6B50]" strokeWidth={1.8} />
           <span>Copernicus CAMS Manual Importer (CSV / JSON)</span>
         </h2>
-        <p className="text-xs text-[#89918A]">
+        <p className="text-xs text-[#565F58]">
           Paste exported CAMS coarse-grid forecast rows. Validated via Zod, sanitized against CSV
           formula injection, and attributed to CAMS.
         </p>
@@ -82,7 +120,7 @@ export function CamsForecastTab({ lang, city, forecasts, onImportCams }: CamsFor
         )}
         <div className="p-3 rounded-xl bg-[#F7F7F1] border border-[#E2E7E1] text-[11px] leading-relaxed text-[#252D28]">
           <p className="font-semibold text-[#263C32]">{t(lang, 'cams_mode_manual_title')}</p>
-          <p className="mt-1 text-[#89918A]">{t(lang, 'cams_mode_manual_desc')}</p>
+          <p className="mt-1 text-[#565F58]">{t(lang, 'cams_mode_manual_desc')}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
           <button
@@ -105,31 +143,7 @@ export function CamsForecastTab({ lang, city, forecasts, onImportCams }: CamsFor
         </div>
       </form>
 
-      <div className="lg:col-span-6 space-y-5">
-        <div className="bg-white border border-[#E2E7E1] rounded-2xl p-6 shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
-          <ForecastTrendChart slots={forecasts} city={city} lang={lang} />
-        </div>
-
-        {forecasts.length > 0 && (
-          <div className="bg-white border border-[#E2E7E1] rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
-            <div className="divide-y divide-[#E2E7E1]">
-              {forecasts.map((f) => (
-                <div key={f.id} className="px-5 py-3 flex items-center justify-between text-xs">
-                  <div>
-                    <span className="font-mono font-medium text-[#252D28] tabular-nums">
-                      {f.timeWindow}
-                    </span>
-                    <span className="text-[#89918A]"> · {f.trend}</span>
-                  </div>
-                  <span className="font-mono tabular-nums text-[#252D28]">
-                    PM2.5 ~{f.expectedPm25 ?? '—'} µg/m³ · NAQI {f.expectedAqiIndia ?? '—'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      <CamsForecastSideColumn lang={lang} city={city} forecasts={forecasts} />
     </div>
   );
 }

@@ -6,7 +6,14 @@ import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'node_modules/**', 'data/**', 'coverage/**', 'public/**'],
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'data/**',
+      'coverage/**',
+      'public/**',
+      'src/server/supabase/database.types.ts',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

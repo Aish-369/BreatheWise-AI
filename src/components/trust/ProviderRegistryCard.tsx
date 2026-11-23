@@ -16,7 +16,7 @@ export function ProviderRegistryCard({ lang, providers }: ProviderRegistryCardPr
         <h2 className="font-display text-sm font-semibold text-[#252D28]">
           {t(lang, 'ui_provider_registry_title')}
         </h2>
-        <span className="font-mono text-xs text-[#89918A] tabular-nums">{providers.length}</span>
+        <span className="font-mono text-xs text-[#565F58] tabular-nums">{providers.length}</span>
       </div>
       <div className="divide-y divide-[#E2E7E1]">
         {providers.map((prov) => (
@@ -24,13 +24,13 @@ export function ProviderRegistryCard({ lang, providers }: ProviderRegistryCardPr
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h3 className="font-display text-sm font-semibold text-[#252D28]">{prov.name}</h3>
-                <p className="font-mono text-[11px] text-[#89918A]">{prov.baseUrl}</p>
+                <p className="font-mono text-[11px] text-[#565F58]">{prov.baseUrl}</p>
               </div>
               <span className="px-2.5 py-0.5 rounded-md bg-[#F7F7F1] border border-[#E2E7E1] font-mono text-[11px] text-[#263C32]">
                 {prov.status}
               </span>
             </div>
-            <p className="text-[#89918A]">{prov.notes}</p>
+            <p className="text-[#565F58]">{prov.notes}</p>
             {prov.licenses.map((lic) => (
               <div
                 key={lic.id}
@@ -38,7 +38,7 @@ export function ProviderRegistryCard({ lang, providers }: ProviderRegistryCardPr
               >
                 <div>
                   <p className="font-semibold text-[#252D28]">{lic.licenseName}</p>
-                  <p className="text-[11px] text-[#89918A]">{lic.attributionText}</p>
+                  <p className="text-[11px] text-[#565F58]">{lic.attributionText}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="px-2 py-0.5 rounded bg-white border border-[#E2E7E1] text-[10px] text-[#263C32]">

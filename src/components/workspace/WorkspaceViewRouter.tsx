@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ReactNode } from 'react';
+import { lazy, Suspense, useCallback, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import type {
   ActivityRoutineInput,
@@ -66,11 +66,13 @@ interface WorkspaceViewRouterProps {
   onClearLocal: () => Promise<void>;
 }
 
-export function WorkspaceViewRouter(props: WorkspaceViewRouterProps) {
+function renderPrimaryView(
+  props: WorkspaceViewRouterProps,
+  callbacks: { onSaveSnapshot: () => void; onDoneOnboarding: () => void }
+): ReactNode {
   const { activeTab, data, lang } = props;
-
-  const viewMap: Record<ActiveSection, () => ReactNode> = {
-    overview: () => (
+  if (activeTab === 'overview') {
+    return (
       <DashboardView
         lang={lang}
         household={data.household}
@@ -79,10 +81,12 @@ export function WorkspaceViewRouter(props: WorkspaceViewRouterProps) {
         primarySnapshot={data.environment.primarySnapshot}
         forecasts={data.environment.forecasts}
         onNavigate={props.onNavigate}
-        onSaveSnapshot={() => void props.onRefresh({ persist: true })}
+        onSaveSnapshot={callbacks.onSaveSnapshot}
       />
-    ),
-    family: () => (
+    );
+  }
+  if (activeTab === 'family') {
+    return (
       <FamilyOnboardingView
         key={`family-${props.familySubMode}`}
         lang={lang}
@@ -93,10 +97,12 @@ export function WorkspaceViewRouter(props: WorkspaceViewRouterProps) {
         onAddMember={props.onAddMember}
         onUpdateMember={props.onUpdateMember}
         onDeleteMember={props.onDeleteMember}
-        onDoneOnboarding={() => props.onNavigate('overview')}
+        onDoneOnboarding={callbacks.onDoneOnboarding}
       />
-    ),
-    'air-quality': () => (
+    );
+  }
+  if (activeTab === 'air-quality') {
+    return (
       <EnvironmentView
         key={`air-${props.airSubTab}`}
         lang={lang}
@@ -109,22 +115,43 @@ export function WorkspaceViewRouter(props: WorkspaceViewRouterProps) {
         initialSubTab={props.airSubTab}
         onImportCams={props.onImportCams}
       />
-    ),
-    planner: () => (
-      <PlannerView
-        lang={lang}
-        members={data.members}
-        routines={data.routines}
-        plan={data.plan}
-        forecasts={data.environment.forecasts}
-        onAddRoutine={props.onAddRoutine}
-        onUpdateRoutine={props.onUpdateRoutine}
-        onToggleCompletion={props.onToggleRoutineCompletion}
-        onDeleteRoutine={props.onDeleteRoutine}
-        onRecalculatePlan={() => void props.onRefresh({ persist: true })}
-      />
-    ),
-    simulator: () => (
+    );
+  }
+  return (
+    <PlannerView
+      lang={lang}
+      members={data.members}
+      routines={data.routines}
+      plan={data.plan}
+      forecasts={data.environment.forecasts}
+      onAddRoutine={props.onAddRoutine}
+      onUpdateRoutine={props.onUpdateRoutine}
+      onToggleCompletion={props.onToggleRoutineCompletion}
+      onDeleteRoutine={props.onDeleteRoutine}
+      onRecalculatePlan={callbacks.onSaveSnapshot}
+    />
+  );
+}
+
+function renderRoutedView(
+  props: WorkspaceViewRouterProps,
+  callbacks: {
+    onSaveSnapshot: () => void;
+    onDoneOnboarding: () => void;
+    onSwitchHouseholdCity: (city: string) => Promise<void>;
+  }
+): ReactNode {
+  const { activeTab, data, lang } = props;
+  if (
+    activeTab === 'overview' ||
+    activeTab === 'family' ||
+    activeTab === 'air-quality' ||
+    activeTab === 'planner'
+  ) {
+    return renderPrimaryView(props, callbacks);
+  }
+  if (activeTab === 'simulator') {
+    return (
       <SimulatorView
         lang={lang}
         routines={data.routines}
@@ -132,8 +159,10 @@ export function WorkspaceViewRouter(props: WorkspaceViewRouterProps) {
         currentPm10={data.environment.primarySnapshot.pollutants.pm10 ?? null}
         onRunScenario={props.onRunScenario}
       />
-    ),
-    locations: () => (
+    );
+  }
+  if (activeTab === 'locations') {
+    return (
       <ComparisonView
         lang={lang}
         activeCity={data.household.city}
@@ -141,22 +170,15 @@ export function WorkspaceViewRouter(props: WorkspaceViewRouterProps) {
         puneSnapshots={data.environment.comparisonCities.pune}
         ahilyanagarSnapshots={data.environment.comparisonCities.ahilyanagar}
         byCitySnapshots={data.environment.comparisonCities.byCity}
-        onSwitchHouseholdCity={async (city) => {
-          await props.onSaveHousehold({
-            name: data.household.name,
-            city,
-            locality: '',
-            language: lang,
-            sensitivityTags: data.household.sensitivityTags,
-          });
-          props.onNavigate('overview');
-        }}
+        onSwitchHouseholdCity={callbacks.onSwitchHouseholdCity}
         onCreateLocation={props.onCreateLocation}
         onUpdateLocation={props.onUpdateLocation}
         onDeleteLocation={props.onDeleteLocation}
       />
-    ),
-    reports: () => (
+    );
+  }
+  if (activeTab === 'reports') {
+    return (
       <HistoryView
         lang={lang}
         household={data.household}
@@ -165,27 +187,53 @@ export function WorkspaceViewRouter(props: WorkspaceViewRouterProps) {
         scenarios={data.history.scenarios}
         snapshots={data.history.snapshots}
       />
-    ),
-    settings: () => (
-      <SettingsView
-        key={`settings-${props.settingsSubTab}`}
-        lang={lang}
-        simulateOutage={props.simulateOutage}
-        useDemoFixtures={props.useFixtures}
-        providers={props.providers}
-        initialSubTab={props.settingsSubTab}
-        onChangeLang={props.onChangeLang}
-        onToggleOutage={props.onToggleOutage}
-        onToggleDemoFixtures={props.onToggleDemoFixtures}
-        onClearLocal={props.onClearLocal}
-      />
-    ),
-  };
+    );
+  }
+  return (
+    <SettingsView
+      key={`settings-${props.settingsSubTab}`}
+      lang={lang}
+      simulateOutage={props.simulateOutage}
+      useDemoFixtures={props.useFixtures}
+      providers={props.providers}
+      initialSubTab={props.settingsSubTab}
+      onChangeLang={props.onChangeLang}
+      onToggleOutage={props.onToggleOutage}
+      onToggleDemoFixtures={props.onToggleDemoFixtures}
+      onClearLocal={props.onClearLocal}
+    />
+  );
+}
+
+export function WorkspaceViewRouter(props: WorkspaceViewRouterProps) {
+  const { activeTab, data, lang, onRefresh, onNavigate, onSaveHousehold } = props;
+
+  const onSaveSnapshot = useCallback(() => {
+    void onRefresh({ persist: true });
+  }, [onRefresh]);
+
+  const onDoneOnboarding = useCallback(() => {
+    onNavigate('overview');
+  }, [onNavigate]);
+
+  const onSwitchHouseholdCity = useCallback(
+    async (city: string) => {
+      await onSaveHousehold({
+        name: data.household.name,
+        city,
+        locality: '',
+        language: lang,
+        sensitivityTags: data.household.sensitivityTags,
+      });
+      onNavigate('overview');
+    },
+    [onSaveHousehold, data.household.name, data.household.sensitivityTags, lang, onNavigate]
+  );
 
   return (
     <Suspense
       fallback={
-        <div className="bg-white border border-[#E2E7E1] rounded-2xl p-8 text-xs text-[#89918A]">
+        <div className="bg-white border border-[#E2E7E1] rounded-2xl p-8 text-xs text-[#565F58]">
           {t(lang, 'loading')}
         </div>
       }
@@ -198,7 +246,7 @@ export function WorkspaceViewRouter(props: WorkspaceViewRouterProps) {
           exit={{ opacity: 0, y: -4 }}
           transition={{ duration: 0.16, ease: [0.16, 1, 0.3, 1] }}
         >
-          {viewMap[activeTab]()}
+          {renderRoutedView(props, { onSaveSnapshot, onDoneOnboarding, onSwitchHouseholdCity })}
         </motion.div>
       </AnimatePresence>
     </Suspense>

@@ -60,7 +60,7 @@ export function TrustView({ lang = 'en', providers = [] }: TrustViewProps) {
                 <h2 className="mt-3 font-display text-sm font-semibold text-[#252D28]">
                   {tier.title}
                 </h2>
-                <p className="mt-1 text-xs text-[#89918A]">{tier.desc}</p>
+                <p className="mt-1 text-xs text-[#565F58]">{tier.desc}</p>
               </div>
               <p className="mt-4 pt-3 border-t border-[#E2E7E1] font-mono text-[11px] font-medium text-[#263C32]">
                 {tier.scope}

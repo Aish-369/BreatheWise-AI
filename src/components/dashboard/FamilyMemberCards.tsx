@@ -60,16 +60,16 @@ export function FamilyMemberCards({
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-[#252D28] truncate">{member.name}</p>
-                    <p className="text-[11px] text-[#89918A] truncate">
+                    <p className="text-[11px] text-[#565F58] truncate">
                       {t(lang, `pref_${member.activityPreference}`)}
                     </p>
                   </div>
                 </div>
-                <Icon className="w-4 h-4 text-[#829C83] shrink-0" />
+                <Icon className="w-4 h-4 text-[#4D6B50] shrink-0" />
               </div>
 
               <div className="mt-3.5 pt-3 border-t border-[#E2E7E1] flex items-center justify-between gap-2 text-[11px]">
-                <span className="text-[#89918A] truncate">
+                <span className="text-[#565F58] truncate">
                   {t(lang, `flex_${member.routineFlexibility}`)}
                 </span>
                 <span className={`px-2 py-0.5 rounded-md font-medium shrink-0 ${status.tone}`}>

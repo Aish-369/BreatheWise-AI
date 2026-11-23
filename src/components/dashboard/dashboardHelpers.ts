@@ -34,7 +34,7 @@ export function severityDotColor(severity: string): string {
       return 'text-[#B33A2E] bg-[#B33A2E]/10';
     case 'caution':
     case 'advisory':
-      return 'text-[#B4691E] bg-[#B4691E]/10';
+      return 'text-[#8E5312] bg-[#F5EBD8]';
     default:
       return 'text-[#3B6E52] bg-[#DCE9DD]';
   }

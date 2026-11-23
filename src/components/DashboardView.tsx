@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { AlertTriangle, FileDown, Info, TrendingDown, TrendingUp } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
 import type {
   EnvironmentalSnapshot,
   FamilyMember,
@@ -8,10 +7,9 @@ import type {
   LanguageCode,
   ProtectionPlanResult,
 } from '../shared/types';
-import { t } from '../i18n/translations';
 import { PollutantBreakdownChart } from './PollutantBreakdownChart';
 import { ForecastTrendChart } from './ForecastTrendChart';
-import { getGreetingKey } from './dashboard/dashboardHelpers';
+import { DashboardHeaderBar, DashboardNoticeBanners } from './dashboard/DashboardHeaderBanners';
 import { DashboardHeroCard } from './dashboard/DashboardHeroCard';
 import { DashboardSummaryCard } from './dashboard/DashboardSummaryCard';
 import { FamilyMemberCards } from './dashboard/FamilyMemberCards';
@@ -27,6 +25,16 @@ interface DashboardViewProps {
   forecasts: ForecastSlot[];
   onNavigate: (tab: string) => void;
   onSaveSnapshot: () => void;
+}
+
+function formatDashboardDate(lang: LanguageCode): string {
+  const locale = lang === 'mr' ? 'mr-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN';
+  return new Intl.DateTimeFormat(locale, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date());
 }
 
 export function DashboardView({
@@ -47,13 +55,9 @@ export function DashboardView({
   const [exportingPdf, setExportingPdf] = useState(false);
   const [savingSnapshot, setSavingSnapshot] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const dateFormatted = useMemo(() => formatDashboardDate(lang), [lang]);
 
-  const dateFormatted = new Intl.DateTimeFormat(
-    lang === 'mr' ? 'mr-IN' : lang === 'hi' ? 'hi-IN' : 'en-IN',
-    { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }
-  ).format(new Date());
-
-  const handleExportPdf = async () => {
+  const handleExportPdf = useCallback(async () => {
     setExportingPdf(true);
     setActionError(null);
     try {
@@ -64,9 +68,9 @@ export function DashboardView({
     } finally {
       setExportingPdf(false);
     }
-  };
+  }, [household, plan, lang]);
 
-  const handleSaveSnapshot = async () => {
+  const handleSaveSnapshot = useCallback(async () => {
     setSavingSnapshot(true);
     setActionError(null);
     try {
@@ -78,46 +82,21 @@ export function DashboardView({
     } finally {
       setSavingSnapshot(false);
     }
-  };
+  }, [onSaveSnapshot]);
 
   return (
     <div className="space-y-7">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <p className="text-xs font-medium text-[#89918A]">
-            {t(lang, getGreetingKey())}, {household.name} · {plan.city}
-            {household.locality ? ` (${household.locality})` : ''} · {dateFormatted}
-          </p>
-          <h1 className="mt-1 font-display text-2xl font-bold text-[#252D28]">
-            {t(lang, 'dash_title')}
-          </h1>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-          <button
-            type="button"
-            disabled={savingSnapshot}
-            onClick={() => void handleSaveSnapshot()}
-            className="px-3.5 py-2 text-xs font-medium border border-[#E2E7E1] bg-white text-[#252D28] rounded-lg hover:bg-[#DCE9DD]/40 transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-2xs"
-          >
-            {savingSnapshot
-              ? 'Saving…'
-              : savedNotice
-                ? t(lang, 'dash_savedNotice')
-                : t(lang, 'action_persistPlan')}
-          </button>
-          <button
-            type="button"
-            disabled={exportingPdf}
-            onClick={() => void handleExportPdf()}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium bg-[#263C32] text-white rounded-lg hover:bg-[#1C2D25] disabled:opacity-60 transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-xs"
-          >
-            <FileDown className="w-3.5 h-3.5" />
-            <span>{t(lang, 'action_downloadPdf')}</span>
-          </button>
-        </div>
-      </div>
-
+      <DashboardHeaderBar
+        lang={lang}
+        household={household}
+        plan={plan}
+        dateFormatted={dateFormatted}
+        savingSnapshot={savingSnapshot}
+        savedNotice={savedNotice}
+        exportingPdf={exportingPdf}
+        onSaveSnapshot={() => void handleSaveSnapshot()}
+        onExportPdf={() => void handleExportPdf()}
+      />
       {actionError && (
         <p
           role="alert"
@@ -126,50 +105,7 @@ export function DashboardView({
           {actionError}
         </p>
       )}
-
-      {(plan.isDemoFixture ||
-        (plan.conflictWarningKey && plan.conflictDetails) ||
-        plan.historicalTrend) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          {plan.isDemoFixture && (
-            <div className="px-4 py-2.5 rounded-xl border border-[#E2E7E1] bg-gradient-to-r from-[#DCE9DD]/45 to-white flex items-center gap-2.5 text-xs text-[#252D28]">
-              <Info className="w-4 h-4 text-[#263C32] shrink-0" />
-              <span>{t(lang, 'demo_fixture_notice')}</span>
-            </div>
-          )}
-          {plan.conflictWarningKey && plan.conflictDetails && (
-            <div className="px-4 py-2.5 rounded-xl border border-[#B33A2E]/30 bg-white flex items-center gap-2.5 text-xs text-[#252D28]">
-              <AlertTriangle className="w-4 h-4 text-[#B33A2E] shrink-0" />
-              <span>
-                <strong className="font-semibold text-[#B33A2E]">
-                  {t(lang, 'rec_conflict_title')}:
-                </strong>{' '}
-                <span className="text-[#89918A]">{plan.conflictDetails}</span>
-              </span>
-            </div>
-          )}
-          {plan.historicalTrend && (
-            <div className="px-4 py-2.5 rounded-xl border border-[#E2E7E1] bg-white flex items-center justify-between gap-2 text-xs text-[#252D28]">
-              <span className="inline-flex items-center gap-2 font-medium">
-                {plan.historicalTrend.direction === 'worsening' ? (
-                  <TrendingUp className="w-4 h-4 text-[#B4691E]" />
-                ) : (
-                  <TrendingDown className="w-4 h-4 text-[#3B6E52]" />
-                )}
-                <span>
-                  {t(lang, 'ui_historical_trend_label')}:{' '}
-                  <strong>{t(lang, `trend_${plan.historicalTrend.direction}`)}</strong>
-                </span>
-              </span>
-              <span className="font-mono text-[11px] text-[#89918A] tabular-nums">
-                {plan.historicalTrend.previousPm25 ?? '—'} →{' '}
-                {plan.historicalTrend.latestPm25 ?? '—'} µg/m³ ({plan.historicalTrend.sampleCount})
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-
+      <DashboardNoticeBanners lang={lang} plan={plan} />
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         <DashboardHeroCard
           lang={lang}
@@ -179,7 +115,6 @@ export function DashboardView({
         />
         <DashboardSummaryCard lang={lang} plan={plan} onNavigate={onNavigate} />
       </section>
-
       <FamilyMemberCards
         lang={lang}
         members={members}
@@ -188,7 +123,6 @@ export function DashboardView({
         onSelectMember={setSelectedMemberFilter}
         onManageMembers={() => onNavigate('family')}
       />
-
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         <div className="lg:col-span-6">
           <PollutantBreakdownChart
@@ -202,7 +136,6 @@ export function DashboardView({
           <ForecastTrendChart slots={forecasts} city={plan.city} lang={lang} />
         </div>
       </section>
-
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <DashboardTimelineCard
           lang={lang}

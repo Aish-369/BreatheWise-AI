@@ -8,6 +8,8 @@ export const TIME_WINDOWS: TimeWindow[] = [
   '19:00-22:00',
 ];
 
+export type PlannerFilter = 'all' | 'shifted' | 'precautions' | 'indoor';
+
 export interface PlannerFormState {
   title: string;
   environment: 'outdoor' | 'indoor';
@@ -15,7 +17,7 @@ export interface PlannerFormState {
   preferredWindow: TimeWindow;
   notes: string;
   selectedMemberIds: string[];
-  filter: 'all' | 'shifted' | 'precautions' | 'indoor';
+  filter: PlannerFilter;
   submitting: boolean;
   editingRoutineId: string | null;
   editTitle: string;

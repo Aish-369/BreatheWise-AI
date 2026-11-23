@@ -41,7 +41,7 @@ export function DayPartSummaryStrip({ lang, dailyPlan, forecasts }: DayPartSumma
             >
               <div>
                 <p className="text-xs font-semibold text-[#252D28]">{t(lang, part.key)}</p>
-                <p className="mt-0.5 text-[11px] text-[#89918A]">
+                <p className="mt-0.5 text-[11px] text-[#565F58]">
                   {partItems.length} routine(s)
                   {avgPm !== null ? ` · Est. PM2.5 ~${avgPm} µg/m³` : ''}
                 </p>
@@ -67,11 +67,11 @@ export function DayPartSummaryStrip({ lang, dailyPlan, forecasts }: DayPartSumma
             >
               <div className="flex items-center justify-between text-xs">
                 <span className="font-mono font-semibold text-[#252D28] tabular-nums">{win}</span>
-                <span className="font-mono text-[11px] text-[#89918A] tabular-nums">
+                <span className="font-mono text-[11px] text-[#565F58] tabular-nums">
                   {itemsInWindow.length}
                 </span>
               </div>
-              <p className="mt-1.5 text-[11px] text-[#89918A]">
+              <p className="mt-1.5 text-[11px] text-[#565F58]">
                 {typeof forecastMatch?.expectedPm25 === 'number'
                   ? `Est. PM2.5 ~${forecastMatch.expectedPm25} µg/m³`
                   : 'No PM2.5 forecast for this window'}

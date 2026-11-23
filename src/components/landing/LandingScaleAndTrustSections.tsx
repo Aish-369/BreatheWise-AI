@@ -1,5 +1,5 @@
 import { ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react';
-import stationMonitoringPuneImg from '../../assets/images/station_monitoring_pune_1795249097066.jpg';
+import stationMonitoringPuneImg from '../../assets/images/station_monitoring_pune_1795249097066.webp';
 import type { LanguageCode } from '../../shared/types';
 import { t } from '../../i18n/translations';
 
@@ -37,7 +37,7 @@ export function LandingScaleAndTrustSections({
               <h2 className="font-display text-2xl font-bold text-[#252D28]">
                 {t(lang, 'landing_demo_title')}
               </h2>
-              <p className="mt-1 text-sm text-[#89918A]">
+              <p className="mt-1 text-sm text-[#565F58]">
                 Verified India CPCB NAQI thresholds drive transparent household actions.
               </p>
             </div>
@@ -62,7 +62,7 @@ export function LandingScaleAndTrustSections({
                   <p className="mt-3 font-display text-sm font-semibold text-[#252D28]">
                     {item.band}
                   </p>
-                  <p className="font-mono text-xs text-[#89918A] tabular-nums">{item.range}</p>
+                  <p className="font-mono text-xs text-[#565F58] tabular-nums">{item.range}</p>
                 </div>
                 <p className="mt-3 text-[11px] font-medium text-[#263C32]">{item.action}</p>
               </div>
@@ -90,7 +90,7 @@ export function LandingScaleAndTrustSections({
           <div className="lg:col-span-7 bg-white border border-[#E2E7E1] rounded-2xl p-7 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-2 text-xs font-medium text-[#263C32]">
-                <ShieldCheck className="w-4 h-4 text-[#829C83]" />
+                <ShieldCheck className="w-4 h-4 text-[#4D6B50]" />
                 <span>Verified Provenance Standard</span>
               </div>
               <h2 className="mt-2 font-display text-2xl font-bold text-[#252D28]">

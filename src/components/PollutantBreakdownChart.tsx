@@ -43,7 +43,7 @@ export function PollutantBreakdownChart({
             <h2 className="text-sm font-semibold text-[#252D28]">
               {t(lang, 'ui_pollutant_index_title')}
             </h2>
-            <p className="mt-0.5 text-xs text-[#89918A]">{locationLabel}</p>
+            <p className="mt-0.5 text-xs text-[#565F58]">{locationLabel}</p>
           </div>
           {onInspectStation && (
             <button
@@ -75,7 +75,7 @@ export function PollutantBreakdownChart({
                 <div className="flex items-center justify-between text-xs mb-1.5">
                   <div className="flex items-center gap-2">
                     <span className="font-mono font-medium text-[#252D28] w-11">{spec.label}</span>
-                    <span className="text-[11px] text-[#89918A]">
+                    <span className="text-[11px] text-[#565F58]">
                       {isHovered ? `CPCB 24h ref: ${spec.safeLimit} ${spec.unit}` : ''}
                     </span>
                   </div>
@@ -86,10 +86,10 @@ export function PollutantBreakdownChart({
                       }`}
                     >
                       {val}{' '}
-                      <span className="text-[11px] text-[#89918A] font-normal">{spec.unit}</span>
+                      <span className="text-[11px] text-[#565F58] font-normal">{spec.unit}</span>
                     </span>
                   ) : (
-                    <span className="text-[11px] text-[#89918A] italic">
+                    <span className="text-[11px] text-[#565F58] italic">
                       {t(lang, 'ui_not_reported')}
                     </span>
                   )}
@@ -121,7 +121,7 @@ export function PollutantBreakdownChart({
         </div>
       </div>
 
-      <p className="mt-5 pt-3.5 border-t border-[#E2E7E1] text-[11px] text-[#89918A]">
+      <p className="mt-5 pt-3.5 border-t border-[#E2E7E1] text-[11px] text-[#565F58]">
         {t(lang, 'ui_pollutant_benchmark_note')}
       </p>
     </div>
