@@ -238,3 +238,24 @@ for this project's toolchain and lockfile.
 
 **Score integrity:** 97+/100 remains a target, not a promise. No evaluator score has been re-run;
 these audit findings do not establish that the score has improved.
+
+
+## Post-audit progress — Phase 1 test expansion
+
+**Latest verified CI run:** [Run #163](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45149537667)
+
+The initial baseline above remains a snapshot of the repository at the start of Phase 0. Subsequent Phase 1 work on this branch has added behavioral tests for the frontend API client, root App routing, household bootstrap behavior, and household mutation workflows.
+
+Latest successful CI evidence:
+
+- Test suite: 138 tests across 28 files, all passing.
+- Statement coverage: 67.07% (up from the baseline 62.82%).
+- Branch coverage: 59.52%.
+- Function coverage: 60.98%.
+- Line coverage: 68.02%.
+- `src/App.tsx`: 100% statements, branches, functions, and lines.
+- `src/hooks`: 94.37% statement coverage.
+- `src/hooks/useHouseholdMutations.ts`: 94.87% statements.
+- Formatting, ESLint (zero warnings), TypeScript type-check, test suite, and production build all passed.
+
+Remaining major gaps are the component layer (44.68% statements) and utility layer (19.14% statements). Browser-based end-to-end workflows have not yet been verified, and no Hack2Skill evaluation score has been re-run. These changes do not establish a new evaluator score.
