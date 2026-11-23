@@ -41,7 +41,11 @@ describe('useLocale', () => {
   });
 
   it('changes language and persists all current settings for an existing household', async () => {
-    const runAction = vi.fn(<T,>(action: () => Promise<T>): Promise<T> => action());
+    const runActionSpy = vi.fn();
+    const runAction = async <T,>(action: () => Promise<T>): Promise<T> => {
+      runActionSpy();
+      return action();
+    };
     const { result } = renderHook(() =>
       useLocale({
         household,
@@ -56,7 +60,7 @@ describe('useLocale', () => {
     });
 
     expect(result.current.lang).toBe('mr');
-    expect(runAction).toHaveBeenCalledTimes(1);
+    expect(runActionSpy).toHaveBeenCalledTimes(1);
     expect(updateSettingsApi).toHaveBeenCalledWith({
       language: 'mr',
       useDemoFixtures: true,
@@ -66,7 +70,11 @@ describe('useLocale', () => {
   });
 
   it('updates the selected language without making a persistence call when no household exists', async () => {
-    const runAction = vi.fn(<T,>(action: () => Promise<T>): Promise<T> => action());
+    const runActionSpy = vi.fn();
+    const runAction = async <T,>(action: () => Promise<T>): Promise<T> => {
+      runActionSpy();
+      return action();
+    };
     const { result } = renderHook(() =>
       useLocale({
         household: null,
@@ -81,7 +89,7 @@ describe('useLocale', () => {
     });
 
     expect(result.current.lang).toBe('hi');
-    expect(runAction).not.toHaveBeenCalled();
+    expect(runActionSpy).not.toHaveBeenCalled();
     expect(updateSettingsApi).not.toHaveBeenCalled();
   });
 
