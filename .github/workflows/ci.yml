@@ -32,8 +32,6 @@ jobs:
         run: npm install --no-save --package-lock=false @playwright/test
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
-      - name: Temporary Prettier diagnostic
-        run: npx prettier tests/visualComponents.test.tsx
       - name: Check formatting
         run: npm run format:check
       - name: Lint (ESLint, zero warnings)
