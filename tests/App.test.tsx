@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { LanguageCode } from '../src/shared/types';
 import App from '../src/App';
 
@@ -52,6 +52,10 @@ vi.mock('../src/components/workspace/WorkspaceShell', () => ({
 }));
 
 describe('App root routing', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
