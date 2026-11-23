@@ -8,12 +8,12 @@ All automated checks run against isolated temporary or `:memory:` SQLite databas
 npm run format:check  # Prettier formatting verification
 npm run lint           # ESLint with zero warnings
 npm run typecheck      # TypeScript type-checking (tsc --noEmit)
-npm run test:coverage  # Vitest suite with V8 coverage (149 tests across 30 files)
+npm run test:coverage  # Vitest suite with V8 coverage (150 tests across 31 files)
 npm run build          # Vite 8 production bundle check
 npx playwright test    # Chromium browser-level core journeys
 ```
 
-## 2. Test Coverage Breakdown (149 Tests across 30 Files)
+## 2. Test Coverage Breakdown (150 Tests across 31 Files)
 
 1. **`tests/engine.test.ts` (22 tests)**
    - Freshness boundaries (`<= 2h` fresh, `2–6h` aging, `> 6h` stale, missing/future timestamps unavailable)
@@ -68,13 +68,19 @@ npx playwright test    # Chromium browser-level core journeys
 
 ## 3. Latest Measured Coverage
 
-The latest successful GitHub Actions run reports 71.28% statement coverage, 61.04% branch coverage, 63.21% function coverage, and 72.51% line coverage across 162 source files. The `App.tsx` entry point is 100% covered, and the custom hooks folder is at 94.37% statement coverage. The largest remaining coverage gap is the component layer (51.06% statements).
+The latest successful GitHub Actions run reports 71.30% statement coverage, 61.06% branch coverage, 63.26% function coverage, and 72.53% line coverage across 162 source files. The `App.tsx` entry point is 100% covered, and the custom hooks folder is at 94.37% statement coverage. The largest remaining coverage gap is the component layer (51.06% statements).
+
+## 5. Hosting Readiness Audit
+
+The current connected Render service is on the Free plan. Its service configuration currently reports no attached persistent disk and an empty health-check path. The application now exposes `GET /healthz`, which returns `200 {"status":"ok"}` only when the SQLite database responds to a simple query, and `503 {"status":"unavailable"}` when it cannot.
+
+Before relying on Render health monitoring, set the service's Health Check Path to `/healthz` in the Render dashboard. This is a production setting and has intentionally not been changed by this code-only PR. Likewise, do not treat `BREATHEWISE_DB_PATH` as durable until a persistent volume is actually attached and mounted. No disk has been created, no plan has been upgraded, and no production environment variable has been changed.
 
 ## 4. Browser-Level End-to-End Testing
 
 The CI workflow installs Playwright and Chromium as ephemeral test tooling (without changing the application lockfile), then runs `npx playwright test`. The browser suite starts the production-mode Express server against the CI workspace's isolated SQLite database and covers the public landing page, workspace entry/return navigation, and guided household onboarding entry. Failed tests retain traces and screenshots locally for diagnosis. These checks complement—not replace—the Vitest component, API, and engine tests.
 
-## 5. Runtime Configuration and Persistence
+## 6. Runtime Configuration and Persistence
 
 - `BREATHEWISE_DB_PATH` optionally selects the SQLite file location. If unset, the application continues to use `./data/breathewise.db`.
 - For a hosting provider with a mounted persistent disk, configure `BREATHEWISE_DB_PATH` to a file path inside that mounted disk (for example, `/var/data/breathewise.db` only when the disk is actually mounted at `/var/data`).
@@ -82,4 +88,4 @@ The CI workflow installs Playwright and Chromium as ephemeral test tooling (with
 - `VITE_ALLOWED_HOSTS` is an optional comma-separated list of exact Vite development/preview hostnames. Localhost and IP addresses remain allowed by Vite defaults. Do not set broad wildcards; add only the hostnames required by a trusted preview environment.
 - `DISABLE_HMR` and file-watch behavior are intentionally unchanged.
 
-The current runtime still uses synchronous SQLite. A durable multi-instance production architecture requires a separately planned asynchronous PostgreSQL repository migration, household-isolation tests, persistence/restart tests, and a controlled deployment. No production database, secret, or hosting setting is changed by these configuration options.
+The current runtime still uses synchronous SQLite. A durable multi-instance production architecture requires a separately planned asynchronous PostgreSQL repository migration, household-isolation tests, persistence/restart tests, and a controlled deployment. No production database, secret, or hosting setting is changed by these configuration options. The connected Render service audit also found that the Health Check Path is currently unset; configure it to `/healthz` only after reviewing the production settings change.
