@@ -34,4 +34,21 @@ describe('unauthenticated hosting health probe', () => {
     expect(response.headers.get('set-cookie')).toBeNull();
     expect(response.headers.get('x-content-type-options')).toBe('nosniff');
   });
+
+  it('returns unavailable when the database cannot answer the readiness query', async () => {
+    db = getDb(':memory:');
+    const app = createApp(db);
+    server = app.listen(0, '127.0.0.1');
+    await new Promise<void>((resolve) => server?.once('listening', resolve));
+
+    const address = server.address() as AddressInfo;
+    db.close();
+    db = undefined;
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/healthz`);
+    const payload = (await response.json()) as { status: string };
+
+    expect(response.status).toBe(503);
+    expect(payload).toEqual({ status: 'unavailable' });
+  });
 });
