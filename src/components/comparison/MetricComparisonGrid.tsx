@@ -4,8 +4,8 @@ import { t } from '../../i18n/translations';
 
 export interface ComparisonMetricRow {
   label: string;
-  valA: number | undefined;
-  valB: number | undefined;
+  valA: number | null | undefined;
+  valB: number | null | undefined;
   max: number;
 }
 
