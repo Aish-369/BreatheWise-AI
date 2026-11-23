@@ -168,7 +168,7 @@ Measured V8 coverage from the latest successful CI run (`npm run test:coverage`)
 | `src/utils`        |       4 |     55.44% |     51.96% |     44.44% |     55.51% |
 | `src/hooks`        |       5 |     94.37% |     82.60% |     96.36% |     93.61% |
 | `src` (`App.tsx`)  |       1 |    100.00% |    100.00% |    100.00% |    100.00% |
-| **Total (`src/`)** | **162** | **71.30%** | **61.06%** | **63.26%** | **72.53%** |
+| **Total (`src/`)** | **162** | **71.33%** | **61.06%** | **63.26%** | **72.57%** |
 
 The latest verified CI run passes production dependency audit, formatting, ESLint, TypeScript type-checking, all 151 tests, the production build, Chromium installation, and all 3 Playwright browser journeys. Coverage is reported transparently; the largest remaining gaps are UI components and utility modules. The root `App.tsx` and household mutation hook now have high measured coverage.
 
