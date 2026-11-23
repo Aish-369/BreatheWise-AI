@@ -294,7 +294,9 @@ const MIGRATIONS: Migration[] = [
         INSERT OR IGNORE INTO user_settings (household_id, language, use_demo_fixtures, simulate_outage, default_city, updated_at)
         VALUES (?, ?, 0, 0, ?, ?)
       `);
-      const countLocations = db.prepare('SELECT COUNT(*) as c FROM locations WHERE household_id = ?');
+      const countLocations = db.prepare(
+        'SELECT COUNT(*) as c FROM locations WHERE household_id = ?'
+      );
       const insertLoc = db.prepare(`
         INSERT OR IGNORE INTO locations (id, household_id, city, locality, label, is_primary, latitude, longitude, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -323,7 +325,9 @@ const MIGRATIONS: Migration[] = [
             `loc-${hh.id}-ahilyanagar`,
             hh.id,
             'Ahilyanagar',
-            !isPunePrimary && hh.city.toLowerCase() === 'ahilyanagar' ? hh.locality || 'Municipal Center' : 'Municipal Center',
+            !isPunePrimary && hh.city.toLowerCase() === 'ahilyanagar'
+              ? hh.locality || 'Municipal Center'
+              : 'Municipal Center',
             'Ahilyanagar · Municipal Center',
             hh.city.toLowerCase() === 'ahilyanagar' ? 1 : 0,
             19.0948,
@@ -423,7 +427,9 @@ const MIGRATIONS: Migration[] = [
     name: '006_household_scoped_imported_forecasts',
     up: (db) => {
       if (!hasColumn(db, 'cams_forecasts', 'household_id')) {
-        db.exec('ALTER TABLE cams_forecasts ADD COLUMN household_id TEXT REFERENCES households(id) ON DELETE CASCADE;');
+        db.exec(
+          'ALTER TABLE cams_forecasts ADD COLUMN household_id TEXT REFERENCES households(id) ON DELETE CASCADE;'
+        );
       }
       // Attribute legacy non-demo imports to the one legacy active household so they
       // do not become globally visible after anonymous multi-household sessions are enabled.
@@ -432,9 +438,11 @@ const MIGRATIONS: Migration[] = [
         SET household_id = (SELECT id FROM households ORDER BY updated_at DESC LIMIT 1)
         WHERE household_id IS NULL AND is_demo_fixture = 0;
       `);
-      db.exec('CREATE INDEX IF NOT EXISTS idx_cams_forecasts_household_city ON cams_forecasts(household_id, city, time_window);');
+      db.exec(
+        'CREATE INDEX IF NOT EXISTS idx_cams_forecasts_household_city ON cams_forecasts(household_id, city, time_window);'
+      );
     },
-  }
+  },
 ];
 
 export function getSchemaVersion(db: DatabaseSync): number {

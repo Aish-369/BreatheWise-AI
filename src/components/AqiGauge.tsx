@@ -25,7 +25,44 @@ function bandStrokeColor(band: AqiBand): string {
     case 'severe':
       return '#9E2323';
     default:
-      return '#89918A';
+      return '#525C56';
+  }
+}
+
+function bandTextColor(band: AqiBand, darkSurface: boolean): string {
+  if (darkSurface) {
+    switch (band) {
+      case 'good':
+        return '#A7E3C1';
+      case 'satisfactory':
+        return '#DCE9DD';
+      case 'moderate':
+        return '#FCD37D';
+      case 'poor':
+        return '#FDBA8C';
+      case 'very_poor':
+        return '#FCA5A5';
+      case 'severe':
+        return '#FECACA';
+      default:
+        return '#DCE9DD';
+    }
+  }
+  switch (band) {
+    case 'good':
+      return '#215E3C';
+    case 'satisfactory':
+      return '#263C32';
+    case 'moderate':
+      return '#8A5308';
+    case 'poor':
+      return '#9A3B12';
+    case 'very_poor':
+      return '#9E2323';
+    case 'severe':
+      return '#7F1D1D';
+    default:
+      return '#525C56';
   }
 }
 
@@ -56,8 +93,9 @@ export function AqiGauge({
 
   const trackColor = darkSurface ? 'rgba(220, 233, 221, 0.16)' : '#DCE9DD';
   const valueColor = darkSurface ? '#FFFFFF' : '#252D28';
-  const subColor = darkSurface ? '#DCE9DD' : '#89918A';
+  const subColor = darkSurface ? '#DCE9DD' : '#525C56';
   const accentColor = bandStrokeColor(band);
+  const labelColor = isAvailable ? bandTextColor(band, darkSurface) : subColor;
 
   return (
     <div className="relative inline-flex items-center justify-center select-none">
@@ -66,6 +104,7 @@ export function AqiGauge({
         height={svgSize * 0.86}
         viewBox={`0 0 ${svgSize} ${svgSize * 0.92}`}
         className="overflow-visible"
+        role="img"
         aria-label={isAvailable && aqi !== null ? `AQI ${aqi} ${bandLabel}` : 'AQI Unavailable'}
       >
         <g transform={`rotate(${startAngle} ${cx} ${cy})`}>
@@ -111,7 +150,7 @@ export function AqiGauge({
         </span>
         <span
           className={`mt-1.5 font-medium ${isLarge ? 'text-xs' : 'text-[11px]'}`}
-          style={{ color: isAvailable ? accentColor : subColor }}
+          style={{ color: labelColor }}
         >
           {bandLabel}
         </span>

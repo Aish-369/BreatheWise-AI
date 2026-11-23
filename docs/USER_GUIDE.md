@@ -4,8 +4,8 @@
 
 1. **Enter Workspace:** Open BreatheWise AI (`http://localhost:3000`) and choose **Open Workspace** or **Set Up Your Family**. Switch between **English**, **मराठी**, and **हिन्दी** anytime from the header or landing page.
 2. **Configure Your Family Profile (`Family Profile`):**
-   - Select your primary Indian city using the searchable city selector (supports historical/alias names such as *Ahmednagar -> Ahilyanagar* or disambiguating *Aurangabad* across states).
-   - Add optional non-medical household considerations (e.g., *Dust & Construction Sensitivity*, *Respiratory Comfort Priority*, *High Outdoor Exertion*, *Elder Mobility Care*, *Early-Morning Commute*).
+   - Select your primary Indian city using the searchable city selector (supports historical/alias names such as _Ahmednagar -> Ahilyanagar_ or disambiguating _Aurangabad_ across states).
+   - Add optional non-medical household considerations (e.g., _Dust & Construction Sensitivity_, _Respiratory Comfort Priority_, _High Outdoor Exertion_, _Elder Mobility Care_, _Early-Morning Commute_).
    - Add, edit, or remove household members (`infant_toddler`, `school_child`, `adult`, `older_adult`) and activity routines (`fixed` vs. `flexible`, indoor vs. outdoor).
 3. **Review Daily Actions (`Overview`):**
    - Inspect the current **India CPCB NAQI** gauge, classification badge (`Verified Live`, `Historical Observation`, `Forecast / Coarse Grid`, `Illustrative Sample`, or `Unavailable`), pollutant breakdown, and multi-snapshot historical trend badge.
@@ -13,7 +13,7 @@
    - Click **Export PDF** to download a formatted family air brief in English, Marathi, or Hindi.
 4. **Manage Today's Schedule (`Daily Planner`):**
    - Filter or review Morning, Afternoon, and Evening windows.
-   - Fixed commitments stay intact with protective actions (e.g., cleaner routes or post-commute washup). Flexible outdoor routines automatically propose cleaner time windows *only* when verified CAMS forecast data supports an improvement.
+   - Fixed commitments stay intact with protective actions (e.g., cleaner routes or post-commute washup). Flexible outdoor routines automatically propose cleaner time windows _only_ when verified CAMS forecast data supports an improvement.
    - Edit routine notes/windows inline, mark routines **Completed Today**, or click **Recalculate Plan**.
 5. **Inspect Telemetry & Import CAMS Forecasts (`Air Quality`):**
    - View measured vs. retrieved timestamps, station IDs, coordinates, and ambient weather telemetry when reported.

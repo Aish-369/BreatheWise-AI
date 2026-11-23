@@ -38,6 +38,13 @@ export class ConflictError extends AppError {
   }
 }
 
+export function assertFound<T>(value: T | null | undefined, message: string): T {
+  if (value === null || value === undefined || value === false) {
+    throw new NotFoundError(message);
+  }
+  return value;
+}
+
 export type AsyncRouteHandler = (
   req: Request,
   res: Response,

@@ -82,10 +82,11 @@ export function PollutantBreakdownChart({
                   {hasValue ? (
                     <span
                       className={`font-mono tabular-nums font-medium ${
-                        exceedsSafe ? 'text-[#B4691E]' : 'text-[#252D28]'
+                        exceedsSafe ? 'text-[#8E5312]' : 'text-[#252D28]'
                       }`}
                     >
-                      {val} <span className="text-[11px] text-[#89918A] font-normal">{spec.unit}</span>
+                      {val}{' '}
+                      <span className="text-[11px] text-[#89918A] font-normal">{spec.unit}</span>
                     </span>
                   ) : (
                     <span className="text-[11px] text-[#89918A] italic">

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Activity, Eye, FileDown, FileText, SlidersHorizontal, X } from 'lucide-react';
+import { Eye, FileDown } from 'lucide-react';
 import type {
   EnvironmentalSnapshot,
   HouseholdProfile,
@@ -8,6 +8,8 @@ import type {
   ScenarioComparisonResult,
 } from '../shared/types';
 import { t } from '../i18n/translations';
+import { HistoryKpiStrip } from './history/HistoryKpiStrip';
+import { PlanInspectionModal } from './history/PlanInspectionModal';
 
 interface HistoryViewProps {
   lang: LanguageCode;
@@ -52,17 +54,13 @@ export function HistoryView({
     }
   };
 
-  const pmPoints = snapshots
-    .filter((s) => typeof s.pollutants.pm25 === 'number')
-    .slice(0, 10)
-    .reverse();
-  const maxPm = Math.max(80, ...pmPoints.map((s) => s.pollutants.pm25 ?? 0));
-
   return (
     <div className="space-y-7">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-bold text-[#252D28]">{t(lang, 'hist_title')}</h1>
+          <h1 className="font-display text-2xl font-bold text-[#252D28]">
+            {t(lang, 'hist_title')}
+          </h1>
           <p className="mt-1 text-sm text-[#89918A]">{t(lang, 'hist_subtitle')}</p>
         </div>
 
@@ -77,82 +75,22 @@ export function HistoryView({
         </button>
       </div>
 
-      {exportError && <p role="alert" className="rounded-lg border border-[#B33A2E]/35 bg-white px-4 py-3 text-xs text-[#9A2E24]">{exportError}</p>}
-
-      {/* KPI Summary Strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white border border-[#E2E7E1] rounded-2xl p-5 flex items-center justify-between shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
-          <div>
-            <p className="text-xs text-[#89918A]">Saved Plans</p>
-            <p className="mt-1 font-mono text-2xl font-bold text-[#252D28] tabular-nums">
-              {plans.length}
-            </p>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-[#DCE9DD]/55 text-[#263C32] flex items-center justify-center">
-            <FileText className="w-5 h-5" />
-          </div>
-        </div>
-        <div className="bg-white border border-[#E2E7E1] rounded-2xl p-5 flex items-center justify-between shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
-          <div>
-            <p className="text-xs text-[#89918A]">What-If Scenarios</p>
-            <p className="mt-1 font-mono text-2xl font-bold text-[#252D28] tabular-nums">
-              {scenarios.length}
-            </p>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-[#DCE9DD]/55 text-[#263C32] flex items-center justify-center">
-            <SlidersHorizontal className="w-5 h-5" />
-          </div>
-        </div>
-        <div className="bg-white border border-[#E2E7E1] rounded-2xl p-5 flex items-center justify-between shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
-          <div>
-            <p className="text-xs text-[#89918A]">Recorded Snapshots</p>
-            <p className="mt-1 font-mono text-2xl font-bold text-[#252D28] tabular-nums">
-              {snapshots.length}
-            </p>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-[#DCE9DD]/55 text-[#263C32] flex items-center justify-center">
-            <Activity className="w-5 h-5" />
-          </div>
-        </div>
-      </div>
-
-      {/* Historical Snapshot PM2.5 Trend (Only when >= 2 recorded snapshots exist) */}
-      {pmPoints.length >= 2 && (
-        <div className="bg-white border border-[#E2E7E1] rounded-2xl p-6 shadow-[0_1px_3px_rgba(37,45,40,0.04)] space-y-3">
-          <div className="flex items-center justify-between text-xs">
-            <h2 className="font-display text-sm font-semibold text-[#252D28]">
-              Recorded Session Snapshots (PM2.5 µg/m³)
-            </h2>
-            <span className="font-mono text-[#89918A]">{pmPoints.length} logged points</span>
-          </div>
-          <div className="flex items-end gap-4 h-32 pt-3 border-t border-[#E2E7E1] overflow-x-auto">
-            {pmPoints.map((snap) => {
-              const val = snap.pollutants.pm25 ?? 0;
-              const hPct = Math.max(14, Math.round((val / maxPm) * 100));
-              return (
-                <div key={snap.id} className="w-16 shrink-0 flex flex-col items-center gap-1.5">
-                  <span className="font-mono text-[11px] font-medium text-[#252D28] tabular-nums">
-                    {val}
-                  </span>
-                  <div className="w-10 h-16 bg-[#F7F7F1] rounded-md flex items-end p-0.5">
-                    <div
-                      style={{ height: `${hPct}%` }}
-                      className="w-full rounded bg-gradient-to-t from-[#263C32] to-[#829C83]"
-                      title={`${snap.stationOrGridId}: ${val} µg/m³`}
-                    />
-                  </div>
-                  <span className="font-mono text-[10px] text-[#89918A] truncate w-full text-center">
-                    {snap.stationOrGridId.split('-').slice(-2, -1)[0] || snap.city}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      {exportError && (
+        <p
+          role="alert"
+          className="rounded-lg border border-[#B33A2E]/35 bg-white px-4 py-3 text-xs text-[#9A2E24]"
+        >
+          {exportError}
+        </p>
       )}
 
+      <HistoryKpiStrip
+        planCount={plans.length}
+        scenarioCount={scenarios.length}
+        snapshots={snapshots}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        {/* Saved Plans */}
         <div className="bg-white border border-[#E2E7E1] rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
           <div className="px-6 py-4 border-b border-[#E2E7E1] flex items-center justify-between">
             <h2 className="font-display text-sm font-semibold text-[#252D28]">
@@ -167,10 +105,14 @@ export function HistoryView({
           ) : (
             <div className="divide-y divide-[#E2E7E1]">
               {plans.map((p) => (
-                <div key={p.id} className="px-6 py-4 flex items-center justify-between gap-4 text-xs">
+                <div
+                  key={p.id}
+                  className="px-6 py-4 flex items-center justify-between gap-4 text-xs"
+                >
                   <div>
                     <p className="font-semibold text-[#252D28]">
-                      {p.city} · {p.aqiValue !== null ? `AQI ${p.aqiValue}` : t(lang, 'band_unavailable')} (
+                      {p.city} ·{' '}
+                      {p.aqiValue !== null ? `AQI ${p.aqiValue}` : t(lang, 'band_unavailable')} (
                       {t(lang, `band_${p.aqiBand}`)})
                     </p>
                     <p className="font-mono text-[#89918A] tabular-nums mt-0.5">
@@ -202,7 +144,6 @@ export function HistoryView({
           )}
         </div>
 
-        {/* Scenario Run Log */}
         <div className="bg-white border border-[#E2E7E1] rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
           <div className="px-6 py-4 border-b border-[#E2E7E1] flex items-center justify-between">
             <h2 className="font-display text-sm font-semibold text-[#252D28]">
@@ -233,7 +174,6 @@ export function HistoryView({
         </div>
       </div>
 
-      {/* Snapshot Table */}
       <div className="bg-white border border-[#E2E7E1] rounded-2xl overflow-hidden shadow-[0_1px_3px_rgba(37,45,40,0.04)]">
         <div className="px-6 py-4 border-b border-[#E2E7E1] flex items-center justify-between">
           <h2 className="font-display text-sm font-semibold text-[#252D28]">Recorded Snapshots</h2>
@@ -275,105 +215,13 @@ export function HistoryView({
         )}
       </div>
 
-      {/* Plan Inspection Modal */}
       {selectedPlan && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#252D28]/45 backdrop-blur-xs"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="plan-modal-title"
-        >
-          <div className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl bg-white border border-[#E2E7E1] shadow-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-[#E2E7E1] flex items-center justify-between bg-[#F7F7F1]">
-              <div>
-                <h3 id="plan-modal-title" className="font-display text-base font-semibold text-[#252D28]">
-                  {t(lang, 'ui_modal_plan_detail')}
-                </h3>
-                <p className="font-mono text-[11px] text-[#89918A]">
-                  {selectedPlan.city} · AQI {selectedPlan.aqiValue ?? 'N/A'} (
-                  {t(lang, `band_${selectedPlan.aqiBand}`)}) ·{' '}
-                  {new Date(selectedPlan.generatedAt).toLocaleString()}
-                </p>
-              </div>
-              <button
-                type="button"
-                aria-label={t(lang, 'action_close')}
-                onClick={() => setSelectedPlan(null)}
-                className="p-1.5 rounded-lg text-[#89918A] hover:text-[#252D28] hover:bg-white cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-6 overflow-y-auto space-y-5 text-xs">
-              <p className="text-sm text-[#252D28] leading-relaxed">
-                {t(lang, selectedPlan.summaryKey, selectedPlan.summaryParams)}
-              </p>
-
-              <div className="space-y-2.5">
-                <h4 className="font-display text-xs font-semibold uppercase tracking-wide text-[#89918A]">
-                  {t(lang, 'dash_actions_heading')}
-                </h4>
-                {selectedPlan.recommendations.map((rec) => (
-                  <div
-                    key={rec.id}
-                    className="p-3.5 rounded-xl bg-[#F7F7F1] border border-[#E2E7E1] space-y-1"
-                  >
-                    <p className="font-semibold text-[#252D28]">
-                      {t(lang, rec.titleKey, rec.titleParams)}
-                    </p>
-                    <p className="text-[#263C32]">
-                      {t(lang, rec.suggestedActionKey, rec.suggestedActionParams)}
-                    </p>
-                    <p className="text-[11px] text-[#89918A]">
-                      {rec.supportingEvidence.providerLabel} · PM2.5{' '}
-                      {rec.supportingEvidence.pm25 ?? 'N/A'} µg/m³
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="space-y-2">
-                <h4 className="font-display text-xs font-semibold uppercase tracking-wide text-[#89918A]">
-                  {t(lang, 'dash_planner_heading')}
-                </h4>
-                {selectedPlan.dailyPlan.map((item) => (
-                  <div
-                    key={item.routineId}
-                    className="p-3 rounded-xl border border-[#E2E7E1] flex items-center justify-between gap-3"
-                  >
-                    <div>
-                      <p className="font-medium text-[#252D28]">{item.routineTitle}</p>
-                      <p className="text-[11px] text-[#89918A]">
-                        {t(lang, item.rationaleKey, item.rationaleParams)}
-                      </p>
-                    </div>
-                    <span className="font-mono text-[11px] text-[#263C32] shrink-0">
-                      {t(lang, `status_${item.status}`)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="px-6 py-3.5 border-t border-[#E2E7E1] bg-[#F7F7F1] flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => void handleExportPdf(selectedPlan)}
-                className="px-3.5 py-1.5 text-xs font-medium bg-[#263C32] text-white rounded-lg cursor-pointer"
-              >
-                {t(lang, 'action_downloadPdf')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedPlan(null)}
-                className="px-3.5 py-1.5 text-xs font-medium border border-[#E2E7E1] bg-white rounded-lg cursor-pointer"
-              >
-                {t(lang, 'action_close')}
-              </button>
-            </div>
-          </div>
-        </div>
+        <PlanInspectionModal
+          lang={lang}
+          plan={selectedPlan}
+          onClose={() => setSelectedPlan(null)}
+          onExportPdf={(p) => void handleExportPdf(p)}
+        />
       )}
     </div>
   );

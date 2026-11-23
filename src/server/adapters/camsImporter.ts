@@ -79,7 +79,8 @@ export function parseCamsImport(rawText: string): {
       if (!isValidIssuedAt(parsed.data.issuedAt)) {
         return {
           ok: false,
-          error: 'issuedAt must be a valid ISO-8601 timestamp with timezone and cannot be in the future.',
+          error:
+            'issuedAt must be a valid ISO-8601 timestamp with timezone and cannot be in the future.',
         };
       }
       if (hasFormulaInjection(parsed.data.city) || hasFormulaInjection(parsed.data.gridId)) {
@@ -119,11 +120,17 @@ export function parseCamsImport(rawText: string): {
       }
       return { ok: true, slots, city: canonicalCity };
     } catch (error) {
-      return { ok: false, error: `Invalid JSON format: ${error instanceof Error ? error.message : 'Parse error'}` };
+      return {
+        ok: false,
+        error: `Invalid JSON format: ${error instanceof Error ? error.message : 'Parse error'}`,
+      };
     }
   }
 
-  const lines = trimmed.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const lines = trimmed
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
   if (lines.length < 2) {
     return {
       ok: false,
@@ -133,7 +140,14 @@ export function parseCamsImport(rawText: string): {
 
   const header = lines[0].split(',').map((cell) => cell.trim().toLowerCase());
   const idx = (column: string) => header.indexOf(column);
-  const requiredColumns = ['city', 'grid_id', 'issued_at', 'forecast_date', 'time_window', 'expected_pm25'];
+  const requiredColumns = [
+    'city',
+    'grid_id',
+    'issued_at',
+    'forecast_date',
+    'time_window',
+    'expected_pm25',
+  ];
   const missingColumns = requiredColumns.filter((column) => idx(column) < 0);
   if (missingColumns.length > 0) {
     return { ok: false, error: `CSV is missing required columns: ${missingColumns.join(', ')}.` };
@@ -157,12 +171,18 @@ export function parseCamsImport(rawText: string): {
       return { ok: false, error: `Row ${rowIndex + 1}: valid city and grid_id are required.` };
     }
     if (!isValidIssuedAt(issuedAt)) {
-      return { ok: false, error: `Row ${rowIndex + 1}: issued_at must be a valid past ISO-8601 timestamp with timezone.` };
+      return {
+        ok: false,
+        error: `Row ${rowIndex + 1}: issued_at must be a valid past ISO-8601 timestamp with timezone.`,
+      };
     }
 
     const city = normalizeCityCanonicalName(rawCity);
     if (detectedCity && city !== detectedCity) {
-      return { ok: false, error: 'A single CAMS import file must contain forecasts for one city only.' };
+      return {
+        ok: false,
+        error: 'A single CAMS import file must contain forecasts for one city only.',
+      };
     }
     detectedCity = city;
 

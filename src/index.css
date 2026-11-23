@@ -1,18 +1,20 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  --font-display: "Plus Jakarta Sans", "Noto Sans Devanagari", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-sans: "DM Sans", "Noto Sans Devanagari", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: "JetBrains Mono", "Noto Sans Devanagari", ui-monospace, SFMono-Regular, monospace;
+  --font-display:
+    'Plus Jakarta Sans', 'Noto Sans Devanagari', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-sans:
+    'DM Sans', 'Noto Sans Devanagari', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Noto Sans Devanagari', ui-monospace, SFMono-Regular, monospace;
 
-  --color-canvas: #F7F7F1;
-  --color-surface: #FFFFFF;
-  --color-ink: #252D28;
-  --color-ink-muted: #89918A;
-  --color-accent: #829C83;
-  --color-accent-dark: #263C32;
-  --color-mint: #DCE9DD;
-  --color-border: #E2E7E1;
+  --color-canvas: #f7f7f1;
+  --color-surface: #ffffff;
+  --color-ink: #252d28;
+  --color-ink-muted: #89918a;
+  --color-accent: #829c83;
+  --color-accent-dark: #263c32;
+  --color-mint: #dce9dd;
+  --color-border: #e2e7e1;
 }
 
 @layer base {
@@ -28,7 +30,10 @@
     letter-spacing: -0.02em;
   }
 
-  h2, h3, h4, .font-display {
+  h2,
+  h3,
+  h4,
+  .font-display {
     font-family: var(--font-display);
     letter-spacing: -0.005em;
   }
@@ -38,12 +43,14 @@
   }
 
   :focus-visible {
-    outline: 2px solid #263C32;
+    outline: 2px solid #263c32;
     outline-offset: 2px;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;

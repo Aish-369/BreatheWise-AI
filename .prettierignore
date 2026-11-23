@@ -1,0 +1,9 @@
+dist/
+node_modules/
+data/
+coverage/
+package-lock.json
+public/
+*.db
+*.db-*
+debug.keystore

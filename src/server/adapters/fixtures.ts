@@ -33,7 +33,8 @@ export function buildDemoFixtures(nowIso: string = new Date().toISOString()): {
       measuredAt: fortyMinsAgo,
       retrievedAt: nowIso,
       freshness: 'fresh',
-      licenseAttribution: 'Synthetic illustrative sample modelled on CPCB NAQI reference bands (non-live)',
+      licenseAttribution:
+        'Synthetic illustrative sample modelled on CPCB NAQI reference bands (non-live)',
       warnings: [
         'SYNTHETIC SAMPLE: Clearly labelled synthetic reference data used because live API keys are unconfigured.',
       ],
@@ -103,7 +104,8 @@ export function buildDemoFixtures(nowIso: string = new Date().toISOString()): {
       measuredAt: fourHoursAgo,
       retrievedAt: nowIso,
       freshness: 'aging',
-      licenseAttribution: 'Synthetic illustrative sample showing partial regional coverage (non-live)',
+      licenseAttribution:
+        'Synthetic illustrative sample showing partial regional coverage (non-live)',
       warnings: [
         'SYNTHETIC SAMPLE: Demonstrates partial coverage in Ahilyanagar — NO2, O3, SO2, and CO are missing.',
         'Reading is 4.5 hours old (aging) with no multi-station cross-check available.',
@@ -132,9 +134,11 @@ export function buildDemoFixtures(nowIso: string = new Date().toISOString()): {
       trend: 'worsening',
       dataType: 'forecast',
       providerLabel: 'Illustrative CAMS Grid Sample',
-      gridResolutionNote: 'Coarse ~40 km regional model grid; does not capture street-level traffic plumes.',
+      gridResolutionNote:
+        'Coarse ~40 km regional model grid; does not capture street-level traffic plumes.',
       issuedAt: ninetyMinsAgo,
-      licenseAttribution: 'Synthetic sample formatted for Copernicus Atmosphere Monitoring Service (CAMS) schema',
+      licenseAttribution:
+        'Synthetic sample formatted for Copernicus Atmosphere Monitoring Service (CAMS) schema',
       isDemoFixture: true,
     },
     {
@@ -148,9 +152,11 @@ export function buildDemoFixtures(nowIso: string = new Date().toISOString()): {
       trend: 'improving',
       dataType: 'forecast',
       providerLabel: 'Illustrative CAMS Grid Sample',
-      gridResolutionNote: 'Coarse ~40 km regional model grid; does not capture street-level traffic plumes.',
+      gridResolutionNote:
+        'Coarse ~40 km regional model grid; does not capture street-level traffic plumes.',
       issuedAt: ninetyMinsAgo,
-      licenseAttribution: 'Synthetic sample formatted for Copernicus Atmosphere Monitoring Service (CAMS) schema',
+      licenseAttribution:
+        'Synthetic sample formatted for Copernicus Atmosphere Monitoring Service (CAMS) schema',
       isDemoFixture: true,
     },
     {
@@ -164,9 +170,11 @@ export function buildDemoFixtures(nowIso: string = new Date().toISOString()): {
       trend: 'improving',
       dataType: 'forecast',
       providerLabel: 'Illustrative CAMS Grid Sample',
-      gridResolutionNote: 'Coarse ~40 km regional model grid; does not capture street-level traffic plumes.',
+      gridResolutionNote:
+        'Coarse ~40 km regional model grid; does not capture street-level traffic plumes.',
       issuedAt: ninetyMinsAgo,
-      licenseAttribution: 'Synthetic sample formatted for Copernicus Atmosphere Monitoring Service (CAMS) schema',
+      licenseAttribution:
+        'Synthetic sample formatted for Copernicus Atmosphere Monitoring Service (CAMS) schema',
       isDemoFixture: true,
     },
     {
@@ -180,9 +188,11 @@ export function buildDemoFixtures(nowIso: string = new Date().toISOString()): {
       trend: 'stable',
       dataType: 'forecast',
       providerLabel: 'Illustrative CAMS Grid Sample',
-      gridResolutionNote: 'Coarse ~40 km regional model grid; does not capture street-level traffic plumes.',
+      gridResolutionNote:
+        'Coarse ~40 km regional model grid; does not capture street-level traffic plumes.',
       issuedAt: ninetyMinsAgo,
-      licenseAttribution: 'Synthetic sample formatted for Copernicus Atmosphere Monitoring Service (CAMS) schema',
+      licenseAttribution:
+        'Synthetic sample formatted for Copernicus Atmosphere Monitoring Service (CAMS) schema',
       isDemoFixture: true,
     },
     {
@@ -196,9 +206,11 @@ export function buildDemoFixtures(nowIso: string = new Date().toISOString()): {
       trend: 'worsening',
       dataType: 'forecast',
       providerLabel: 'Illustrative CAMS Grid Sample',
-      gridResolutionNote: 'Coarse ~40 km regional model grid; does not capture street-level traffic plumes.',
+      gridResolutionNote:
+        'Coarse ~40 km regional model grid; does not capture street-level traffic plumes.',
       issuedAt: ninetyMinsAgo,
-      licenseAttribution: 'Synthetic sample formatted for Copernicus Atmosphere Monitoring Service (CAMS) schema',
+      licenseAttribution:
+        'Synthetic sample formatted for Copernicus Atmosphere Monitoring Service (CAMS) schema',
       isDemoFixture: true,
     },
   ];
@@ -236,7 +248,6 @@ export function buildUnavailableSnapshot(city: string, reason: string): Environm
   };
 }
 
-
 /**
  * Deterministic, clearly synthetic fallback for cities without a hand-authored fixture.
  * No coordinates or weather are invented. Values are illustrative only and must never
@@ -268,13 +279,15 @@ export function buildDemoFixtureForCity(
     city: normalizedCity,
     locationLabel: `${normalizedCity} · Illustrative city-wide sample`,
     stationOrGridId: `SAMPLE-CITY-${seed.toString(36).toUpperCase()}`,
-    spatialResolutionNote: 'Synthetic city-level demonstration sample; not a physical station or measured location.',
+    spatialResolutionNote:
+      'Synthetic city-level demonstration sample; not a physical station or measured location.',
     pollutants: { pm25, pm10, no2, o3, so2: 8 + (seed % 15), co: 0.4 + (seed % 8) / 10 },
     reportedAqiIndia: aqi,
     measuredAt: nowIso,
     retrievedAt: nowIso,
     freshness: 'fresh',
-    licenseAttribution: 'Synthetic demonstration data created by BreatheWise AI; not an external environmental observation.',
+    licenseAttribution:
+      'Synthetic demonstration data created by BreatheWise AI; not an external environmental observation.',
     warnings: [
       'SYNTHETIC SAMPLE — NOT LIVE MEASUREMENTS. Values are synthetic examples for interface and workflow illustration only.',
       'No physical station, sensor, or verified forecast is represented.',
@@ -287,7 +300,11 @@ export function buildDemoFixtureForCity(
       fromCache: false,
     },
   };
-  const windows: Array<{ timeWindow: ForecastSlot['timeWindow']; factor: number; trend: ForecastSlot['trend'] }> = [
+  const windows: Array<{
+    timeWindow: ForecastSlot['timeWindow'];
+    factor: number;
+    trend: ForecastSlot['trend'];
+  }> = [
     { timeWindow: '06:00-09:00', factor: 1.12, trend: 'worsening' },
     { timeWindow: '09:00-12:00', factor: 0.94, trend: 'improving' },
     { timeWindow: '12:00-16:00', factor: 0.82, trend: 'improving' },
@@ -308,9 +325,11 @@ export function buildDemoFixtureForCity(
       trend: slot.trend,
       dataType: 'forecast',
       providerLabel: 'Demo Forecast Fixture · Synthetic Scenario',
-      gridResolutionNote: 'Illustrative synthetic trend for interface illustration; not a meteorological or CAMS forecast.',
+      gridResolutionNote:
+        'Illustrative synthetic trend for interface illustration; not a meteorological or CAMS forecast.',
       issuedAt,
-      licenseAttribution: 'Synthetic demonstration data created by BreatheWise AI; not an external forecast.',
+      licenseAttribution:
+        'Synthetic demonstration data created by BreatheWise AI; not an external forecast.',
       isDemoFixture: true,
     };
   });

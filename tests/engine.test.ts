@@ -410,9 +410,7 @@ describe('Deterministic Family Protection Intelligence Engine (20+ Scenarios)', 
       }
     );
     expect(scenario.isScenario).toBe(true);
-    expect(scenario.disclaimerBanner).toBe(
-      'SCENARIO — NOT AN OBSERVED ENVIRONMENTAL MEASUREMENT'
-    );
+    expect(scenario.disclaimerBanner).toBe('SCENARIO — NOT AN OBSERVED ENVIRONMENTAL MEASUREMENT');
     expect(scenario.baselinePlan.aqiBand).toBe('satisfactory');
     expect(scenario.scenarioPlan.aqiBand).toBe('very_poor');
     expect(scenario.changedScheduleCount).toBeGreaterThan(0);
@@ -433,9 +431,7 @@ describe('Deterministic Family Protection Intelligence Engine (20+ Scenarios)', 
         overrideEnvironment: 'indoor',
       }
     );
-    const updatedItem = scenario.scenarioPlan.dailyPlan.find(
-      (d) => d.routineId === 'r-flex-walk'
-    );
+    const updatedItem = scenario.scenarioPlan.dailyPlan.find((d) => d.routineId === 'r-flex-walk');
     expect(updatedItem?.environment).toBe('indoor');
     expect(updatedItem?.status).toBe('proceed_as_planned');
   });

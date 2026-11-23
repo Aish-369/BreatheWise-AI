@@ -19,8 +19,10 @@ export class FixedWindowRateLimiter {
     private readonly max: number,
     private readonly windowMs: number
   ) {
-    if (!Number.isInteger(max) || max < 1) throw new Error('Rate limit max must be a positive integer.');
-    if (!Number.isFinite(windowMs) || windowMs < 1000) throw new Error('Rate limit window must be at least one second.');
+    if (!Number.isInteger(max) || max < 1)
+      throw new Error('Rate limit max must be a positive integer.');
+    if (!Number.isFinite(windowMs) || windowMs < 1000)
+      throw new Error('Rate limit window must be at least one second.');
   }
 
   consume(key: string, now = Date.now()): RateLimitDecision {

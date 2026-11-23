@@ -4,7 +4,7 @@
 
 - **Shared Contracts & Catalogs (`src/shared/`):**
   - `types.ts`: Canonical TypeScript interfaces and Zod validation schemas shared across frontend, backend Express routes, and tests (`DataClassification`, `SensitivityTag`, `ExplainabilityTrail`, `SavedLocation`, `UserSettings`, etc.).
-  - `indianCities.ts`: Curated metadata and alias catalog for Indian cities (canonical names such as *Ahilyanagar / Ahmednagar*, *Chhatrapati Sambhajinagar / Aurangabad*, coordinates, and disambiguation hints).
+  - `indianCities.ts`: Curated metadata and alias catalog for Indian cities (canonical names such as _Ahilyanagar / Ahmednagar_, _Chhatrapati Sambhajinagar / Aurangabad_, coordinates, and disambiguation hints).
 - **Data Quality, Provenance & Trend Engine (`src/engine/quality.ts`):**
   - Five-tier snapshot classification (`classifySnapshotTier`): `verified_live`, `historical_observation`, `forecast_only`, `demo_fixture`, `unavailable`.
   - Freshness boundaries (`classifyFreshness`): `fresh` (<= 2h), `aging` (2–6h), `stale` (> 6h), `unavailable` (missing or > 20 min future skew).

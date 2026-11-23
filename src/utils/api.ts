@@ -98,7 +98,10 @@ async function apiRequest<T>(url: string, init: RequestInit = {}): Promise<T> {
   }
 }
 
-export function ensureBrowserSession(): Promise<{ authenticated: boolean; household: HouseholdProfile | null }> {
+export function ensureBrowserSession(): Promise<{
+  authenticated: boolean;
+  household: HouseholdProfile | null;
+}> {
   return apiRequest('/api/session', { method: 'GET' });
 }
 

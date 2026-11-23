@@ -70,14 +70,19 @@ describe('unavailable environmental evidence safeguards', () => {
     expect(plan.isAvailable).toBe(false);
     expect(plan.aqiValue).toBeNull();
     expect(plan.aqiBand).toBe('unavailable');
-    expect(plan.dailyPlan.find((item) => item.routineId === 'routine-outdoor')?.status)
-      .toBe('hold_pending_data');
-    expect(plan.dailyPlan.find((item) => item.routineId === 'routine-indoor')?.status)
-      .toBe('proceed_as_planned');
-    expect(plan.dailyPlan.some((item) =>
-      item.environment === 'outdoor' && item.status === 'proceed_as_planned'
-    )).toBe(false);
-    expect(plan.recommendations.map((item) => item.evidenceTrail?.ruleTriggered))
-      .toContain('SAFEGUARD_UNAVAILABLE_EVIDENCE');
+    expect(plan.dailyPlan.find((item) => item.routineId === 'routine-outdoor')?.status).toBe(
+      'hold_pending_data'
+    );
+    expect(plan.dailyPlan.find((item) => item.routineId === 'routine-indoor')?.status).toBe(
+      'proceed_as_planned'
+    );
+    expect(
+      plan.dailyPlan.some(
+        (item) => item.environment === 'outdoor' && item.status === 'proceed_as_planned'
+      )
+    ).toBe(false);
+    expect(plan.recommendations.map((item) => item.evidenceTrail?.ruleTriggered)).toContain(
+      'SAFEGUARD_UNAVAILABLE_EVIDENCE'
+    );
   });
 });

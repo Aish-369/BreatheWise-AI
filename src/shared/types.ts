@@ -3,12 +3,7 @@ import { z } from 'zod';
 export const LanguageCodeSchema = z.enum(['en', 'mr', 'hi']);
 export type LanguageCode = z.infer<typeof LanguageCodeSchema>;
 
-export const AgeGroupSchema = z.enum([
-  'infant_toddler',
-  'school_child',
-  'adult',
-  'older_adult',
-]);
+export const AgeGroupSchema = z.enum(['infant_toddler', 'school_child', 'adult', 'older_adult']);
 export type AgeGroup = z.infer<typeof AgeGroupSchema>;
 
 export const ActivityPreferenceSchema = z.enum([
@@ -47,12 +42,7 @@ export const DataClassificationSchema = z.enum([
 ]);
 export type DataClassification = z.infer<typeof DataClassificationSchema>;
 
-export const FreshnessStatusSchema = z.enum([
-  'fresh',
-  'aging',
-  'stale',
-  'unavailable',
-]);
+export const FreshnessStatusSchema = z.enum(['fresh', 'aging', 'stale', 'unavailable']);
 export type FreshnessStatus = z.infer<typeof FreshnessStatusSchema>;
 
 export const TimeWindowSchema = z.enum([
@@ -196,13 +186,7 @@ export interface HouseholdProfile extends HouseholdInput {
 }
 
 export type AqiBand =
-  | 'good'
-  | 'satisfactory'
-  | 'moderate'
-  | 'poor'
-  | 'very_poor'
-  | 'severe'
-  | 'unavailable';
+  'good' | 'satisfactory' | 'moderate' | 'poor' | 'very_poor' | 'severe' | 'unavailable';
 
 export type ConfidenceOrLimitationKey =
   | 'high_station_fresh'
@@ -215,11 +199,7 @@ export type ConfidenceOrLimitationKey =
   | 'hypothetical_simulation';
 
 export type RecommendationSeverity =
-  | 'nominal'
-  | 'advisory'
-  | 'caution'
-  | 'elevated'
-  | 'unavailable';
+  'nominal' | 'advisory' | 'caution' | 'elevated' | 'unavailable';
 
 export interface SupportingEvidence {
   providerLabel: string;
@@ -364,16 +344,18 @@ export const CamsImportPayloadSchema = z.object({
   city: z.string().trim().min(1).max(60),
   gridId: z.string().trim().min(1).max(100),
   issuedAt: z.string().min(1),
-  slots: z.array(
-    z.object({
-      timeWindow: TimeWindowSchema,
-      forecastDate: z.string().min(1),
-      expectedPm25: z.number().min(0).max(2000),
-      expectedPm10: z.number().min(0).max(3000).optional(),
-      expectedAqiIndia: z.number().min(0).max(1000).optional(),
-      trend: z.enum(['improving', 'stable', 'worsening', 'unknown']).default('unknown'),
-    })
-  ).min(1),
+  slots: z
+    .array(
+      z.object({
+        timeWindow: TimeWindowSchema,
+        forecastDate: z.string().min(1),
+        expectedPm25: z.number().min(0).max(2000),
+        expectedPm10: z.number().min(0).max(3000).optional(),
+        expectedAqiIndia: z.number().min(0).max(1000).optional(),
+        trend: z.enum(['improving', 'stable', 'worsening', 'unknown']).default('unknown'),
+      })
+    )
+    .min(1),
 });
 export type CamsImportPayload = z.infer<typeof CamsImportPayloadSchema>;
 

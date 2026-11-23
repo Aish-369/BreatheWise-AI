@@ -6,19 +6,20 @@ BreatheWise AI enforces strict provenance transparency so users always know what
 
 ## 1. Five Data Classification Tiers
 
-| Tier (`classification`) | Badge Meaning | Behavior in Planner |
-| --- | --- | --- |
-| `verified_live` | Physical station reading <= 6h old (`fresh` <= 2h or `aging` 2–6h) | Enables full protection guidance; warns if `aging` |
-| `historical_observation` | Physical station reading > 6h old (`stale`) | Holds flexible outdoor window shifting; warns about staleness |
-| `forecast_only` | Modeled coarse-grid trend (e.g., Copernicus CAMS ~40 km grid) | Advises flexible window shifts with explicit coarse-grid disclaimer |
-| `demo_fixture` | Synthetic local illustrative profile | Displayed with clear Illustrative Sample banner |
-| `unavailable` | No valid reading available (e.g., unconfigured keys, offline, or outage) | Never invents numbers; switches flexible outdoor plans to `hold_pending_data` |
+| Tier (`classification`)  | Badge Meaning                                                            | Behavior in Planner                                                           |
+| ------------------------ | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| `verified_live`          | Physical station reading <= 6h old (`fresh` <= 2h or `aging` 2–6h)       | Enables full protection guidance; warns if `aging`                            |
+| `historical_observation` | Physical station reading > 6h old (`stale`)                              | Holds flexible outdoor window shifting; warns about staleness                 |
+| `forecast_only`          | Modeled coarse-grid trend (e.g., Copernicus CAMS ~40 km grid)            | Advises flexible window shifts with explicit coarse-grid disclaimer           |
+| `demo_fixture`           | Synthetic local illustrative profile                                     | Displayed with clear Illustrative Sample banner                               |
+| `unavailable`            | No valid reading available (e.g., unconfigured keys, offline, or outage) | Never invents numbers; switches flexible outdoor plans to `hold_pending_data` |
 
 ---
 
 ## 2. Supported Providers, Free Tiers & Exact User Setup
 
 ### A. Central Pollution Control Board (CPCB) via data.gov.in
+
 - **Adapter:** `src/server/adapters/cpcb.ts`
 - **Dataset & Endpoint:** `https://api.data.gov.in/resource/3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69` (Real-time Air Quality Index from various locations)
 - **License:** Government Open Data License – India (GODL) — free commercial and non-commercial use permitted with attribution.
@@ -32,6 +33,7 @@ BreatheWise AI enforces strict provenance transparency so users always know what
 - **Adapter Behavior:** Converts IST (`DD-MM-YYYY HH:mm:ss`) timestamps to UTC ISO-8601, rejects out-of-range pollutants (`PM2.5 > 2000`, `PM10 > 3000`, `NO2 > 2000`, `O3 > 1500`, `SO2 > 2000`, `CO > 100`), caches valid responses for 5 minutes server-side, retries transient `429`/`5xx` once, and maps legacy CPCB names (`Ahilyanagar` -> `Ahmednagar`, `Chhatrapati Sambhajinagar` -> `Aurangabad`).
 
 ### B. OpenAQ API v3
+
 - **Adapter:** `src/server/adapters/openaq.ts`
 - **Endpoint:** `https://api.openaq.org/v3/locations` (`X-API-Key` request header)
 - **License & Free Tier:** Aggregated OpenAQ open data (per-station license metadata). Standard free API key tier permits **60 requests/minute** and **2,000 requests/hour**.
@@ -55,21 +57,25 @@ BreatheWise AI enforces strict provenance transparency so users always know what
 - **Precedence:** A household's validated manual CAMS import takes precedence over the automatic forecast. Automatic forecasts are used when no manual import exists for the selected city.
 
 ### C. Copernicus Atmosphere Monitoring Service (CAMS) — Manual Offline Import vs. Automated CDS API
+
 - **Adapter:** `src/server/adapters/camsImporter.ts`
-- **License:** Copernicus Open License (Free, Perpetual, Worldwide, Commercial Allowed). Mandatory attribution: *"Generated using Copernicus Atmosphere Monitoring Service information [Year]"*.
+- **License:** Copernicus Open License (Free, Perpetual, Worldwide, Commercial Allowed). Mandatory attribution: _"Generated using Copernicus Atmosphere Monitoring Service information [Year]"_.
 - **Manual Import vs. Automated Retrieval:**
   - **Manual File / Paste Import (Built into App, Zero-Cost Offline Ready):** Upload a `.csv` / `.json` file or paste forecast rows directly under **Air Quality -> CAMS Forecast**. Works completely offline with zero external credentials.
   - **Automated Retrieval via Copernicus ADS (`cdsapi`, External):** Copernicus ADS API calls (`https://ads.atmosphere.copernicus.eu/api`) run asynchronously over NetCDF/GRIB scientific datasets (often 50+ MB) using Python `cdsapi` and a user's personal `.cdsapirc` key. Because running Python `cdsapi` and NetCDF decoding inside a lightweight Node.js household app is impractical for low-RAM laptops (`i5-6300U` / `7.68 GB RAM`), BreatheWise intentionally does **not** auto-poll ADS in the background. Users who want automated daily CAMS pulls can schedule a tiny zero-cost Python `cdsapi` export externally and upload the resulting CSV/JSON file in-app.
 
 #### Accepted CSV Schema
+
 ```csv
 city,grid_id,forecast_date,time_window,expected_pm25,expected_pm10,trend
 Pune,CAMS-GLOBAL-0.4DEG,2026-11-21,06:00-09:00,74,132,worsening
 Pune,CAMS-GLOBAL-0.4DEG,2026-11-21,12:00-16:00,40,82,improving
 ```
+
 Supported `time_window` values: `06:00-09:00`, `09:00-12:00`, `12:00-16:00`, `16:00-19:00`, `19:00-22:00`.
 
 #### Accepted JSON Schema
+
 ```json
 {
   "city": "Pune",
@@ -86,6 +92,7 @@ Supported `time_window` values: `06:00-09:00`, `09:00-12:00`, `12:00-16:00`, `16
   ]
 }
 ```
+
 Cells starting with CSV formula prefixes (`=`, `+`, `-`, `@`, `\t`, `\r`) or invalid dates/bounds are rejected.
 
 ---

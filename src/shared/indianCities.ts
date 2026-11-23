@@ -186,9 +186,7 @@ export function findCityMetadata(cityName: string): IndianCityEntry | null {
   if (!normalized) return null;
   return (
     INDIAN_CITIES_CATALOG.find(
-      (c) =>
-        c.canonicalName.toLowerCase() === normalized ||
-        c.aliases.some((a) => a === normalized)
+      (c) => c.canonicalName.toLowerCase() === normalized || c.aliases.some((a) => a === normalized)
     ) ?? null
   );
 }

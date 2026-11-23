@@ -3,8 +3,9 @@
 ## v1.0.0 (2026-11-21)
 
 ### Highlights
+
 - **Deterministic Family Protection Engine v2.0.0:**
-  - Added multi-pollutant rules (`NO2 > 80`, `O3 > 100`, coarse-dust `PM10 > 100` with moderate `PM2.5`), non-medical household sensitivity tag rules, historical PM2.5 worsening trend alerts, and structured `ExplainabilityTrail` cards (*Evidence*, *Rule Triggered*, *Household Context*, *When to Reconsider*).
+  - Added multi-pollutant rules (`NO2 > 80`, `O3 > 100`, coarse-dust `PM10 > 100` with moderate `PM2.5`), non-medical household sensitivity tag rules, historical PM2.5 worsening trend alerts, and structured `ExplainabilityTrail` cards (_Evidence_, _Rule Triggered_, _Household Context_, _When to Reconsider_).
 - **Five-Tier Data Provenance Classification:**
   - Strictly distinguishes `verified_live`, `historical_observation`, `forecast_only`, `demo_fixture`, and `unavailable` states across API payloads, UI badges, compatibility warnings, and PDF reports.
 - **SQLite Schema v3 & Non-Destructive Migrations:**

@@ -1,9 +1,0 @@
-{
-  "name": "BreatheWise AI",
-  "description": "Understand Your Air. Protect Your Family. Breathe Better. Family Air Protection Intelligence Platform.",
-  "requestFramePermissions": [],
-  "majorCapabilities": [
-    "DETERMINISTIC_FAMILY_AIR_PROTECTION_INTELLIGENCE",
-    "MULTILINGUAL_ENVIRONMENTAL_DATA_EXPLANATIONS"
-  ]
-}

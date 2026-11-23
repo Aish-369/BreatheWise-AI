@@ -9,10 +9,14 @@ import type {
   ScenarioComparisonResult,
   ScenarioModification,
 } from '../shared/types';
-import { getCamsAdapterStatus } from './adapters/camsImporter';
 import { fetchAutomaticCamsForecast } from './adapters/camsForecast';
+import { getCamsAdapterStatus } from './adapters/camsImporter';
 import { clearCpcbCache, fetchCpcbSnapshots } from './adapters/cpcb';
-import { buildDemoFixtureForCity, buildDemoFixtures, buildUnavailableSnapshot } from './adapters/fixtures';
+import {
+  buildDemoFixtureForCity,
+  buildDemoFixtures,
+  buildUnavailableSnapshot,
+} from './adapters/fixtures';
 import { clearOpenAqCache, fetchOpenAqSnapshots } from './adapters/openaq';
 import {
   getActiveHousehold,
@@ -50,6 +54,148 @@ export interface EnvironmentBundle {
   mode: 'live' | 'demo_fixture' | 'unavailable';
 }
 
+function collectDistinctCities(city: string, extraCities: string[] = []): string[] {
+  return Array.from(
+    new Map(
+      [city, 'Pune', 'Ahilyanagar', ...extraCities]
+        .map((c) => c.trim())
+        .filter(Boolean)
+        .map((c) => [c.toLowerCase(), c])
+    ).values()
+  );
+}
+
+function buildOutageBundle(
+  city: string,
+  distinctCities: string[],
+  automaticCamsRes: { status: ProviderAdapterStatus; slots: ForecastSlot[] },
+  camsStatus: ProviderAdapterStatus,
+  nowIso: string
+): EnvironmentBundle {
+  const byCity: Record<string, EnvironmentalSnapshot[]> = {};
+  for (const c of distinctCities) {
+    byCity[c] = [buildUnavailableSnapshot(c, `Simulated outage — ${c} stations unavailable.`)];
+  }
+  return {
+    primarySnapshot: buildUnavailableSnapshot(
+      city,
+      'Simulated provider outage active: live stations unreachable and demo fixtures temporarily disabled.'
+    ),
+    secondarySnapshots: [],
+    comparisonCities: {
+      pune: byCity['Pune'] ?? [
+        buildUnavailableSnapshot('Pune', 'Simulated outage — Pune stations unavailable.'),
+      ],
+      ahilyanagar: byCity['Ahilyanagar'] ?? [
+        buildUnavailableSnapshot(
+          'Ahilyanagar',
+          'Simulated outage — Ahilyanagar stations unavailable.'
+        ),
+      ],
+      byCity,
+    },
+    forecasts: automaticCamsRes.slots,
+    providerStatuses: [
+      {
+        provider: 'cpcb',
+        name: 'CPCB / data.gov.in',
+        configured: Boolean(process.env.DATA_GOV_IN_API_KEY),
+        liveReachable: false,
+        status: 'unavailable',
+        licenseName: 'Government Open Data License – India (GODL)',
+        attributionText: 'Central Pollution Control Board (CPCB) via data.gov.in',
+        notes: 'Simulated outage mode active.',
+        lastCheckedAt: nowIso,
+      },
+      {
+        provider: 'openaq',
+        name: 'OpenAQ API v3',
+        configured: Boolean(process.env.OPENAQ_API_KEY),
+        liveReachable: false,
+        status: 'unavailable',
+        licenseName: 'OpenAQ Aggregated Open Data',
+        attributionText: 'Data aggregated via OpenAQ',
+        notes: 'Simulated outage mode active.',
+        lastCheckedAt: nowIso,
+      },
+      automaticCamsRes.status,
+      camsStatus,
+    ],
+    mode: 'unavailable',
+  };
+}
+
+function selectCitySnapshotsWithFallback(
+  cityName: string,
+  live: EnvironmentalSnapshot[],
+  fixtures: ReturnType<typeof buildDemoFixtures>,
+  useDemoFixtures: boolean,
+  nowIso: string
+): EnvironmentalSnapshot[] {
+  if (live.length > 0) return live;
+  if (useDemoFixtures) {
+    const fx = fixtures.snapshots.filter((s) => s.city.toLowerCase() === cityName.toLowerCase());
+    return fx.length > 0 ? fx : [buildDemoFixtureForCity(cityName, nowIso).snapshot];
+  }
+  return [
+    buildUnavailableSnapshot(
+      cityName,
+      `Live providers unconfigured; fixtures disabled for ${cityName}.`
+    ),
+  ];
+}
+
+async function resolveCityComparisonMap(
+  db: DatabaseSync,
+  activeCity: string,
+  distinctCities: string[],
+  liveSnapshots: EnvironmentalSnapshot[],
+  fixtures: ReturnType<typeof buildDemoFixtures>,
+  useDemoFixtures: boolean,
+  nowIso: string
+): Promise<Record<string, EnvironmentalSnapshot[]>> {
+  const byCity: Record<string, EnvironmentalSnapshot[]> = {};
+  for (const c of distinctCities) {
+    if (c.toLowerCase() === activeCity.toLowerCase()) {
+      byCity[c] = selectCitySnapshotsWithFallback(
+        c,
+        liveSnapshots,
+        fixtures,
+        useDemoFixtures,
+        nowIso
+      );
+      continue;
+    }
+    const [extraOaq, extraCpcb] = await Promise.all([
+      fetchOpenAqSnapshots(c),
+      fetchCpcbSnapshots(c),
+    ]);
+    const extraLive = [...extraCpcb.snapshots, ...extraOaq.snapshots].filter((s) => s.isAvailable);
+    for (const snap of extraLive) saveSnapshot(db, snap);
+    byCity[c] = selectCitySnapshotsWithFallback(c, extraLive, fixtures, useDemoFixtures, nowIso);
+  }
+  return byCity;
+}
+
+function selectForecastsForCity(
+  city: string,
+  importedForecasts: ForecastSlot[],
+  automaticForecasts: ForecastSlot[],
+  fixtureForecasts: ForecastSlot[],
+  useDemoFixtures: boolean,
+  nowIso: string,
+  includeCityFallback: boolean
+): ForecastSlot[] {
+  const cityLower = city.toLowerCase();
+  const imported = importedForecasts.filter((f) => f.city.toLowerCase() === cityLower);
+  if (imported.length > 0) return imported;
+  if (automaticForecasts.length > 0) return automaticForecasts;
+  if (!useDemoFixtures) return [];
+  const matched = fixtureForecasts.filter((f) => f.city.toLowerCase() === cityLower);
+  if (matched.length > 0) return matched;
+  return includeCityFallback ? buildDemoFixtureForCity(city, nowIso).forecasts : [];
+}
+
 export async function resolveEnvironmentBundle(
   db: DatabaseSync,
   city: string,
@@ -63,75 +209,12 @@ export async function resolveEnvironmentBundle(
   const nowIso = new Date().toISOString();
   const useDemoFixtures = options.useDemoFixtures ?? false;
   const simulateOutage = options.simulateOutage ?? false;
-
   const camsStatus = getCamsAdapterStatus();
-  // A simulated station outage must not disable the independent regional CAMS forecast.
   const automaticCamsPromise = fetchAutomaticCamsForecast(city);
-  const distinctCities = Array.from(
-    new Map(
-      [city, 'Pune', 'Ahilyanagar', ...(options.extraCities ?? [])]
-        .map((c) => c.trim())
-        .filter(Boolean)
-        .map((c) => [c.toLowerCase(), c])
-    ).values()
-  );
+  const distinctCities = collectDistinctCities(city, options.extraCities);
 
   if (simulateOutage) {
-    const automaticCamsRes = await automaticCamsPromise;
-    const unavailablePrimary = buildUnavailableSnapshot(
-      city,
-      'Simulated provider outage active: live stations unreachable and demo fixtures temporarily disabled.'
-    );
-    const byCity: Record<string, EnvironmentalSnapshot[]> = {};
-    for (const c of distinctCities) {
-      byCity[c] = [
-        buildUnavailableSnapshot(c, `Simulated outage — ${c} stations unavailable.`),
-      ];
-    }
-    return {
-      primarySnapshot: unavailablePrimary,
-      secondarySnapshots: [],
-      comparisonCities: {
-        pune: byCity['Pune'] ?? [
-          buildUnavailableSnapshot('Pune', 'Simulated outage — Pune stations unavailable.'),
-        ],
-        ahilyanagar: byCity['Ahilyanagar'] ?? [
-          buildUnavailableSnapshot(
-            'Ahilyanagar',
-            'Simulated outage — Ahilyanagar stations unavailable.'
-          ),
-        ],
-        byCity,
-      },
-      forecasts: automaticCamsRes.slots,
-      providerStatuses: [
-        {
-          provider: 'cpcb',
-          name: 'CPCB / data.gov.in',
-          configured: Boolean(process.env.DATA_GOV_IN_API_KEY),
-          liveReachable: false,
-          status: 'unavailable',
-          licenseName: 'Government Open Data License – India (GODL)',
-          attributionText: 'Central Pollution Control Board (CPCB) via data.gov.in',
-          notes: 'Simulated outage mode active.',
-          lastCheckedAt: nowIso,
-        },
-        {
-          provider: 'openaq',
-          name: 'OpenAQ API v3',
-          configured: Boolean(process.env.OPENAQ_API_KEY),
-          liveReachable: false,
-          status: 'unavailable',
-          licenseName: 'OpenAQ Aggregated Open Data',
-          attributionText: 'Data aggregated via OpenAQ',
-          notes: 'Simulated outage mode active.',
-          lastCheckedAt: nowIso,
-        },
-        automaticCamsRes.status,
-        camsStatus,
-      ],
-      mode: 'unavailable',
-    };
+    return buildOutageBundle(city, distinctCities, await automaticCamsPromise, camsStatus, nowIso);
   }
 
   const [openaqRes, cpcbRes, automaticCamsRes] = await Promise.all([
@@ -139,151 +222,90 @@ export async function resolveEnvironmentBundle(
     fetchCpcbSnapshots(city),
     automaticCamsPromise,
   ]);
-
   const liveSnapshots = [...cpcbRes.snapshots, ...openaqRes.snapshots].filter((s) => s.isAvailable);
-  for (const snap of liveSnapshots) {
-    saveSnapshot(db, snap);
-  }
+  for (const snap of liveSnapshots) saveSnapshot(db, snap);
 
   const fixtures = buildDemoFixtures(nowIso);
   const importedForecasts = listImportedForecasts(db, undefined, options.householdId);
-  // User-imported CAMS files take precedence; otherwise use the automatic global model feed.
   const automaticForecasts = automaticCamsRes.slots;
-
-  const puneFixtures = fixtures.snapshots.filter((s) => s.city.toLowerCase() === 'pune');
-  const ahilyanagarFixtures = fixtures.snapshots.filter(
-    (s) => s.city.toLowerCase() === 'ahilyanagar'
+  const byCity = await resolveCityComparisonMap(
+    db,
+    city,
+    distinctCities,
+    liveSnapshots,
+    fixtures,
+    useDemoFixtures,
+    nowIso
   );
 
-  // Build per-city comparison map across all saved locations without repeating active city fetches
-  const byCity: Record<string, EnvironmentalSnapshot[]> = {};
-  for (const c of distinctCities) {
-    if (c.toLowerCase() === city.toLowerCase()) {
-      if (liveSnapshots.length > 0) {
-        byCity[c] = liveSnapshots;
-      } else if (useDemoFixtures) {
-        const fx = fixtures.snapshots.filter((s) => s.city.toLowerCase() === c.toLowerCase());
-        byCity[c] = fx.length > 0 ? fx : [buildDemoFixtureForCity(c, nowIso).snapshot];
-      } else {
-        byCity[c] = [
-          buildUnavailableSnapshot(c, `Live providers unconfigured; fixtures disabled for ${c}.`),
-        ];
-      }
-      continue;
-    }
-
-    const [extraOaq, extraCpcb] = await Promise.all([
-      fetchOpenAqSnapshots(c),
-      fetchCpcbSnapshots(c),
-    ]);
-    const extraLive = [...extraCpcb.snapshots, ...extraOaq.snapshots].filter((s) => s.isAvailable);
-    if (extraLive.length > 0) {
-      for (const snap of extraLive) saveSnapshot(db, snap);
-      byCity[c] = extraLive;
-    } else if (useDemoFixtures) {
-      const fx = fixtures.snapshots.filter((s) => s.city.toLowerCase() === c.toLowerCase());
-      byCity[c] = fx.length > 0 ? fx : [buildDemoFixtureForCity(c, nowIso).snapshot];
-    } else {
-      byCity[c] = [
-        buildUnavailableSnapshot(c, `Live providers unconfigured; fixtures disabled for ${c}.`),
-      ];
-    }
-  }
-
-  const puneList = byCity['Pune'] ?? (useDemoFixtures ? (puneFixtures.length ? puneFixtures : [buildDemoFixtureForCity('Pune', nowIso).snapshot]) : [buildUnavailableSnapshot('Pune', 'Live providers unconfigured; fixtures disabled.')]);
-  const ahilyanagarList =
-    byCity['Ahilyanagar'] ??
-    (useDemoFixtures
-      ? (ahilyanagarFixtures.length ? ahilyanagarFixtures : [buildDemoFixtureForCity('Ahilyanagar', nowIso).snapshot])
-      : [buildUnavailableSnapshot('Ahilyanagar', 'Live providers unconfigured; fixtures disabled.')]);
+  const comparisonCities = {
+    pune:
+      byCity['Pune'] ??
+      selectCitySnapshotsWithFallback('Pune', [], fixtures, useDemoFixtures, nowIso),
+    ahilyanagar:
+      byCity['Ahilyanagar'] ??
+      selectCitySnapshotsWithFallback('Ahilyanagar', [], fixtures, useDemoFixtures, nowIso),
+    byCity,
+  };
+  const providerStatuses = [cpcbRes.status, openaqRes.status, automaticCamsRes.status, camsStatus];
 
   if (liveSnapshots.length > 0) {
-    const primary = liveSnapshots[0];
-    const secondary = liveSnapshots.slice(1);
-    const cityForecasts = importedForecasts.filter(
-      (f) => f.city.toLowerCase() === city.toLowerCase()
-    );
-    const mergedForecasts =
-      cityForecasts.length > 0
-        ? cityForecasts
-        : automaticForecasts.length > 0
-          ? automaticForecasts
-          : useDemoFixtures
-          ? fixtures.forecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase())
-          : [];
-
     return {
-      primarySnapshot: primary,
-      secondarySnapshots: secondary,
-      comparisonCities: {
-        pune: puneList,
-        ahilyanagar: ahilyanagarList,
-        byCity,
-      },
-      forecasts: mergedForecasts,
-      providerStatuses: [cpcbRes.status, openaqRes.status, automaticCamsRes.status, camsStatus],
+      primarySnapshot: liveSnapshots[0],
+      secondarySnapshots: liveSnapshots.slice(1),
+      comparisonCities,
+      forecasts: selectForecastsForCity(
+        city,
+        importedForecasts,
+        automaticForecasts,
+        fixtures.forecasts,
+        useDemoFixtures,
+        nowIso,
+        false
+      ),
+      providerStatuses,
       mode: 'live',
     };
   }
 
-  // Fallback to clearly labelled demonstration fixtures if allowed and available for city
   if (useDemoFixtures) {
     const matchingFixtures = fixtures.snapshots.filter(
       (s) => s.city.toLowerCase() === city.toLowerCase()
     );
-    const cityDemo = matchingFixtures.length > 0
-      ? { snapshot: matchingFixtures[0], forecasts: fixtures.forecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase()) }
-      : buildDemoFixtureForCity(city, nowIso);
-    const resolvedDemoSnapshots = matchingFixtures.length > 0 ? matchingFixtures : [cityDemo.snapshot];
-    if (resolvedDemoSnapshots.length > 0) {
-      for (const snap of resolvedDemoSnapshots) {
-        saveSnapshot(db, snap);
-      }
-      const importedForCity = importedForecasts.filter(
-        (f) => f.city.toLowerCase() === city.toLowerCase()
-      );
-      const cityForecasts =
-        importedForCity.length > 0
-          ? importedForCity
-          : automaticForecasts.length > 0
-            ? automaticForecasts
-            : (fixtures.forecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase()).length
-              ? fixtures.forecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase())
-              : buildDemoFixtureForCity(city, nowIso).forecasts);
+    const resolvedDemoSnapshots =
+      matchingFixtures.length > 0
+        ? matchingFixtures
+        : [buildDemoFixtureForCity(city, nowIso).snapshot];
+    for (const snap of resolvedDemoSnapshots) saveSnapshot(db, snap);
 
-      return {
-        primarySnapshot: resolvedDemoSnapshots[0],
-        secondarySnapshots: resolvedDemoSnapshots.slice(1),
-        comparisonCities: {
-          pune: puneList,
-          ahilyanagar: ahilyanagarList,
-          byCity,
-        },
-        forecasts: cityForecasts,
-        providerStatuses: [cpcbRes.status, openaqRes.status, automaticCamsRes.status, camsStatus],
-        mode: 'demo_fixture',
-      };
-    }
+    return {
+      primarySnapshot: resolvedDemoSnapshots[0],
+      secondarySnapshots: resolvedDemoSnapshots.slice(1),
+      comparisonCities,
+      forecasts: selectForecastsForCity(
+        city,
+        importedForecasts,
+        automaticForecasts,
+        fixtures.forecasts,
+        true,
+        nowIso,
+        true
+      ),
+      providerStatuses,
+      mode: 'demo_fixture',
+    };
   }
 
-  // Honest unavailable state for custom/uncovered cities or when demo fixtures are toggled off
-  const unavailable = buildUnavailableSnapshot(
-    city,
-    `No live environmental feed is configured and no verified station coverage is loaded for ${city}.`
-  );
-
+  const imported = importedForecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase());
   return {
-    primarySnapshot: unavailable,
+    primarySnapshot: buildUnavailableSnapshot(
+      city,
+      `No live environmental feed is configured and no verified station coverage is loaded for ${city}.`
+    ),
     secondarySnapshots: [],
-    comparisonCities: {
-      pune: puneList,
-      ahilyanagar: ahilyanagarList,
-      byCity,
-    },
-    forecasts: importedForecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase()).length > 0
-      ? importedForecasts.filter((f) => f.city.toLowerCase() === city.toLowerCase())
-      : automaticForecasts,
-    providerStatuses: [cpcbRes.status, openaqRes.status, automaticCamsRes.status, camsStatus],
+    comparisonCities,
+    forecasts: imported.length > 0 ? imported : automaticForecasts,
+    providerStatuses,
     mode: 'unavailable',
   };
 }
@@ -311,9 +333,9 @@ export async function getFullAppBootstrap(
     snapshots: EnvironmentalSnapshot[];
   };
 }> {
-  let household = options.householdId
+  const household = options.householdId
     ? getHouseholdById(db, options.householdId)
-    : getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db);
+    : (getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db));
   if (!household) throw new Error('Household not found for this browser session.');
 
   const members = listMembers(db, household.id);
@@ -367,7 +389,7 @@ export async function executeWhatIfScenario(
 ): Promise<ScenarioComparisonResult> {
   const household = options.householdId
     ? getHouseholdById(db, options.householdId)
-    : getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db);
+    : (getActiveHousehold(db) ?? seedDemoHouseholdIfEmpty(db));
   if (!household) throw new Error('Household not found for this browser session.');
   const members = listMembers(db, household.id);
   const routines = listRoutines(db, household.id);

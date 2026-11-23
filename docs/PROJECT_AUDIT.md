@@ -16,15 +16,15 @@ The application is **not yet production-ready with durable persistence**. The Ex
 
 The repository was initially found with seven refs: `main` plus six development/fix branches.
 
-| Branch | Original head commit | Related PR | Consolidation result |
-|---|---|---:|---|
-| `main` | `abfb601b4b4750cca7820c4517b25b5cf88bffca` | — | Production branch; preserved |
-| `fix/free-production-readiness` | `41cc0b8d57db2259334394777668adafea9b4a37` | #8 | Final consolidation branch |
-| `hardening/production-readiness` | `5be0a3440fd51366aeeea62ecb6eea7a36ca7c7c` | #1, #2 | Branch head included as an additional parent; PR #1 head is its ancestor |
-| `fix/environmental-provider-reliability` | `22471919127c70d8cf5a735bf886f1f5d224121c` | #3 | Branch head included as an additional parent |
-| `hardening/session-rate-limits` | `39d0f5d3dc1dfa8c33b08439512135db70be8986` | #4, #5 | Branch head included as an additional parent; duplicate PR #5 closed |
-| `fix/air-quality-page-reliability` | `79796e32601e5775a55ed860ed0ad92606b61e6f` | #6 | Branch head included as an additional parent |
-| `fix/air-quality-data-fallbacks` | `1fea56444299c86e7496119276fb20ed751733fd` | #7 | PR #7 head is the current `main` commit and is already in target ancestry |
+| Branch                                   | Original head commit                       | Related PR | Consolidation result                                                      |
+| ---------------------------------------- | ------------------------------------------ | ---------: | ------------------------------------------------------------------------- |
+| `main`                                   | `abfb601b4b4750cca7820c4517b25b5cf88bffca` |          — | Production branch; preserved                                              |
+| `fix/free-production-readiness`          | `41cc0b8d57db2259334394777668adafea9b4a37` |         #8 | Final consolidation branch                                                |
+| `hardening/production-readiness`         | `5be0a3440fd51366aeeea62ecb6eea7a36ca7c7c` |     #1, #2 | Branch head included as an additional parent; PR #1 head is its ancestor  |
+| `fix/environmental-provider-reliability` | `22471919127c70d8cf5a735bf886f1f5d224121c` |         #3 | Branch head included as an additional parent                              |
+| `hardening/session-rate-limits`          | `39d0f5d3dc1dfa8c33b08439512135db70be8986` |     #4, #5 | Branch head included as an additional parent; duplicate PR #5 closed      |
+| `fix/air-quality-page-reliability`       | `79796e32601e5775a55ed860ed0ad92606b61e6f` |         #6 | Branch head included as an additional parent                              |
+| `fix/air-quality-data-fallbacks`         | `1fea56444299c86e7496119276fb20ed751733fd` |         #7 | PR #7 head is the current `main` commit and is already in target ancestry |
 
 ### Evidence that merged work is included
 

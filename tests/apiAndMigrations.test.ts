@@ -40,7 +40,9 @@ function createTempDbPath(): string {
   return path.join(dir, 'test.db');
 }
 
-async function startTestServer(db: DatabaseSync): Promise<{ baseUrl: string; close: () => Promise<void> }> {
+async function startTestServer(
+  db: DatabaseSync
+): Promise<{ baseUrl: string; close: () => Promise<void> }> {
   const app = createApp(db);
   const server = await new Promise<http.Server>((resolve) => {
     const srv = app.listen(0, '127.0.0.1', () => resolve(srv));
@@ -180,7 +182,17 @@ describe('Phase 1 — Versioned SQLite Migrations & Normalized Evidence Storage'
         `INSERT INTO protection_plans (id, household_id, city, generated_at, aqi_value, aqi_band, freshness, is_demo_fixture, plan_json)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
-      .run('plan-legacy-1', 'hh-legacy-1', 'Pune', now, 118, 'moderate', 'fresh', 1, '{"id":"plan-legacy-1"}');
+      .run(
+        'plan-legacy-1',
+        'hh-legacy-1',
+        'Pune',
+        now,
+        118,
+        'moderate',
+        'fresh',
+        1,
+        '{"id":"plan-legacy-1"}'
+      );
 
     legacyDb.close();
 
@@ -205,7 +217,9 @@ describe('Phase 1 — Versioned SQLite Migrations & Normalized Evidence Storage'
     expect(routines).toHaveLength(1);
     expect(routines[0].title).toBe('Morning Temple Walk');
 
-    const plans = db.prepare('SELECT id FROM protection_plans WHERE household_id = ?').all('hh-legacy-1');
+    const plans = db
+      .prepare('SELECT id FROM protection_plans WHERE household_id = ?')
+      .all('hh-legacy-1');
     expect(plans).toHaveLength(1);
 
     // Non-destructively backfilled tables
@@ -220,7 +234,9 @@ describe('Phase 1 — Versioned SQLite Migrations & Normalized Evidence Storage'
     expect(locations.find((l) => l.city === 'Pune')?.isPrimary).toBe(true);
 
     // Check added updated_at columns and indexes
-    const memberCols = db.prepare('PRAGMA table_info(family_members)').all() as Array<{ name: string }>;
+    const memberCols = db.prepare('PRAGMA table_info(family_members)').all() as Array<{
+      name: string;
+    }>;
     expect(memberCols.some((c) => c.name === 'updated_at')).toBe(true);
 
     const indexes = db
@@ -281,14 +297,21 @@ describe('Phase 1 — Express API CRUD, Validation & Centralized Error Handling 
     expect(healthJson.schemaVersion).toBe(6);
 
     // 2. Bootstrap exposes locations & settings without breaking existing contract
-    const bootRes = await fetch(`${baseUrl}/api/bootstrap?simulateOutage=false&useFixtures=true&persist=true`);
+    const bootRes = await fetch(
+      `${baseUrl}/api/bootstrap?simulateOutage=false&useFixtures=true&persist=true`
+    );
     expect(bootRes.status).toBe(200);
     const bootJson = (await bootRes.json()) as {
       household: { id: string; city: string };
       members: Array<{ id: string; name: string }>;
       routines: Array<{ id: string; title: string }>;
       locations: Array<{ id: string; city: string; isPrimary: boolean }>;
-      settings: { language: string; useDemoFixtures: boolean; simulateOutage: boolean; defaultCity: string };
+      settings: {
+        language: string;
+        useDemoFixtures: boolean;
+        simulateOutage: boolean;
+        defaultCity: string;
+      };
       plan: { id: string };
     };
     expect(bootJson.members.length).toBe(4);
@@ -525,10 +548,7 @@ describe('Phase 1 — Express API CRUD, Validation & Centralized Error Handling 
     const hhJson = (await hhRes.json()) as {
       household: { name: string; sensitivityTags: string[] };
     };
-    expect(hhJson.household.sensitivityTags).toEqual([
-      'dust_sensitive',
-      'early_commute_exposure',
-    ]);
+    expect(hhJson.household.sensitivityTags).toEqual(['dust_sensitive', 'early_commute_exposure']);
   });
 
   it('migrates a populated v2 database through v6 non-destructively with household forecast isolation', () => {
@@ -612,43 +632,43 @@ describe('Phase 1 — Express API CRUD, Validation & Centralized Error Handling 
       );
     `);
 
-    v2Db.prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)').run(
-      1,
-      '001_initial_schema',
-      now
-    );
-    v2Db.prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)').run(
-      2,
-      '002_normalized_entities_locations_settings_providers',
-      now
-    );
-    v2Db.prepare(
-      `INSERT INTO households (id, name, city, locality, language, is_demo_profile, created_at, updated_at)
+    v2Db
+      .prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)')
+      .run(1, '001_initial_schema', now);
+    v2Db
+      .prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)')
+      .run(2, '002_normalized_entities_locations_settings_providers', now);
+    v2Db
+      .prepare(
+        `INSERT INTO households (id, name, city, locality, language, is_demo_profile, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run('hh-v2', 'Joshi Family', 'Nagpur', 'Dharampeth', 'hi', 0, now, now);
+      )
+      .run('hh-v2', 'Joshi Family', 'Nagpur', 'Dharampeth', 'hi', 0, now, now);
 
-    v2Db.prepare(
-      `INSERT INTO environmental_snapshots (id, provider, provider_label, data_type, city, location_label, station_or_grid_id, spatial_resolution_note, pollutants_json, reported_aqi_india, measured_at, retrieved_at, freshness, license_attribution, warnings_json, is_demo_fixture, is_available)
+    v2Db
+      .prepare(
+        `INSERT INTO environmental_snapshots (id, provider, provider_label, data_type, city, location_label, station_or_grid_id, spatial_resolution_note, pollutants_json, reported_aqi_india, measured_at, retrieved_at, freshness, license_attribution, warnings_json, is_demo_fixture, is_available)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(
-      'snap-v2',
-      'cpcb',
-      'CPCB',
-      'physical_station',
-      'Nagpur',
-      'Civil Lines',
-      'CPCB-NGP-1',
-      'Station',
-      '{"pm25":52}',
-      92,
-      now,
-      now,
-      'fresh',
-      'GODL',
-      '[]',
-      0,
-      1
-    );
+      )
+      .run(
+        'snap-v2',
+        'cpcb',
+        'CPCB',
+        'physical_station',
+        'Nagpur',
+        'Civil Lines',
+        'CPCB-NGP-1',
+        'Station',
+        '{"pm25":52}',
+        92,
+        now,
+        now,
+        'fresh',
+        'GODL',
+        '[]',
+        0,
+        1
+      );
     v2Db.close();
 
     const db = getDb(dbPath);
@@ -707,10 +727,11 @@ describe('Phase 1 — Express API CRUD, Validation & Centralized Error Handling 
     expect(listRoutines(db, hh.id)).toHaveLength(0);
     expect(listLocations(db, hh.id)).toHaveLength(0);
     expect(listPlanRecommendations(db, plan.id)).toHaveLength(0);
-    expect(db.prepare('SELECT household_id FROM user_settings WHERE household_id = ?').all(hh.id)).toHaveLength(0);
+    expect(
+      db.prepare('SELECT household_id FROM user_settings WHERE household_id = ?').all(hh.id)
+    ).toHaveLength(0);
   });
 });
-
 
 describe('Production safety — local maintenance endpoints', () => {
   it('blocks global demo reset and data clearing in production', async () => {
@@ -739,7 +760,6 @@ describe('Production safety — local maintenance endpoints', () => {
   });
 });
 
-
 describe('Production safety — fail-closed household API boundary', () => {
   it('does not expose the shared legacy household through public production routes', async () => {
     const db = getDb(createTempDbPath());
@@ -754,7 +774,16 @@ describe('Production safety — fail-closed household API boundary', () => {
       expect(bootstrap.status).toBe(401);
       expect((await bootstrap.json()).code).toBe('SESSION_REQUIRED');
 
-      const members = await fetch(`${baseUrl}/api/members`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Unauthorized', ageGroup: 'adult', activityPreference: 'commute', routineFlexibility: 'fixed' }) });
+      const members = await fetch(`${baseUrl}/api/members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'Unauthorized',
+          ageGroup: 'adult',
+          activityPreference: 'commute',
+          routineFlexibility: 'fixed',
+        }),
+      });
       expect(members.status).toBe(401);
       expect((await members.json()).code).toBe('SESSION_REQUIRED');
 
@@ -768,7 +797,6 @@ describe('Production safety — fail-closed household API boundary', () => {
     }
   });
 });
-
 
 describe('Production browser session isolation', () => {
   it('creates independent HttpOnly sessions and scopes writes to each household', async () => {
@@ -785,12 +813,12 @@ describe('Production browser session isolation', () => {
       expect(first.headers.get('set-cookie')).toContain('HttpOnly');
       expect(first.headers.get('set-cookie')).toContain('SameSite=Lax');
       expect(first.headers.get('set-cookie')).toContain('Secure');
-      const firstBody = await first.json() as { household: { id: string } };
+      const firstBody = (await first.json()) as { household: { id: string } };
 
       const second = await fetch(`${baseUrl}/api/session`);
       expect(second.status).toBe(201);
       const secondCookie = second.headers.get('set-cookie')?.split(';')[0];
-      const secondBody = await second.json() as { household: { id: string } };
+      const secondBody = (await second.json()) as { household: { id: string } };
       expect(secondBody.household.id).not.toBe(firstBody.household.id);
 
       const add = await fetch(`${baseUrl}/api/members`, {
@@ -808,7 +836,8 @@ describe('Production browser session isolation', () => {
         }),
       });
       expect(add.status).toBe(201);
-      const inserted = db.prepare('SELECT household_id FROM family_members WHERE name = ?')
+      const inserted = db
+        .prepare('SELECT household_id FROM family_members WHERE name = ?')
         .get('Private Member') as { household_id: string };
       expect(inserted.household_id).toBe(firstBody.household.id);
       expect(inserted.household_id).not.toBe(secondBody.household.id);
@@ -829,9 +858,12 @@ describe('Production browser session isolation', () => {
       });
       expect(blocked.status).toBe(403);
       expect((await blocked.json()).code).toBe('CSRF_ORIGIN_REJECTED');
-      expect(db.prepare('SELECT id FROM family_members WHERE name = ?').all('Cross Site')).toHaveLength(0);
+      expect(
+        db.prepare('SELECT id FROM family_members WHERE name = ?').all('Cross Site')
+      ).toHaveLength(0);
 
-      const secondMembers = db.prepare('SELECT id FROM family_members WHERE household_id = ?')
+      const secondMembers = db
+        .prepare('SELECT id FROM family_members WHERE household_id = ?')
         .all(secondBody.household.id);
       expect(secondMembers).toHaveLength(0);
       expect(secondCookie).toBeTruthy();
@@ -850,7 +882,10 @@ describe('Household browser session storage', () => {
     const token = 'test-session-token-that-is-never-stored-raw';
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
     createBrowserSession(db, token, household.id, expiresAt);
-    const stored = db.prepare('SELECT token_hash, household_id FROM app_sessions').get() as { token_hash: string; household_id: string };
+    const stored = db.prepare('SELECT token_hash, household_id FROM app_sessions').get() as {
+      token_hash: string;
+      household_id: string;
+    };
     expect(stored.token_hash).toBe(hashSessionToken(token));
     expect(stored.token_hash).not.toBe(token);
     expect(stored.household_id).toBe(household.id);
@@ -867,7 +902,6 @@ describe('Household browser session storage', () => {
   });
 });
 
-
 describe('Household-scoped imported forecast storage', () => {
   it('keeps a household uploaded forecast private from other browser sessions', () => {
     const db = getDb(createTempDbPath());
@@ -877,7 +911,11 @@ describe('Household-scoped imported forecast storage', () => {
     const fixture = buildDemoFixtures().forecasts[0];
     saveForecastSlots(db, fixture.city, [fixture], first.id);
 
-    expect(listImportedForecasts(db, fixture.city, first.id).some((slot) => slot.id === fixture.id)).toBe(true);
-    expect(listImportedForecasts(db, fixture.city, second.id).some((slot) => slot.id === fixture.id)).toBe(false);
+    expect(
+      listImportedForecasts(db, fixture.city, first.id).some((slot) => slot.id === fixture.id)
+    ).toBe(true);
+    expect(
+      listImportedForecasts(db, fixture.city, second.id).some((slot) => slot.id === fixture.id)
+    ).toBe(false);
   });
 });

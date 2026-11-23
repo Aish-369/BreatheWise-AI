@@ -130,13 +130,22 @@ export function deriveAqiFromPollutants(
   const subIndices: Array<{ pollutant: string; subIndex: number }> = [];
 
   if (typeof pollutants.pm25 === 'number' && pollutants.pm25 >= 0 && pollutants.pm25 <= 2000) {
-    subIndices.push({ pollutant: 'PM2.5', subIndex: computeSubIndex(pollutants.pm25, PM25_BREAKPOINTS) });
+    subIndices.push({
+      pollutant: 'PM2.5',
+      subIndex: computeSubIndex(pollutants.pm25, PM25_BREAKPOINTS),
+    });
   }
   if (typeof pollutants.pm10 === 'number' && pollutants.pm10 >= 0 && pollutants.pm10 <= 3000) {
-    subIndices.push({ pollutant: 'PM10', subIndex: computeSubIndex(pollutants.pm10, PM10_BREAKPOINTS) });
+    subIndices.push({
+      pollutant: 'PM10',
+      subIndex: computeSubIndex(pollutants.pm10, PM10_BREAKPOINTS),
+    });
   }
   if (typeof pollutants.no2 === 'number' && pollutants.no2 >= 0 && pollutants.no2 <= 2000) {
-    subIndices.push({ pollutant: 'NO2', subIndex: computeSubIndex(pollutants.no2, NO2_BREAKPOINTS) });
+    subIndices.push({
+      pollutant: 'NO2',
+      subIndex: computeSubIndex(pollutants.no2, NO2_BREAKPOINTS),
+    });
   }
   if (typeof pollutants.o3 === 'number' && pollutants.o3 >= 0 && pollutants.o3 <= 1500) {
     subIndices.push({ pollutant: 'O3', subIndex: computeSubIndex(pollutants.o3, O3_BREAKPOINTS) });
@@ -204,9 +213,13 @@ export function validateEnvironmentalSnapshot(
   const classification = classifySnapshotTier(snapshot, freshness);
 
   if (freshness === 'unavailable') {
-    warnings.push('Measurement timestamp is missing or invalid; reading cannot be treated as current.');
+    warnings.push(
+      'Measurement timestamp is missing or invalid; reading cannot be treated as current.'
+    );
   } else if (freshness === 'stale') {
-    warnings.push('Measurement is older than 6 hours and may no longer reflect current air conditions.');
+    warnings.push(
+      'Measurement is older than 6 hours and may no longer reflect current air conditions.'
+    );
   } else if (freshness === 'aging') {
     warnings.push('Measurement is 2 to 6 hours old; local conditions may have shifted.');
   }
@@ -219,12 +232,16 @@ export function validateEnvironmentalSnapshot(
   if (missingPrimaryParticulates) {
     warnings.push('Both PM2.5 and PM10 readings are missing from this report.');
   } else if (!hasPm25) {
-    warnings.push('PM2.5 reading is unavailable; fine particulate guidance relies on available coarse particulate data.');
+    warnings.push(
+      'PM2.5 reading is unavailable; fine particulate guidance relies on available coarse particulate data.'
+    );
   }
 
   const derivedAqi = deriveAqiFromPollutants(p, snapshot.reportedAqiIndia);
   if (derivedAqi.isDerived && derivedAqi.aqi !== null) {
-    warnings.push('AQI value shown is derived from reported pollutant sub-indices (India NAQI reference), not an official station bulletin index.');
+    warnings.push(
+      'AQI value shown is derived from reported pollutant sub-indices (India NAQI reference), not an official station bulletin index.'
+    );
   }
 
   return {
@@ -368,10 +385,8 @@ export function assessLocationComparisonCompatibility(
     }
   }
 
-  const missingGasA =
-    snapA.pollutants.no2 == null || snapA.pollutants.o3 == null;
-  const missingGasB =
-    snapB.pollutants.no2 == null || snapB.pollutants.o3 == null;
+  const missingGasA = snapA.pollutants.no2 == null || snapA.pollutants.o3 == null;
+  const missingGasB = snapB.pollutants.no2 == null || snapB.pollutants.o3 == null;
   if (missingGasA !== missingGasB) {
     warningKeys.push('comp_warn_partial_pollutants');
   }

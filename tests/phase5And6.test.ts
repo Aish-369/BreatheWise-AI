@@ -1,10 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import {
-  generateProtectionPlan,
-  RULE_SET_VERSION,
-} from '../src/engine/intelligence';
+import { generateProtectionPlan, RULE_SET_VERSION } from '../src/engine/intelligence';
 import {
   analyzeHistoricalTrend,
   assessLocationComparisonCompatibility,
@@ -17,15 +14,8 @@ import {
   fetchCpcbSnapshots,
   parseCpcbTimestamp,
 } from '../src/server/adapters/cpcb';
-import {
-  clearOpenAqCache,
-  fetchOpenAqSnapshots,
-} from '../src/server/adapters/openaq';
-import {
-  getDb,
-  listCitySnapshots,
-  saveSnapshot,
-} from '../src/server/db';
+import { clearOpenAqCache, fetchOpenAqSnapshots } from '../src/server/adapters/openaq';
+import { getDb, listCitySnapshots, saveSnapshot } from '../src/server/db';
 import { findCityMetadata, searchIndianCities } from '../src/shared/indianCities';
 import type {
   ActivityRoutine,
@@ -131,9 +121,7 @@ describe('Phase 5 & 6 — Provenance Tiers, Intelligence v2, Adapters, DB & Loca
     expect(
       classifySnapshotTier(makeSnap({ provider: 'demo_fixture', isDemoFixture: true }), 'fresh')
     ).toBe('demo_fixture');
-    expect(
-      classifySnapshotTier(makeSnap({ dataType: 'forecast' }), 'fresh')
-    ).toBe('forecast_only');
+    expect(classifySnapshotTier(makeSnap({ dataType: 'forecast' }), 'fresh')).toBe('forecast_only');
     expect(classifySnapshotTier(makeSnap(), 'stale')).toBe('historical_observation');
     expect(classifySnapshotTier(makeSnap(), 'fresh')).toBe('verified_live');
     expect(classifySnapshotTier(makeSnap(), 'aging')).toBe('verified_live');
@@ -423,7 +411,9 @@ describe('Phase 5 & 6 — Provenance Tiers, Intelligence v2, Adapters, DB & Loca
 
   it('searches and disambiguates Indian cities accurately', () => {
     const aurangabadMatches = searchIndianCities('Aurangabad');
-    expect(aurangabadMatches.some((c) => c.canonicalName === 'Chhatrapati Sambhajinagar')).toBe(true);
+    expect(aurangabadMatches.some((c) => c.canonicalName === 'Chhatrapati Sambhajinagar')).toBe(
+      true
+    );
     expect(aurangabadMatches.some((c) => c.canonicalName === 'Aurangabad (Bihar)')).toBe(true);
     expect(findCityMetadata('Ahmednagar')?.canonicalName).toBe('Ahilyanagar');
   });
@@ -474,9 +464,7 @@ describe('Phase 5 & 6 — Provenance Tiers, Intelligence v2, Adapters, DB & Loca
     };
     walk(srcRoot);
 
-    const missingKeys = Array.from(referencedLiteralKeys).filter(
-      (k) => !(k in DICTS.en)
-    );
+    const missingKeys = Array.from(referencedLiteralKeys).filter((k) => !(k in DICTS.en));
     expect(missingKeys).toEqual([]);
   });
 });
