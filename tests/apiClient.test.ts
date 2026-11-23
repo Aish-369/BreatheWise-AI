@@ -22,9 +22,9 @@ function jsonResponse(body: unknown, status = 200): Response {
 
 describe('frontend API client', () => {
   it('creates a browser session request without an unnecessary JSON content type', async () => {
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
-      jsonResponse({ authenticated: false, household: null })
-    );
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ authenticated: false, household: null }));
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(ensureBrowserSession()).resolves.toEqual({
@@ -103,9 +103,11 @@ describe('frontend API client', () => {
   });
 
   it('preserves structured server errors as ApiError instances', async () => {
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
-      jsonResponse({ error: 'Household validation failed', code: 'INVALID_HOUSEHOLD' }, 422)
-    );
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(
+        jsonResponse({ error: 'Household validation failed', code: 'INVALID_HOUSEHOLD' }, 422)
+      );
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(ensureBrowserSession()).rejects.toMatchObject({
@@ -117,9 +119,11 @@ describe('frontend API client', () => {
   });
 
   it('uses a safe status-based message for non-JSON server errors', async () => {
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
-      new Response('upstream failure', { status: 503, headers: { 'content-type': 'text/plain' } })
-    );
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(
+        new Response('upstream failure', { status: 503, headers: { 'content-type': 'text/plain' } })
+      );
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(ensureBrowserSession()).rejects.toEqual(
