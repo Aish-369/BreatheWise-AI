@@ -28,6 +28,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
+      - name: Install Playwright test tooling without changing the application lockfile
+        run: npm install --no-save --package-lock=false @playwright/test
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
       - name: Check formatting
@@ -40,8 +42,6 @@ jobs:
         run: npm run test:coverage
       - name: Production build
         run: npm run build
-      - name: Install Playwright without changing the application lockfile
-        run: npm install --no-save --package-lock=false @playwright/test
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run browser-level core user journeys
