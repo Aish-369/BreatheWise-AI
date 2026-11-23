@@ -214,7 +214,7 @@ describe('API error handling', () => {
     const response = await fetch(`${baseUrl}/api/missing`);
     expect(response.status).toBe(404);
     expect(await response.json()).toEqual({
-      error: 'API endpoint not found: GET /api/missing',
+      error: 'API endpoint not found: GET /missing',
       code: 'ROUTE_NOT_FOUND',
     });
   });
