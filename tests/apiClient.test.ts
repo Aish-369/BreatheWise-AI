@@ -61,7 +61,9 @@ describe('frontend API client', () => {
   });
 
   it('sends JSON for a create-member request', async () => {
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({ member: {}, members: [] }));
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ member: {}, members: [] }));
     vi.stubGlobal('fetch', fetchMock);
     const input = { name: 'Test member' };
 
@@ -85,7 +87,9 @@ describe('frontend API client', () => {
   });
 
   it('uses PATCH and serializes the completion flag for routine completion', async () => {
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({ routine: {}, routines: [] }));
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ routine: {}, routines: [] }));
     vi.stubGlobal('fetch', fetchMock);
 
     await toggleRoutineCompletionApi('routine-1', false);
