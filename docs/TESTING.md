@@ -14,7 +14,7 @@ npm run build          # Vite 8 production bundle check
 
 ---
 
-## 2. Test Coverage Breakdown (116 Tests across 24 Files)
+## 2. Test Coverage Breakdown (146 Tests across 29 Files)
 
 1. **`tests/engine.test.ts` (22 tests)**
    - Freshness boundaries (`<= 2h` fresh, `2–6h` aging, `> 6h` stale, missing/future timestamps unavailable)
@@ -67,8 +67,7 @@ The latest successful GitHub Actions run reports 67.66% statement coverage, 60.1
 
 ## 4. Environment Note (Headless Browser Testing)
 
-Chromium / Playwright binaries are not installed inside the build container, so visual browser DOM automation and client-side PDF binary download clicks were not executed in an interactive browser engine inside the container. UI components are verified via strict TypeScript compilation (`tsc --noEmit`), Vite 8 production bundling, i18n key parity checks, and live Express HTTP integration tests serving the compiled `dist/` bundle.
-
+Chromium / Playwright binaries are not installed inside the build container, so visual browser DOM automation and client-side PDF binary download clicks were not executed in an interactive browser engine inside the container. UI components are verified via TypeScript compilation (`tsc --noEmit`), Vite 8 production bundling, i18n key parity checks, and live Express HTTP integration tests serving the compiled `dist/` bundle.
 
 7. **Feature views (`tests/featureViews.test.tsx`)**
    - Indoor guidance behavior for unavailable, poor, and moderate outdoor conditions
