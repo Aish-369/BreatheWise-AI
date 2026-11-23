@@ -13,9 +13,9 @@
 
 ## P1 — Quality and security
 
-- **BW-005 — QA — BLOCKED:** Install dependencies and run format, lint, typecheck, unit tests, coverage and build. Acceptance: commands execute with recorded exit codes and results.
-- **BW-006 — E2E — NOT_STARTED:** Run Playwright/Chromium core journeys and expand missing user-flow coverage. Acceptance: browser tests pass with trace/screenshot evidence on failure.
-- **BW-007 — Documentation — IN_PROGRESS:** Reconcile test-count and coverage statements across README and testing docs. Acceptance: counts and coverage match a dated successful CI run.
+- **BW-005 — QA — VERIFIED:** GitHub Actions run #251 passed dependency audit, Prettier, ESLint (zero warnings), TypeScript, all 151 Vitest tests across 31 files, coverage and production build.
+- **BW-006 — E2E — VERIFIED:** GitHub Actions run #251 installed Chromium and passed all 3 Playwright browser journeys.
+- **BW-007 — Documentation — VERIFIED:** README and docs/TESTING.md now match the 151-test, 31-file inventory and measured coverage from CI run #251.
 - **BW-008 — Security — NOT_STARTED:** Complete auth/session, CSRF, rate-limit, RLS, dependency and data-isolation review. Acceptance: findings are fixed or explicitly accepted, with regression tests.
 - **BW-009 — Operations — NOT_STARTED:** Verify hosting health-check configuration and database readiness behavior. Acceptance: host probes a verified unauthenticated readiness endpoint.
 - **BW-010 — Architecture — NOT_STARTED:** Preserve SQLite only as an explicit local/test adapter if needed; prevent production fallback to ephemeral storage. Acceptance: environment/database selection is explicit and tested.
@@ -27,6 +27,13 @@
 - **BW-013 — Data/AI — NOT_STARTED:** Verify provider connectivity, provenance, forecast-vs-observation labeling and outage behavior. Acceptance: tests/live checks prove no fabricated readings and unavailable data stays explicit.
 - **BW-014 — Documentation — NOT_STARTED:** Refresh architecture, database, security, testing, deployment and release docs after implementation. Acceptance: documentation matches verified final code and deployment.
 - **BW-015 — Git/release — IN_PROGRESS:** Reconcile quality branches and prepare a clean reviewed release PR. Acceptance: unique branch work is inspected and preserved; no blind deletion or merge.
+
+## Latest verification evidence
+
+- GitHub Actions run [#251](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45173931446) passed every CI step on 2026-11-23.
+- V8 coverage: 71.37% statements, 61.09% branches, 63.26% functions and 72.60% lines across 162 source files.
+- Vitest: 151 passed across 31 test files. Playwright: 3 passed across the core browser journeys.
+- Production dependency audit, formatting, lint, type-check and production build all passed.
 
 ## Verified corrections
 
