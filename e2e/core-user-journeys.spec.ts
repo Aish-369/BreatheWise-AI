@@ -4,8 +4,8 @@ test.describe('BreatheWise AI browser journeys', () => {
   test('loads the public landing page with its primary actions', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-    await expect(page.getByRole('button', { name: /open app/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /start onboarding/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /open workspace/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /configure family/i })).toBeVisible();
   });
 
   test('opens the workspace and returns to the landing page', async ({ page }) => {
@@ -15,7 +15,7 @@ test.describe('BreatheWise AI browser journeys', () => {
     await expect(page.getByRole('navigation', { name: 'Workspace navigation' })).toBeVisible();
     await expect(page.getByRole('button', { name: /overview/i })).toBeVisible();
 
-    await page.getByRole('button', { name: /back to site/i }).click();
+    await page.getByRole('button', { name: /product overview/i }).click();
     await expect(page.getByRole('button', { name: /open app/i })).toBeVisible();
   });
 
