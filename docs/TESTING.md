@@ -2,17 +2,19 @@
 
 ## 1. Running the Automated Suite
 
-All automated checks run cleanly in isolated temporary or `:memory:` SQLite databases and never touch production data (`./data/breathewise.db`):
+All automated checks run against isolated temporary or `:memory:` SQLite databases and never touch production data (`./data/breathewise.db`). The latest GitHub Actions CI run verified formatting, lint, type-check, coverage tests, and the production build:
 
 ```bash
-npm run lint   # TypeScript strict type-checking (tsc --noEmit)
-npm test       # Vitest automated suite (39 tests across 4 files)
-npm run build  # Vite 8 production bundle check
+npm run format:check  # Prettier formatting verification
+npm run lint           # ESLint with zero warnings
+npm run typecheck      # TypeScript strict type-checking (tsc --noEmit)
+npm run test:coverage  # Vitest suite with V8 coverage (116 tests across 24 files)
+npm run build          # Vite 8 production bundle check
 ```
 
 ---
 
-## 2. Test Coverage Breakdown (39 Tests)
+## 2. Test Coverage Breakdown (116 Tests across 24 Files)
 
 1. **`tests/engine.test.ts` (22 tests)**
    - Freshness boundaries (`<= 2h` fresh, `2–6h` aging, `> 6h` stale, missing/future timestamps unavailable)
