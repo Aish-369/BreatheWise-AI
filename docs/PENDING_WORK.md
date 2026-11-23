@@ -35,6 +35,14 @@
 - Vitest: 151 passed across 31 test files. Playwright: 3 passed across the core browser journeys.
 - Production dependency audit, formatting, lint, type-check and production build all passed.
 
+## Supabase verification — 2026-11-23
+
+- Connected Supabase project `batvqlnhpujyqyeeikmv` reports PostgreSQL 17.12.
+- The application schema migration ledger contains 6 versions; Supabase migration history lists 3 applied SQL migrations.
+- All inspected application tables have RLS enabled. There are currently 0 public RLS policies, consistent with the documented deny-by-default posture for the Express server-side access model.
+- The database currently contains 0 households and 0 browser sessions; no application household data has been migrated.
+- This confirms the provisioned schema exists, but it does not mean the Express runtime is connected. SQLite remains the active runtime.
+
 ## Verified corrections
 
 - Current tsconfig.json already enables strict TypeScript checks; the older contrary audit statement is stale.
