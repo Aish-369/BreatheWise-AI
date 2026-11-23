@@ -27,7 +27,9 @@ describe('useEntityCrudHandlers', () => {
   });
 
   it('routes every member, routine, and location operation through mutateAndReload', async () => {
-    const mutateAndReload = vi.fn(async (operation: () => Promise<unknown>) => operation());
+    const mutateAndReload = vi.fn(async (operation: () => Promise<unknown>): Promise<void> => {
+      await operation();
+    });
     const { result } = renderHook(() => useEntityCrudHandlers(mutateAndReload));
     const payload = { name: 'Example' };
 
@@ -57,7 +59,9 @@ describe('useEntityCrudHandlers', () => {
 
   it('preserves the mutation promise rejection for the caller', async () => {
     const failure = new Error('API request failed');
-    const mutateAndReload = vi.fn(async (operation: () => Promise<unknown>) => operation());
+    const mutateAndReload = async (operation: () => Promise<unknown>): Promise<void> => {
+      await operation();
+    };
     api.deleteMemberApi.mockRejectedValueOnce(failure);
     const { result } = renderHook(() => useEntityCrudHandlers(mutateAndReload));
 
