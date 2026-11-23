@@ -150,7 +150,7 @@ describe('EnvironmentView', () => {
     licenseAttribution: '',
     warnings: [],
     isAvailable: false,
-  } as EnvironmentalSnapshot;
+  } as unknown as EnvironmentalSnapshot;
 
   const providerStatuses: ProviderAdapterStatus[] = [];
 
