@@ -32,8 +32,6 @@ jobs:
         run: npm install --no-save --package-lock=false @playwright/test
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
-      - name: Print canonical browser test formatting for diagnosis
-        run: npx prettier e2e/core-user-journeys.spec.ts
       - name: Check formatting
         run: npm run format:check
       - name: Lint (ESLint, zero warnings)
