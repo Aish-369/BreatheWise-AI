@@ -5,6 +5,7 @@ export default mergeConfig(
   viteConfig({ mode: 'test', command: 'serve' }),
   defineConfig({
     test: {
+      include: ['tests/**/*.test.{ts,tsx}'],
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json-summary'],
