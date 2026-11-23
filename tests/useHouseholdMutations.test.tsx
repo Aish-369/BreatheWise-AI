@@ -167,7 +167,7 @@ describe('useHouseholdMutations', () => {
 
   it('runs a scenario, reloads data, and returns the scenario result', async () => {
     const { result, loadBootstrap } = setup();
-    const modification = { pm25: 80 } as ScenarioModification;
+    const modification = { label: 'Test scenario', pm25Override: 80 } as ScenarioModification;
     let response: unknown;
 
     await act(async () => {
