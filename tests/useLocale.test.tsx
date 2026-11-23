@@ -66,7 +66,7 @@ describe('useLocale', () => {
   });
 
   it('updates the selected language without making a persistence call when no household exists', async () => {
-    const runAction = vi.fn(async (action: () => Promise<unknown>) => action());
+    const runAction = vi.fn(<T>(action: () => Promise<T>): Promise<T> => action());
     const { result } = renderHook(() =>
       useLocale({
         household: null,
@@ -87,7 +87,7 @@ describe('useLocale', () => {
 
   it('propagates persistence errors through the supplied action handler', async () => {
     const failure = new Error('Settings save failed');
-    const runAction = vi.fn(async (action: () => Promise<unknown>) => action());
+    const runAction = vi.fn(<T>(action: () => Promise<T>): Promise<T> => action());
     updateSettingsApi.mockRejectedValueOnce(failure);
 
     const { result } = renderHook(() =>
