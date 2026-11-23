@@ -8,7 +8,7 @@ All automated checks run against isolated temporary or `:memory:` SQLite databas
 npm run format:check  # Prettier formatting verification
 npm run lint           # ESLint with zero warnings
 npm run typecheck      # TypeScript type-checking (tsc --noEmit)
-npm run test:coverage  # Vitest suite with V8 coverage (138 tests across 28 files)
+npm run test:coverage  # Vitest suite with V8 coverage (146 tests across 29 files)
 npm run build          # Vite 8 production bundle check
 ```
 
@@ -61,10 +61,16 @@ npm run build          # Vite 8 production bundle check
 
 ## 3. Latest Measured Coverage
 
-The latest successful GitHub Actions run reports 67.07% statement coverage, 59.52% branch coverage, 60.98% function coverage, and 68.02% line coverage across 162 source files. The `App.tsx` entry point is now 100% covered, and the custom hooks folder is at 94.37% statement coverage. The largest remaining coverage gap is the component layer (44.68% statements) and utility layer (19.14% statements).
+The latest successful GitHub Actions run reports 67.66% statement coverage, 60.15% branch coverage, 62.27% function coverage, and 68.69% line coverage across 162 source files. The `App.tsx` entry point is now 100% covered, and the custom hooks folder is at 94.37% statement coverage. The largest remaining coverage gap is the component layer (51.06% statements) and utility layer (19.14% statements).
 
 ---
 
 ## 4. Environment Note (Headless Browser Testing)
 
 Chromium / Playwright binaries are not installed inside the build container, so visual browser DOM automation and client-side PDF binary download clicks were not executed in an interactive browser engine inside the container. UI components are verified via strict TypeScript compilation (`tsc --noEmit`), Vite 8 production bundling, i18n key parity checks, and live Express HTTP integration tests serving the compiled `dist/` bundle.
+
+
+7. **Feature views (`tests/featureViews.test.tsx`)**
+   - Indoor guidance behavior for unavailable, poor, and moderate outdoor conditions
+   - Trust/provenance tiers and safeguards
+   - Settings tab navigation, preference callbacks, and clear-data confirmation/cancellation
