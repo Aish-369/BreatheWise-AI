@@ -28,7 +28,7 @@ beforeAll(() => {
   if (typeof window.matchMedia !== 'function') {
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
-      value: (query: string) => ({
+      value: (query: string): MediaQueryList => ({
         matches: query.includes('prefers-reduced-motion'),
         media: query,
         onchange: null,
