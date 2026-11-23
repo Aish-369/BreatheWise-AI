@@ -17,7 +17,7 @@ concurrency:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,6 +28,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
+      - name: Install Playwright test tooling without changing the application lockfile
+        run: npm install --no-save --package-lock=false @playwright/test
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
       - name: Check formatting
@@ -40,3 +42,7 @@ jobs:
         run: npm run test:coverage
       - name: Production build
         run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run browser-level core user journeys
+        run: npx playwright test
