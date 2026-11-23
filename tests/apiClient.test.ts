@@ -77,7 +77,9 @@ describe('frontend API client', () => {
   });
 
   it('encodes path identifiers before issuing update requests', async () => {
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({ member: {}, members: [] }));
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ member: {}, members: [] }));
     vi.stubGlobal('fetch', fetchMock);
 
     await updateMemberApi('member/with spaces', { name: 'Updated' } as never);
