@@ -78,7 +78,11 @@ The current connected Render service is on the Free plan. Its service configurat
 
 Before relying on Render health monitoring, set the service's Health Check Path to `/healthz` in the Render dashboard. This is a production setting and has intentionally not been changed by this code-only PR. Likewise, do not treat `BREATHEWISE_DB_PATH` as durable until a persistent volume is actually attached and mounted. No disk has been created, no plan has been upgraded, and no production environment variable has been changed.
 
-## 4. Browser-Level End-to-End Testing
+## 4. PDF renderer regression coverage
+
+`tests/pdfCanvasRenderer.test.ts` covers graceful behavior when the browser Font Loading API is unavailable, requests for regular/semibold/bold Devanagari font faces, single-page multilingual rendering, pagination for long schedules, and omission of empty limitations sections. These new cases must pass the branch CI run before they are counted as verified.
+
+## 5. Browser-Level End-to-End Testing
 
 The CI workflow installs Playwright and Chromium as ephemeral test tooling (without changing the application lockfile), then runs `npx playwright test`. The browser suite starts the production-mode Express server against the CI workspace's isolated SQLite database and covers the public landing page, workspace entry/return navigation, and guided household onboarding entry. Failed tests retain traces and screenshots locally for diagnosis. These checks complement—not replace—the Vitest component, API, and engine tests.
 
