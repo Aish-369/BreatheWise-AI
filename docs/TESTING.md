@@ -2,17 +2,19 @@
 
 ## 1. Running the Automated Suite
 
-All automated checks run cleanly in isolated temporary or `:memory:` SQLite databases and never touch production data (`./data/breathewise.db`):
+All automated checks run against isolated temporary or `:memory:` SQLite databases and never touch production data (`./data/breathewise.db`). The latest GitHub Actions CI run verified formatting, lint, type-check, coverage tests, and the production build:
 
 ```bash
-npm run lint   # TypeScript strict type-checking (tsc --noEmit)
-npm test       # Vitest automated suite (39 tests across 4 files)
-npm run build  # Vite 8 production bundle check
+npm run format:check  # Prettier formatting verification
+npm run lint           # ESLint with zero warnings
+npm run typecheck      # TypeScript strict type-checking (tsc --noEmit)
+npm run test:coverage  # Vitest suite with V8 coverage (116 tests across 24 files)
+npm run build          # Vite 8 production bundle check
 ```
 
 ---
 
-## 2. Test Coverage Breakdown (39 Tests)
+## 2. Test Coverage Breakdown (116 Tests across 24 Files)
 
 1. **`tests/engine.test.ts` (22 tests)**
    - Freshness boundaries (`<= 2h` fresh, `2–6h` aging, `> 6h` stale, missing/future timestamps unavailable)
@@ -22,11 +24,11 @@ npm run build  # Vite 8 production bundle check
    - Fixed routine preservation vs. forecast-backed flexible routine shifting (`adjust_window`, `move_indoors`, `hold_pending_data`)
    - What-If simulator disclaimers (`SCENARIO — NOT AN OBSERVED ENVIRONMENTAL MEASUREMENT`), indoor move simulation, and outage confidence drop
 
-2. **`tests/dbAndAdapters.test.ts` (2 tests)**
+2. **`tests/dbAndAdapters.test.ts` (3 tests)**
    - CAMS CSV & JSON parsing and invalid time-window/value validation
    - Complete SQLite CRUD lifecycle (`upsertHousehold`, `addMember`, `deleteMember`, `upsertRoutine`, `deleteRoutine`, `saveForecastSlots`, `savePlanHistory`, `clearAllLocalData`)
 
-3. **`tests/apiAndMigrations.test.ts` (4 tests)**
+3. **`tests/apiAndMigrations.test.ts` (11 tests)**
    - Non-destructive pre-v2 -> v3 migration preserving existing households, members, routines, and plans while backfilling `user_settings`, `saved_locations`, and indexes
    - Non-destructive v2 -> v3 migration preserving data and backfilling `classification`
    - Normalized archiving (`protection_plans`, `recommendations`, `plan_evidence`)
@@ -43,6 +45,12 @@ npm run build  # Vite 8 production bundle check
    - Indian city search & disambiguation
    - Multilingual PDF report model (`buildPdfReportModel`) for `en`, `mr`, and `hi`
    - 100% key parity across `en`, `mr`, and `hi` dictionaries plus zero missing literal `t(lang, '...')` keys across `src/`
+
+5. **Frontend state and recovery (`tests/useNavigationState.test.tsx`, `tests/useLocale.test.tsx`, `tests/useEntityCrudHandlers.test.tsx`, `tests/ErrorBoundary.test.tsx`)**
+   - Navigation defaults, valid/invalid deep links, sub-tab resets, header-menu dismissal, and Escape-key behavior
+   - Locale state, settings persistence payload, no-household behavior, and rejected persistence requests
+   - Member, routine, and location CRUD handler delegation and promise rejection propagation
+   - Error-boundary fallback, default error message, and recovery behavior
 
 ---
 
