@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
 
@@ -20,7 +21,7 @@ describe('ErrorBoundary', () => {
   });
 
   it('shows a safe recovery screen when a child throws during rendering', () => {
-    function BrokenChild() {
+    function BrokenChild(): ReactNode {
       throw new Error('Component failed to render');
     }
 
