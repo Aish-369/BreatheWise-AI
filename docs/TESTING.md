@@ -8,13 +8,13 @@ All automated checks run against isolated temporary or `:memory:` SQLite databas
 npm run format:check  # Prettier formatting verification
 npm run lint           # ESLint with zero warnings
 npm run typecheck      # TypeScript type-checking (tsc --noEmit)
-npm run test:coverage  # Vitest suite with V8 coverage (146 tests across 29 files)
+npm run test:coverage  # Vitest suite with V8 coverage (149 tests across 30 files)
 npm run build          # Vite 8 production bundle check
 ```
 
 ---
 
-## 2. Test Coverage Breakdown (146 Tests across 29 Files)
+## 2. Test Coverage Breakdown (149 Tests across 30 Files)
 
 1. **`tests/engine.test.ts` (22 tests)**
    - Freshness boundaries (`<= 2h` fresh, `2–6h` aging, `> 6h` stale, missing/future timestamps unavailable)
@@ -62,11 +62,17 @@ npm run build          # Vite 8 production bundle check
    - Trust/provenance tiers and safeguards
    - Settings tab navigation, preference callbacks, and clear-data confirmation/cancellation
 
+
+8. **PDF rendering (`tests/pdfStandardRenderer.test.ts`)**
+   - WinAnsi fallback glyph sanitization when bundled fonts are unavailable
+   - DejaVu regular/bold font embedding when assets are available
+   - Long-report pagination and multi-section rendering
+
 ---
 
 ## 3. Latest Measured Coverage
 
-The latest successful GitHub Actions run reports 67.66% statement coverage, 60.15% branch coverage, 62.27% function coverage, and 68.69% line coverage across 162 source files. The `App.tsx` entry point is now 100% covered, and the custom hooks folder is at 94.37% statement coverage. The largest remaining coverage gap is the component layer (51.06% statements) and utility layer (19.14% statements).
+The latest successful GitHub Actions run reports 71.28% statement coverage, 61.04% branch coverage, 63.21% function coverage, and 72.51% line coverage across 162 source files. The `App.tsx` entry point is now 100% covered, and the custom hooks folder is at 94.37% statement coverage. The largest remaining coverage gap is the component layer (51.06% statements).
 
 ---
 
