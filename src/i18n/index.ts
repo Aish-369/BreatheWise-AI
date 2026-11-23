@@ -28,7 +28,7 @@ export function t(
   key: string,
   params?: Record<string, string | number>
 ): string {
-  const dict = DICTS[lang] ?? checkedEn;
+  const dict: TranslationMap = DICTS[lang] ?? checkedEn;
   let text = dict[key] ?? checkedEn[key as TranslationKey] ?? key;
   if (params) {
     for (const [k, v] of Object.entries(params)) {
