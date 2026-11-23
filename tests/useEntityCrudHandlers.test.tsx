@@ -61,6 +61,8 @@ describe('useEntityCrudHandlers', () => {
     api.deleteMemberApi.mockRejectedValueOnce(failure);
     const { result } = renderHook(() => useEntityCrudHandlers(mutateAndReload));
 
-    await expect(result.current.handleDeleteMember('member-2')).rejects.toThrow('API request failed');
+    await expect(result.current.handleDeleteMember('member-2')).rejects.toThrow(
+      'API request failed'
+    );
   });
 });
