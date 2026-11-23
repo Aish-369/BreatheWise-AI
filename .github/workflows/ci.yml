@@ -30,6 +30,10 @@ jobs:
         run: npm ci --legacy-peer-deps
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
+      - name: Diagnostic Prettier output (temporary)
+        run: |
+          npx prettier --write docs/QUALITY_AUDIT.md tests/apiClient.test.ts
+          git diff -- docs/QUALITY_AUDIT.md tests/apiClient.test.ts
       - name: Check formatting
         run: npm run format:check
       - name: Lint (ESLint, zero warnings)
