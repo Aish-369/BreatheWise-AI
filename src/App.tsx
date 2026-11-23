@@ -17,16 +17,16 @@ export default function App() {
   const { closeHeaderMenus, setViewMode } = nav;
 
   const onChangeLang = useCallback(
-    (next: LanguageCode) => void handleLanguageChange(next),
+    (next: LanguageCode): void => void handleLanguageChange(next),
     [handleLanguageChange]
   );
 
-  const onBackToLanding = useCallback(() => {
+  const onBackToLanding = useCallback((): void => {
     closeHeaderMenus();
     setViewMode('landing');
   }, [closeHeaderMenus, setViewMode]);
 
-  const onRefresh = useCallback(() => void loadBootstrap(), [loadBootstrap]);
+  const onRefresh = useCallback((): void => void loadBootstrap(), [loadBootstrap]);
 
   return (
     <MotionConfig reducedMotion="user">
