@@ -137,7 +137,7 @@ External API keys in `.env` are optional; local illustrative-data and CAMS-impor
 npm run lint           # ESLint (typescript-eslint + react-hooks + jsx-a11y recommended at error level, zero warnings)
 npm run typecheck      # TypeScript check (tsc --noEmit)
 npm run format:check   # Prettier formatting check
-npm test               # Vitest suite (138 tests across 28 files)
+npm test               # Vitest suite (146 tests across 29 files)
 npm run test:coverage  # Vitest + V8 coverage report across src/
 npm run build          # Production Vite client bundle
 ```
@@ -153,6 +153,7 @@ The automated Vitest suite contains **138 tests across 28 files**, verified by t
 - **Localization & Accessibility** (`tests/i18nParity.test.ts`, `tests/frontendA11y.test.tsx`): Key parity across `en`/`hi`/`mr` and automated axe checks for primary views.
 - **Frontend state & recovery** (`tests/App.test.tsx`, `tests/useNavigationState.test.tsx`, `tests/useLocale.test.tsx`, `tests/useHouseholdData.test.tsx`, `tests/useHouseholdMutations.test.tsx`, `tests/useEntityCrudHandlers.test.tsx`, `tests/ErrorBoundary.test.tsx`): Root landing/workspace routing, bootstrap loading and failure recovery, household mutation workflows, navigation/deep-link state, locale persistence, CRUD delegation, and UI error recovery.
 - **Frontend API client** (`tests/apiClient.test.ts`): Request methods and headers, URL parameter encoding, identifier escaping, structured server errors, non-JSON failures, and network error normalization.
+- **Feature views** (`tests/featureViews.test.tsx`): Indoor guidance for unavailable, poor, and moderate air-quality bands; provenance tiers and safeguards; settings tabs, preference callbacks, and clear-data confirmation.
 
 Measured V8 coverage from the latest successful CI run (`npm run test:coverage`):
 
@@ -162,13 +163,13 @@ Measured V8 coverage from the latest successful CI run (`npm run test:coverage`)
 | `src/i18n`         |      11 |    100.00% |     68.18% |    100.00% |    100.00% |
 | `src/shared`       |       4 |     97.36% |     76.92% |    100.00% |    100.00% |
 | `src/server`       |      44 |     79.25% |     60.16% |     80.00% |     85.79% |
-| `src/components`   |      80 |     44.68% |     44.09% |     41.66% |     45.80% |
+| `src/components`   |      80 |     51.06% |     44.09% |     41.66% |     45.80% |
 | `src/utils`        |       4 |     19.14% |     33.07% |     26.66% |     18.62% |
 | `src/hooks`        |       5 |     94.37% |     82.60% |     96.36% |     93.61% |
 | `src` (`App.tsx`)  |       1 |    100.00% |    100.00% |    100.00% |    100.00% |
-| **Total (`src/`)** | **162** | **67.07%** | **59.52%** | **60.98%** | **68.02%** |
+| **Total (`src/`)** | **162** | **67.66%** | **60.15%** | **62.27%** | **68.69%** |
 
-The latest verified CI run passes formatting, ESLint, TypeScript type-checking, all 138 tests, and the production build. Coverage is reported transparently; the largest remaining gaps are UI components and utility modules. The root `App.tsx` and household mutation hook now have high measured coverage.
+The latest verified CI run passes formatting, ESLint, TypeScript type-checking, all 146 tests, and the production build. Coverage is reported transparently; the largest remaining gaps are UI components and utility modules. The root `App.tsx` and household mutation hook now have high measured coverage.
 
 ---
 
