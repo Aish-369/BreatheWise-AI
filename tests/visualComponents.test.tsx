@@ -35,9 +35,7 @@ afterEach(() => {
 
 describe('AqiGauge', () => {
   it('communicates unavailable readings without presenting a numeric AQI', () => {
-    render(
-      <AqiGauge aqi={null} band="unavailable" bandLabel="Unavailable" isAvailable={false} />
-    );
+    render(<AqiGauge aqi={null} band="unavailable" bandLabel="Unavailable" isAvailable={false} />);
 
     expect(screen.getByRole('img', { name: 'AQI Unavailable' })).toBeTruthy();
     expect(screen.getByText('—')).toBeTruthy();
