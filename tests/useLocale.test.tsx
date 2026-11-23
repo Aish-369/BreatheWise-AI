@@ -95,7 +95,7 @@ describe('useLocale', () => {
 
   it('propagates persistence errors through the supplied action handler', async () => {
     const failure = new Error('Settings save failed');
-    const runAction = vi.fn(<T,>(action: () => Promise<T>): Promise<T> => action());
+    const runAction = async <T,>(action: () => Promise<T>): Promise<T> => action();
     updateSettingsApi.mockRejectedValueOnce(failure);
 
     const { result } = renderHook(() =>
