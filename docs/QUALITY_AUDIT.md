@@ -241,20 +241,20 @@ these audit findings do not establish that the score has improved.
 
 ## Post-audit progress — Phase 1 test expansion
 
-**Latest verified CI run:** [Run](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45149907484)
+**Latest verified CI run:** [Run](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45150723097)
 
 The initial baseline above remains a snapshot of the repository at the start of Phase 0. Subsequent Phase 1 work on this branch has added behavioral tests for the frontend API client, root App routing, household bootstrap behavior, and household mutation workflows.
 
 Latest successful CI evidence:
 
-- Test suite: 146 tests across 29 files, all passing.
-- Statement coverage: 67.66% (up from the baseline 62.82%).
-- Branch coverage: 60.15%.
-- Function coverage: 62.27%.
-- Line coverage: 68.69%.
+- Test suite: 149 tests across 30 files, all passing.
+- Statement coverage: 71.28% (up from the baseline 62.82%).
+- Branch coverage: 61.04%.
+- Function coverage: 63.21%.
+- Line coverage: 72.51%.
 - `src/App.tsx`: 100% statements, branches, functions, and lines.
 - `src/hooks`: 94.37% statement coverage.
 - `src/hooks/useHouseholdMutations.ts`: 94.87% statements.
 - Formatting, ESLint (zero warnings), TypeScript type-check, test suite, and production build all passed.
 
-The component layer improved to 51.06% statement coverage through behavior tests for indoor guidance, trust/provenance, and settings workflows. The utility layer remains the largest gap at 19.14% statements. Browser-based end-to-end workflows have not yet been verified, and no Hack2Skill evaluation score has been re-run. These changes do not establish a new evaluator score.
+The component layer improved to 51.06% statement coverage through behavior tests for indoor guidance, trust/provenance, and settings workflows. Utility coverage improved to 55.44%; the PDF standard renderer now has 98.23% statement coverage. Remaining utility risk is concentrated in the canvas PDF renderer (4.50%) and API client (69.23%). Browser-based end-to-end workflows have not yet been verified, and no Hack2Skill evaluation score has been re-run. These changes do not establish a new evaluator score.
