@@ -43,6 +43,17 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
   app.use(applySecurityHeaders);
   app.use(express.json({ limit: '1mb' }));
 
+  // Hosting-provider liveness/readiness probe: no session cookie or household data required.
+  // Keep the response intentionally minimal; database failures return only a generic status.
+  app.get('/healthz', (_req, res) => {
+    try {
+      db.prepare('SELECT 1').get();
+      res.status(200).json({ status: 'ok' });
+    } catch {
+      res.status(503).json({ status: 'unavailable' });
+    }
+  });
+
   app.use(
     '/api/session',
     createRateLimitMiddleware({ windowMs: 15 * 60 * 1000, max: 20, name: 'session' })
