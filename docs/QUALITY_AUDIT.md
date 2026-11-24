@@ -262,15 +262,29 @@ Latest successful CI evidence:
 
 The component layer improved to 51.06% statement coverage through behavior tests for indoor guidance, trust/provenance, and settings workflows. Utility coverage improved to 55.44%; the PDF standard renderer now has 98.23% statement coverage. Remaining utility risk is concentrated in the canvas PDF renderer (4.50%) and API client (69.23%). Browser-based end-to-end workflows have not yet been verified, and no Hack2Skill evaluation score has been re-run. These changes do not establish a new evaluator score.
 
-## Latest score-hardening evidence — 2026-11-24
+## Latest evaluator-targeted evidence — 2026-11-24
 
-**Verified PR CI:** [Run 45334418916](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45334418916) — all 13 workflow steps passed.
+**Verified PR CI:** [Run 45338919290](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45338919290) — all 13 workflow steps passed.
 
-- 191 tests across 37 files passed.
-- V8 coverage: 76.59% statements, 64.45% branches, 67.48% functions, 78.08% lines.
-- `src/utils/api.ts`: 98.07% statement coverage; `src/utils`: 94.05%.
-- Formatting, ESLint with zero warnings, strict TypeScript, production dependency audit, production build, Chromium installation, and 3 Playwright journeys passed.
-- Main branch CI before this PR also passed all 13 steps with 176 tests and 3 Playwright journeys.
-- Render deployment for main commit `a51a972371a80c44125fee3de4fe1048c1873dce` is live. PR #19 has not yet been merged/deployed at the time of this report.
+- **261 tests across 46 files** passed.
+- V8 coverage: **87.98% statements, 73.48% branches, 86.03% functions, 89.46% lines**.
+- Component coverage: **90.42% statements**; utility coverage: **97.68%**; hooks: **94.37%**.
+- The PDF report/export utility has 100% statement, branch, function, and line coverage.
+- Formatting, ESLint with zero warnings, strict TypeScript, production dependency audit, production build, Chromium installation, and 3 Playwright browser journeys passed.
+- CI enforces minimum global coverage thresholds (85/70/80/88 for statements/branches/functions/lines).
+- CI uses Node.js 22 for the project and Node 24-compatible GitHub Actions runtimes; workflow token permissions are read-only and stale runs are cancelled.
 
-**Still open before claiming full production persistence:** the app currently uses SQLite on Render's ephemeral filesystem; Supabase PostgreSQL is not connected to the runtime. The Render service is on the Free plan with no persistent disk and no configured health-check path. No paid upgrade, disk attachment, or secret/environment change was made. The external Hack2Skill evaluator has not been re-run, so 97+/100 is not verified.
+### Prior evaluator baseline and current category focus
+
+The previously supplied evaluator breakdown was 91.86/100: Code Quality 86, Security 98, Efficiency 100, Accessibility 96, Problem Statement Alignment 93, and Testing 78. This is the historical score, not a re-evaluation of the current commit.
+
+The current changes directly address the two weakest areas:
+- **Testing:** expanded from 191 to 261 tests; coverage rose from 76.59% to 87.98% statements and from 64.45% to 73.48% branches. Real user workflows now cover workspace navigation, household setup/member editing, planner, simulator, saved locations, CAMS import, dashboard snapshot/PDF actions, history inspection, and multilingual PDF export.
+- **Code Quality:** strict TypeScript is enabled (strict, noImplicitAny, and strictNullChecks); CI enforces formatting, zero-warning ESLint, type-checking, production build, and explicit coverage floors. The Vitest config import now includes its .ts extension.
+
+### Remaining production and evaluator limitations
+
+- The production runtime still uses SQLite on Render's ephemeral filesystem. The connected Render service is on the Free plan, has no persistent disk, and its health-check path is unset.
+- Supabase PostgreSQL is not integrated into the application runtime. A durable PostgreSQL migration is a separate project requiring repository-layer changes, migration/rollback planning, household-isolation tests, restart/persistence tests, and a controlled deployment.
+- No paid Render upgrade, persistent disk attachment, production secret, or environment variable was changed.
+- The external evaluator has **not** been re-run. The 97+/100 target is not verified and must not be claimed until the evaluator produces a new result.

@@ -1,5 +1,5 @@
 import { defineConfig, mergeConfig } from 'vitest/config';
-import viteConfig from './vite.config';
+import viteConfig from './vite.config.ts';
 
 export default mergeConfig(
   viteConfig({ mode: 'test', command: 'serve' }),
@@ -11,6 +11,12 @@ export default mergeConfig(
         reporter: ['text', 'json-summary'],
         include: ['src/**/*.{ts,tsx}'],
         exclude: ['src/**/*.d.ts', 'src/main.tsx', 'src/server/supabase/database.types.ts'],
+        thresholds: {
+          statements: 85,
+          branches: 70,
+          functions: 80,
+          lines: 88,
+        },
       },
     },
   })
