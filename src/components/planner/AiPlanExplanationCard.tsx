@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LoaderCircle, Sparkles } from 'lucide-react';
 import type { FamilyMember, LanguageCode, ProtectionPlanResult } from '../../shared/types';
 import { t } from '../../i18n/translations';
@@ -47,14 +47,21 @@ export function AiPlanExplanationCard({ lang, plan, members }: AiPlanExplanation
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AiPlanExplanationResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const requestVersion = useRef(0);
   const labels = copy[lang];
 
   useEffect(() => {
+    requestVersion.current += 1;
+    setLoading(false);
     setResult(null);
     setError(null);
+    return () => {
+      requestVersion.current += 1;
+    };
   }, [lang, plan.id]);
 
   const handleExplain = async () => {
+    const requestId = ++requestVersion.current;
     setLoading(true);
     setError(null);
     try {
@@ -84,11 +91,12 @@ export function AiPlanExplanationCard({ lang, plan, members }: AiPlanExplanation
           severity: item.severity,
         })),
       };
-      setResult(await explainPlanApi(lang, context));
+      const explanation = await explainPlanApi(lang, context);
+      if (requestVersion.current === requestId) setResult(explanation);
     } catch {
-      setError(labels.error);
+      if (requestVersion.current === requestId) setError(labels.error);
     } finally {
-      setLoading(false);
+      if (requestVersion.current === requestId) setLoading(false);
     }
   };
 
