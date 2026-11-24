@@ -2,10 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { t } from '../src/i18n/translations';
 import type { HouseholdProfile, ProtectionPlanResult } from '../src/shared/types';
-import {
-  buildPdfReportModel,
-  exportProtectionPlanPdf,
-} from '../src/utils/pdfExport';
+import { buildPdfReportModel, exportProtectionPlanPdf } from '../src/utils/pdfExport';
 
 const pdfMocks = vi.hoisted(() => ({
   save: vi.fn(),
@@ -15,7 +12,9 @@ const pdfMocks = vi.hoisted(() => ({
 }));
 
 vi.mock('jspdf', () => ({
-  jsPDF: vi.fn().mockImplementation(() => ({ save: pdfMocks.save })),
+  jsPDF: class MockJsPdf {
+    save = pdfMocks.save;
+  },
 }));
 vi.mock('../src/utils/pdfStandardRenderer', () => ({
   renderStandardPdf: pdfMocks.renderStandard,
@@ -161,7 +160,7 @@ describe('buildPdfReportModel', () => {
 
     const model = buildPdfReportModel(household, plan, 'en');
     expect(model.banners).toEqual([]);
-    expect(model.evidenceLines[0]).toContain('N/A');
+    expect(model.evidenceLines[0]).toContain(t('en', 'band_unavailable'));
     expect(model.evidenceLines[0]).toContain(t('en', 'dash_derived_note'));
     expect(model.recommendationBlocks[0].members).toContain('Asha, Rohan');
     expect(model.recommendationBlocks[0].reconsider).toBeUndefined();
@@ -174,9 +173,9 @@ describe('buildPdfReportModel', () => {
     expect(buildPdfReportModel(household, makePlan(), 'hi').containsDevanagari).toBe(true);
 
     const devanagariHousehold = { ...household, name: 'आशा पवार' };
-    expect(
-      buildPdfReportModel(devanagariHousehold, makePlan(), 'en').containsDevanagari
-    ).toBe(true);
+    expect(buildPdfReportModel(devanagariHousehold, makePlan(), 'en').containsDevanagari).toBe(
+      true
+    );
   });
 });
 
