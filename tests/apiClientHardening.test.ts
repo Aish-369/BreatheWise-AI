@@ -16,6 +16,13 @@ import {
   updateSettingsApi,
 } from '../src/utils/api';
 
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  });
+}
+
 afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
@@ -26,14 +33,15 @@ describe('frontend API client timeout and response hardening', () => {
   it('aborts timed-out requests with a stable timeout error', async () => {
     vi.useFakeTimers();
 
-    const fetchMock = vi.fn<typeof fetch>().mockImplementation((_input, init) =>
-      new Promise<Response>((_resolve, reject) => {
-        init?.signal?.addEventListener(
-          'abort',
-          () => reject(new DOMException('The request was aborted.', 'AbortError')),
-          { once: true }
-        );
-      })
+    const fetchMock = vi.fn<typeof fetch>().mockImplementation(
+      (_input, init) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            'abort',
+            () => reject(new DOMException('The request was aborted.', 'AbortError')),
+            { once: true }
+          );
+        })
     );
     vi.stubGlobal('fetch', fetchMock);
 
