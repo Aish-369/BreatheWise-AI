@@ -23,7 +23,8 @@ test.describe('BreatheWise AI extended browser journeys', () => {
 
     for (const route of routes) {
       await navigation.getByRole('button', { name: route.label, exact: true }).click();
-      await expect(page.getByRole('main').getByRole('heading', { name: route.heading })).toBeVisible();
+      const heading = page.getByRole('main').getByRole('heading', { name: route.heading });
+      await expect(heading).toBeVisible();
     }
   });
 
