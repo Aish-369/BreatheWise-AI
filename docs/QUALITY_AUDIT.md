@@ -262,7 +262,6 @@ Latest successful CI evidence:
 
 The component layer improved to 51.06% statement coverage through behavior tests for indoor guidance, trust/provenance, and settings workflows. Utility coverage improved to 55.44%; the PDF standard renderer now has 98.23% statement coverage. Remaining utility risk is concentrated in the canvas PDF renderer (4.50%) and API client (69.23%). Browser-based end-to-end workflows have not yet been verified, and no Hack2Skill evaluation score has been re-run. These changes do not establish a new evaluator score.
 
-
 ## Latest score-hardening evidence — 2026-11-24
 
 **Verified PR CI:** [Run 45334418916](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45334418916) — all 13 workflow steps passed.
