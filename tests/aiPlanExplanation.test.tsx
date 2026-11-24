@@ -43,7 +43,7 @@ const plan = {
 const members = [
   { id: 'member-1', name: 'Private Member Name', ageGroup: 'school_child' },
   { id: 'member-2', name: 'Another Private Name', ageGroup: 'older_adult' },
-] as FamilyMember[];
+] as unknown as FamilyMember[];
 
 describe('AiPlanExplanationCard', () => {
   it('requests a grounded explanation without sending member names', async () => {
