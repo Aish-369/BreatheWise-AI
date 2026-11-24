@@ -126,14 +126,14 @@ describe('ScenarioResultPanel', () => {
     render(<ScenarioResultPanel lang="en" result={null} />);
 
     expect(screen.getByText('No scenario executed yet')).toBeTruthy();
-    expect(screen.getByText(/NOT AN OBSERVED ENVIRONMENTAL MEASUREMENT/)).toBeFalsy();
+    expect(screen.queryByText(/NOT AN OBSERVED ENVIRONMENTAL MEASUREMENT/)).toBeNull();
   });
 
   it('renders the scenario comparison and schedule differences', () => {
     render(<ScenarioResultPanel lang="en" result={makeScenario()} />);
 
     expect(screen.getByText('Worsening afternoon air')).toBeTruthy();
-    expect(screen.getByText('Delta 0 AQI')).toBeTruthy();
+    expect(screen.getByText('Delta +0 AQI')).toBeTruthy();
     expect(screen.getByText('Resulting Schedule')).toBeTruthy();
     expect(screen.getByText('SCENARIO — NOT AN OBSERVED ENVIRONMENTAL MEASUREMENT')).toBeTruthy();
   });
@@ -151,7 +151,9 @@ describe('PlanInspectionModal', () => {
     expect(screen.getByText(/Pune · AQI 82/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: t('en', 'action_downloadPdf') }));
     expect(onExportPdf).toHaveBeenCalledWith(plan);
-    fireEvent.click(screen.getByRole('button', { name: t('en', 'action_close') }));
+    const closeButtons = screen.getAllByRole('button', { name: t('en', 'action_close') });
+    expect(closeButtons).toHaveLength(2);
+    fireEvent.click(closeButtons[1]);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
