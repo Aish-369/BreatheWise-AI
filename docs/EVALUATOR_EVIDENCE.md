@@ -2,9 +2,9 @@
 
 **Evidence snapshot:** 2026-11-24  
 **Repository:** Aish-369/BreatheWise-AI  
-**Verified branch:** quality/evaluator-97-component-coverage  
-**Verified commit:** 291481936358e1149249fb6f0df9c76f7e59414a  
-**CI:** [Run 45340249877](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45340249877)
+**Verified branch:** main  
+**Verified commit:** 9b2d9264626a803f292b2db43323640d9ce9ec8d  
+**CI:** [Run 45343693980](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45343693980)
 
 This document maps observable project evidence to the six categories in the previous evaluator report. It is not a substitute for a new evaluator run and does not claim a 97+ score.
 
@@ -28,8 +28,8 @@ This document maps observable project evidence to the six categories in the prev
 | Security                    | Production dependency audit at high-severity threshold; API error-redaction tests; Zod request validation; rate-limit behavior and middleware headers; security-header assertions; read-only GitHub Actions token permissions.                                    |
 | Efficiency                  | Deterministic recommendation engine and forecast-window logic remain covered by engine tests. The previous evaluator awarded 100 in this category; no new performance benchmark is claimed by this change.                                                        |
 | Accessibility               | Existing axe-based primary-view checks remain in CI; new interaction tests exercise semantic buttons/dialogs, mobile navigation, active route state, and Escape-key dismissal. The previous evaluator score was 96; no new accessibility score has been measured. |
-| Problem Statement Alignment | Tests exercise household preferences and family members, AQI-aware routine planning, what-if scenarios, saved multi-city locations, CAMS forecast import, history/plan inspection, and multilingual PDF reporting. English, Marathi, and Hindi remain supported.  |
-| Testing                     | 261 tests across 46 files; 87.98% statements, 73.48% branches, 86.03% functions, and 89.46% lines; 3/3 Playwright browser journeys pass.                                                                                                                          |
+| Problem Statement Alignment | Tests exercise household preferences and family members, AQI-aware routine planning, what-if scenarios, saved multi-city locations, CAMS forecast import, history/plan inspection, multilingual PDF reporting, and a server-side Gemini explanation layer that explains—but cannot alter—the deterministic plan. English, Marathi, and Hindi remain supported.  |
+| Testing                     | 272 tests across 49 files; 88.05% statements, 73.41% branches, 86.27% functions, and 89.58% lines; 3/3 Playwright browser journeys pass.                                                                                                                          |
 
 ## Newly verified test coverage
 
@@ -41,11 +41,11 @@ This document maps observable project evidence to the six categories in the prev
 - History plan inspection and keyboard dismissal.
 - Saved-location add/edit/delete/primary-city flows.
 - CAMS manual import success/failure, oversized-file rejection, and asynchronous pending state.
-- PDF report provenance, demo/scenario disclaimers, derived/unavailable AQI, Devanagari detection, and standard/canvas renderer selection.
+- PDF report provenance, demo/scenario disclaimers, derived/unavailable AQI, Devanagari detection, and standard/canvas renderer selection.\n- Gemini advisor validation, server-only key handling, privacy-minimized context, provider failure fallback, and stale-response protection.
 
 ## Outstanding limitations
 
-- The external evaluator has not been run against this commit. The current score is unknown.
+- The external evaluator has not been run against this commit. The current score is unknown; 97+/100 is not claimed.\n- Gemini remains in rules-fallback mode until `GEMINI_API_KEY` is configured in Render. The key is not committed. Google documents that free-tier content may be used to improve its products; `store: false` does not override those data-use terms. Review them before enabling real household data.
 - Render production persistence is not guaranteed: the service uses local SQLite on an ephemeral Free-plan filesystem without a persistent disk.
 - Supabase PostgreSQL is not the application's runtime database.
 - Render health-check path remains unset. No hosting plan, disk, secret, or production environment variable was changed.
