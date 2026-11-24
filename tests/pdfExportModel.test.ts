@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { t } from '../src/i18n/translations';
 import type { HouseholdProfile, ProtectionPlanResult } from '../src/shared/types';
 import {
   buildPdfReportModel,
@@ -161,7 +162,7 @@ describe('buildPdfReportModel', () => {
     const model = buildPdfReportModel(household, plan, 'en');
     expect(model.banners).toEqual([]);
     expect(model.evidenceLines[0]).toContain('N/A');
-    expect(model.evidenceLines[0]).toContain('dash_derived_note');
+    expect(model.evidenceLines[0]).toContain(t('en', 'dash_derived_note'));
     expect(model.recommendationBlocks[0].members).toContain('Asha, Rohan');
     expect(model.recommendationBlocks[0].reconsider).toBeUndefined();
     expect(model.scheduleBlocks[0].header).toContain('07:00-09:00');
