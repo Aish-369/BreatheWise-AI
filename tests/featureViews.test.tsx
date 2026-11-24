@@ -72,7 +72,6 @@ describe('IndoorGuidanceView', () => {
     expect(screen.getByText(t('en', 'indoor_hero_mod'))).toBeTruthy();
     expect(screen.getByText(t('en', 'indoor_badge_nonpeak'))).toBeTruthy();
   });
-});
 
   it('avoids suggesting outdoor active travel when AQI is moderate or worse', () => {
     render(<IndoorGuidanceView lang="en" currentBand="poor" city="Pune" />);
