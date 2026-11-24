@@ -36,6 +36,8 @@ jobs:
         run: |
           npx prettier --write docs/EVALUATOR_EVIDENCE.md
           git diff -- docs/EVALUATOR_EVIDENCE.md
+          npx prettier --write README.md src/components/IndoorGuidanceView.tsx tests/featureViews.test.tsx e2e/core-user-journeys.spec.ts
+          git diff -- README.md src/components/IndoorGuidanceView.tsx tests/featureViews.test.tsx e2e/core-user-journeys.spec.ts
           npm run format:check
       - name: Lint (ESLint, zero warnings)
         run: npm run lint
