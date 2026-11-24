@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { t } from '../src/i18n/translations';
 import { useNavigationState } from '../src/hooks/useNavigationState';
@@ -178,7 +178,11 @@ describe('WorkspaceShell orchestration', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Open navigation menu' }));
     expect(screen.getByRole('dialog', { name: 'Workspace menu' })).toBeTruthy();
 
-    fireEvent.click(screen.getByRole('button', { name: t('en', 'side_planner') }));
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'Workspace menu' })).getByRole('button', {
+        name: t('en', 'side_planner'),
+      })
+    );
     expect(screen.queryByRole('dialog', { name: 'Workspace menu' })).toBeNull();
     expect(
       screen.getByRole('button', { name: t('en', 'side_planner') }).getAttribute('aria-current')
@@ -202,14 +206,12 @@ describe('WorkspaceShell orchestration', () => {
   it('shows a recoverable bootstrap error and delegates retry', () => {
     const onRefresh = vi.fn();
     render(
-      <Harness
-        hh={makeHouseholdState({ errorMsg: 'Service unavailable' })}
-        onRefresh={onRefresh}
-      />
+      <Harness hh={makeHouseholdState({ errorMsg: 'Service unavailable' })} onRefresh={onRefresh} />
     );
 
     expect(screen.getByText('Service unavailable')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: t('en', 'action_refresh') }));
+    const refreshButtons = screen.getAllByRole('button', { name: t('en', 'action_refresh') });
+    fireEvent.click(refreshButtons[1]);
     expect(onRefresh).toHaveBeenCalledTimes(1);
   });
 });
