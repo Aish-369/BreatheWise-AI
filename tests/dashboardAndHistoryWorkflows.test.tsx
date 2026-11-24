@@ -247,7 +247,9 @@ describe('DashboardView actions and navigation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Export PDF' }));
     await waitFor(() => expect(pdf.exportPlan).toHaveBeenCalledWith(household, plan, 'en'));
     await waitFor(() =>
-      expect((screen.getByRole('button', { name: 'Export PDF' }) as HTMLButtonElement).disabled).toBe(false)
+      expect(
+        (screen.getByRole('button', { name: 'Export PDF' }) as HTMLButtonElement).disabled
+      ).toBe(false)
     );
 
     pdf.exportPlan.mockRejectedValueOnce(new Error('PDF renderer unavailable'));
