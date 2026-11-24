@@ -13,6 +13,8 @@ export function IndoorGuidanceView({ lang, currentBand, city }: IndoorGuidanceVi
   const outdoorUnavailable = currentBand === 'unavailable';
   const highOutdoor =
     currentBand === 'poor' || currentBand === 'very_poor' || currentBand === 'severe';
+  const avoidOutdoorActiveTravel =
+    outdoorUnavailable || currentBand === 'moderate' || highOutdoor;
 
   const cards = [
     {
@@ -108,6 +110,56 @@ export function IndoorGuidanceView({ lang, currentBand, city }: IndoorGuidanceVi
           );
         })}
       </div>
+
+      <section
+        aria-labelledby="sustainable-actions-heading"
+        className="bg-white border border-[#E2E7E1] rounded-2xl p-5 lg:p-6 shadow-[0_1px_3px_rgba(37,45,40,0.04)]"
+      >
+        <div className="max-w-3xl">
+          <h2
+            id="sustainable-actions-heading"
+            className="font-display text-lg font-semibold text-[#252D28]"
+          >
+            {t(lang, 'sustainable_choices_title')}
+          </h2>
+          <p className="mt-1 text-sm leading-relaxed text-[#565F58]">
+            {t(lang, 'sustainable_choices_subtitle')}
+          </p>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <article className="rounded-xl bg-[#F7F7F1] border border-[#E2E7E1] p-4">
+            <h3 className="text-sm font-semibold text-[#252D28]">
+              {t(lang, 'low_emission_title')}
+            </h3>
+            <p className="mt-2 text-xs leading-relaxed text-[#565F58]">
+              {t(lang, avoidOutdoorActiveTravel ? 'low_emission_caution' : 'low_emission_clear')}
+            </p>
+          </article>
+
+          <article className="rounded-xl bg-[#F7F7F1] border border-[#E2E7E1] p-4">
+            <h3 className="text-sm font-semibold text-[#252D28]">
+              {t(lang, 'indoor_hacks_title')}
+            </h3>
+            <p className="mt-2 text-xs leading-relaxed text-[#565F58]">
+              {t(lang, 'indoor_hacks_desc')}
+            </p>
+          </article>
+
+          <article className="rounded-xl bg-[#F7F7F1] border border-[#E2E7E1] p-4">
+            <h3 className="text-sm font-semibold text-[#252D28]">
+              {t(lang, 'sustainable_swaps_title')}
+            </h3>
+            <p className="mt-2 text-xs leading-relaxed text-[#565F58]">
+              {t(lang, 'sustainable_swaps_desc')}
+            </p>
+          </article>
+        </div>
+
+        <p className="mt-4 border-t border-[#E2E7E1] pt-3 text-xs leading-relaxed text-[#565F58]">
+          {t(lang, 'sustainable_impact_note')}
+        </p>
+      </section>
     </div>
   );
 }
