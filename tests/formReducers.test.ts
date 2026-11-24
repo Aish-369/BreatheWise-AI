@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type { ActivityRoutine, FamilyMember, HouseholdProfile, SavedLocation } from '../src/shared/types';
+import type {
+  ActivityRoutine,
+  FamilyMember,
+  HouseholdProfile,
+  SavedLocation,
+} from '../src/shared/types';
 import {
   createInitialFamilyState,
   familyFormReducer,
@@ -200,9 +205,12 @@ describe('simulator reducer', () => {
 
   it('updates fields and applies numeric overrides and scenario flags', () => {
     const initial = createInitialSimulatorState([routine], 42, 75);
-    expect(
-      simulatorReducer(initial, { type: 'setField', field: 'label', value: 'Custom scenario' }).label
-    ).toBe('Custom scenario');
+    const updated = simulatorReducer(initial, {
+      type: 'setField',
+      field: 'label',
+      value: 'Custom scenario',
+    });
+    expect(updated.label).toBe('Custom scenario');
 
     expect(
       simulatorReducer(initial, {
