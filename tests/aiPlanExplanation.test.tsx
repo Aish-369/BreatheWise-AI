@@ -110,10 +110,16 @@ describe('AiPlanExplanationCard', () => {
     }) => void;
     vi.mocked(explainPlanApi)
       .mockImplementationOnce(
-        () => new Promise((resolve) => { resolveFirst = resolve; })
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          })
       )
       .mockImplementationOnce(
-        () => new Promise((resolve) => { resolveSecond = resolve; })
+        () =>
+          new Promise((resolve) => {
+            resolveSecond = resolve;
+          })
       );
 
     const { rerender } = render(
