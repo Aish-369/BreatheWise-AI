@@ -60,7 +60,7 @@ describe('CamsForecastTab', () => {
     fireEvent.click(screen.getByRole('button', { name: t('en', 'action_importCams') }));
 
     await waitFor(() => expect(onImportCams).toHaveBeenCalledWith('{"city":"Pune"}'));
-    expect(await screen.findByRole('status')).toHaveTextContent('Imported 4 forecast slots.');
+    expect((await screen.findByRole('status')).textContent).toContain('Imported 4 forecast slots.');
   });
 
   it('surfaces validation failures returned by the import handler', async () => {
@@ -72,7 +72,7 @@ describe('CamsForecastTab', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: t('en', 'action_importCams') }));
 
-    expect(await screen.findByRole('status')).toHaveTextContent('Unsupported time window.');
+    expect((await screen.findByRole('status')).textContent).toContain('Unsupported time window.');
     expect(onImportCams).toHaveBeenCalledWith('invalid payload');
   });
 
@@ -81,11 +81,11 @@ describe('CamsForecastTab', () => {
     render(<CamsForecastTab lang="en" city="Pune" forecasts={[]} onImportCams={onImportCams} />);
 
     const oversized = new File([new Uint8Array(512 * 1024 + 1)], 'large.csv', { type: 'text/csv' });
-    fireEvent.change(screen.getByLabelText('cams_upload_file'), {
+    fireEvent.change(screen.getByLabelText(t('en', 'cams_upload_file')), {
       target: { files: [oversized] },
     });
 
-    expect(screen.getByRole('status')).toHaveTextContent('File exceeds 512 KB limit.');
+    expect(screen.getByRole('status').textContent).toContain('File exceeds 512 KB limit.');
     expect(onImportCams).not.toHaveBeenCalled();
   });
 
@@ -105,7 +105,7 @@ describe('CamsForecastTab', () => {
     fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() =>
-      expect(screen.getByLabelText('Copernicus CAMS CSV or JSON input')).toHaveValue('city,timeWindow')
+      expect((screen.getByLabelText('Copernicus CAMS CSV or JSON input') as HTMLTextAreaElement).value).toBe('city,timeWindow')
     );
     expect(input.value).toBe('');
   });
@@ -122,10 +122,10 @@ describe('CamsForecastTab', () => {
 
     const submit = screen.getByRole('button', { name: t('en', 'action_importCams') });
     fireEvent.click(submit);
-    expect(submit).toBeDisabled();
+    expect((submit as HTMLButtonElement).disabled).toBe(true);
 
     resolveImport?.({ ok: true, message: 'Done' });
-    await waitFor(() => expect(submit).not.toBeDisabled());
-    expect(screen.getByRole('status')).toHaveTextContent('Done');
+    await waitFor(() => expect((submit as HTMLButtonElement).disabled).toBe(false));
+    expect(screen.getByRole('status').textContent).toContain('Done');
   });
 });
