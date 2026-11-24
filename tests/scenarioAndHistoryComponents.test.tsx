@@ -145,7 +145,9 @@ describe('PlanInspectionModal', () => {
     const onClose = vi.fn();
     const onExportPdf = vi.fn();
 
-    render(<PlanInspectionModal lang="en" plan={plan} onClose={onClose} onExportPdf={onExportPdf} />);
+    render(
+      <PlanInspectionModal lang="en" plan={plan} onClose={onClose} onExportPdf={onExportPdf} />
+    );
 
     expect(screen.getByRole('dialog', { name: t('en', 'ui_modal_plan_detail') })).toBeTruthy();
     expect(screen.getByText(/Pune · AQI 82/)).toBeTruthy();
