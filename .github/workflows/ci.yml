@@ -34,7 +34,8 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
       - name: Check formatting
         run: |
-          npx prettier --check docs/EVALUATOR_EVIDENCE.md docs/QUALITY_AUDIT.md
+          npx prettier --write src/components/planner/AiPlanExplanationCard.tsx src/server/aiAdvisor.ts src/server/app.ts src/utils/api.ts tests/aiAdvisor.test.ts tests/aiPlanExplanation.test.tsx
+          git diff -- src/components/planner/AiPlanExplanationCard.tsx src/server/aiAdvisor.ts src/server/app.ts src/utils/api.ts tests/aiAdvisor.test.ts tests/aiPlanExplanation.test.tsx
           npm run format:check
       - name: Lint (ESLint, zero warnings)
         run: npm run lint
