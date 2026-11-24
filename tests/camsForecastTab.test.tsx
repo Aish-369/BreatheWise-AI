@@ -51,7 +51,7 @@ describe('CamsForecastTab', () => {
       <CamsForecastTab lang="en" city="Pune" forecasts={forecasts} onImportCams={onImportCams} />
     );
 
-    expect(screen.getByText('06:00-09:00')).toBeTruthy();
+    expect(screen.getAllByText('06:00-09:00')).toHaveLength(2);
     expect(screen.getByText(/PM2\.5 ~42 µg\/m³ · NAQI 82/)).toBeTruthy();
 
     fireEvent.change(screen.getByLabelText('Copernicus CAMS CSV or JSON input'), {
@@ -101,7 +101,7 @@ describe('CamsForecastTab', () => {
 
     const file = new File(['city,timeWindow'], 'forecast.csv', { type: 'text/csv' });
     Object.defineProperty(file, 'text', { value: vi.fn().mockResolvedValue('city,timeWindow') });
-    const input = screen.getByLabelText('cams_upload_file') as HTMLInputElement;
+    const input = screen.getByLabelText(t('en', 'cams_upload_file')) as HTMLInputElement;
     fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() =>
