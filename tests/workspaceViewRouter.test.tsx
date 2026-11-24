@@ -2,6 +2,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { WorkspaceViewRouter } from '../src/components/workspace/WorkspaceViewRouter';
+import type { ActiveSection } from '../src/hooks/useNavigationState';
 import type { BootstrapPayload } from '../src/utils/api';
 
 vi.mock('../src/components/DashboardView', () => ({
@@ -69,7 +70,7 @@ const data = {
   history: { plans: [], scenarios: [], snapshots: [] },
 } as unknown as BootstrapPayload;
 
-function makeProps(activeTab: string) {
+function makeProps(activeTab: ActiveSection) {
   return {
     activeTab,
     familySubMode: 'members' as const,
@@ -119,9 +120,4 @@ describe('WorkspaceViewRouter', () => {
     expect(await screen.findByText(expectedContent)).toBeTruthy();
   });
 
-  it('renders the loading fallback while a lazy destination is unresolved', () => {
-    // Lazy modules are preloaded by the route tests above; this assertion protects
-    // the accessible fallback contract without depending on network or timers.
-    expect(makeProps('overview').lang).toBe('en');
-  });
 });
