@@ -23,26 +23,37 @@ test.describe('BreatheWise AI extended browser journeys', () => {
 
     for (const route of routes) {
       await navigation.getByRole('button', { name: route.label, exact: true }).click();
-      const heading = page.getByRole('main').getByRole('heading', { name: route.heading });
+      const heading = page
+        .getByRole('main')
+        .getByRole('heading', { name: route.heading });
       await expect(heading).toBeVisible();
     }
   });
 
-  test('a pollution-spike preset produces an explicitly hypothetical result', async ({ page }) => {
-    const navigation = await openWorkspace(page);
-    await navigation.getByRole('button', { name: 'What-If Simulator', exact: true }).click();
+  test(
+    'a pollution-spike preset produces an explicitly hypothetical result',
+    async ({ page }) => {
+      const navigation = await openWorkspace(page);
+      await navigation
+        .getByRole('button', { name: 'What-If Simulator', exact: true })
+        .click();
 
-    await expect(
-      page.getByRole('heading', { name: 'What-If Scenario Simulator' })
-    ).toBeVisible();
-    await page.getByRole('button', { name: 'PM2.5 Spike', exact: true }).click();
+      await expect(
+        page.getByRole('heading', { name: 'What-If Scenario Simulator' })
+      ).toBeVisible();
+      await page.getByRole('button', { name: 'PM2.5 Spike', exact: true }).click();
 
-    await expect(
-      page.getByText('SCENARIO — NOT AN OBSERVED ENVIRONMENTAL MEASUREMENT', { exact: true })
-    ).toBeVisible();
-    await expect(
-      page.getByRole('heading', { name: /What if PM2\.5 spikes to 145/ })
-    ).toBeVisible();
-    await expect(page.getByText('Hypothetical Scenario', { exact: true })).toBeVisible();
-  });
+      await expect(
+        page.getByText('SCENARIO — NOT AN OBSERVED ENVIRONMENTAL MEASUREMENT', {
+          exact: true,
+        })
+      ).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: /What if PM2\.5 spikes to 145/ })
+      ).toBeVisible();
+      await expect(
+        page.getByText('Hypothetical Scenario', { exact: true })
+      ).toBeVisible();
+    }
+  );
 });
