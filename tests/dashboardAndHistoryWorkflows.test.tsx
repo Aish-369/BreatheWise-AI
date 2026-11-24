@@ -148,7 +148,7 @@ const plan = {
   summaryKey: 'dash_summary_good',
   summaryParams: {},
   limitations: [],
-  recommendations: [{ id: 'rec-1' }],
+  recommendations: [],
   dailyPlan: [],
   supportingEvidence: {
     providerLabel: 'CPCB',
@@ -224,7 +224,7 @@ describe('DashboardView actions and navigation', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Save snapshot' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Snapshot storage failed');
+    expect((await screen.findByRole('alert')).textContent).toContain('Snapshot storage failed');
   });
 
   it('exports the current plan and reports PDF failures', async () => {
@@ -246,10 +246,13 @@ describe('DashboardView actions and navigation', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Export PDF' }));
     await waitFor(() => expect(pdf.exportPlan).toHaveBeenCalledWith(household, plan, 'en'));
+    await waitFor(() =>
+      expect((screen.getByRole('button', { name: 'Export PDF' }) as HTMLButtonElement).disabled).toBe(false)
+    );
 
     pdf.exportPlan.mockRejectedValueOnce(new Error('PDF renderer unavailable'));
     fireEvent.click(screen.getByRole('button', { name: 'Export PDF' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('PDF renderer unavailable');
+    expect((await screen.findByRole('alert')).textContent).toContain('PDF renderer unavailable');
   });
 
   it('delegates dashboard navigation and recommendation filter/expand state', () => {
@@ -336,6 +339,6 @@ describe('HistoryView export and inspection workflows', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: t('en', 'action_downloadPdf') }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('History PDF failed');
+    expect((await screen.findByRole('alert')).textContent).toContain('History PDF failed');
   });
 });
