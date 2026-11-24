@@ -13,8 +13,7 @@ export function IndoorGuidanceView({ lang, currentBand, city }: IndoorGuidanceVi
   const outdoorUnavailable = currentBand === 'unavailable';
   const highOutdoor =
     currentBand === 'poor' || currentBand === 'very_poor' || currentBand === 'severe';
-  const avoidOutdoorActiveTravel =
-    outdoorUnavailable || currentBand === 'moderate' || highOutdoor;
+  const avoidOutdoorActiveTravel = outdoorUnavailable || currentBand === 'moderate' || highOutdoor;
 
   const cards = [
     {
