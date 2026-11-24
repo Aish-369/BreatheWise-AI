@@ -26,15 +26,14 @@ describe('frontend API client timeout and response hardening', () => {
   it('aborts timed-out requests with a stable timeout error', async () => {
     vi.useFakeTimers();
 
-    const fetchMock = vi.fn<typeof fetch>().mockImplementation(
-      (_input, init) =>
-        new Promise<Response>((_resolve, reject) => {
+    const fetchMock = vi.fn<typeof fetch>().mockImplementation((_input, init) =>
+      new Promise<Response>((_resolve, reject) => {
           init?.signal?.addEventListener(
             'abort',
             () => reject(new DOMException('The request was aborted.', 'AbortError')),
             { once: true }
           );
-        })
+      })
     );
     vi.stubGlobal('fetch', fetchMock);
 
@@ -80,9 +79,7 @@ describe('frontend API client timeout and response hardening', () => {
     await resetDemoApi();
     await clearLocalApi();
 
-    expect(
-      fetchMock.mock.calls.map(([url, init]) => [url, init?.method ?? 'GET'])
-    ).toEqual([
+    expect(fetchMock.mock.calls.map(([url, init]) => [url, init?.method ?? 'GET'])).toEqual([
       ['/api/members/member%2F2', 'DELETE'],
       ['/api/routines', 'POST'],
       ['/api/routines/routine%2F2', 'PUT'],
