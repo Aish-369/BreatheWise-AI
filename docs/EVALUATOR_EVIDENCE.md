@@ -28,12 +28,12 @@ This document maps observable project evidence to the six categories in the prev
 | Security                    | Production dependency audit at high-severity threshold; API error-redaction tests; Zod request validation; rate-limit behavior and middleware headers; security-header assertions; read-only GitHub Actions token permissions.                                    |
 | Efficiency                  | Deterministic recommendation engine and forecast-window logic remain covered by engine tests. The previous evaluator awarded 100 in this category; no new performance benchmark is claimed by this change.                                                        |
 | Accessibility               | Existing axe-based primary-view checks remain in CI; new interaction tests exercise semantic buttons/dialogs, mobile navigation, active route state, and Escape-key dismissal. The previous evaluator score was 96; no new accessibility score has been measured. |
-| Problem Statement Alignment | Tests exercise household preferences and family members, AQI-aware routine planning, what-if scenarios, saved multi-city locations, CAMS forecast import, history/plan inspection, multilingual PDF reporting, and a server-side Gemini explanation layer that explains—but cannot alter—the deterministic plan. English, Marathi, and Hindi remain supported.  |
-| Testing                     | 272 tests across 49 files; 88.05% statements, 73.41% branches, 86.27% functions, and 89.58% lines; 3/3 Playwright browser journeys pass.                                                                                                                          |
+| Problem Statement Alignment | Tests exercise household preferences and family members, AQI-aware routine planning, low-emission travel choices, indoor air-quality habits, sustainable swaps, what-if scenarios, saved multi-city locations, CAMS forecast import, history/plan inspection, multilingual PDF reporting, and the optional server-side Gemini explanation layer that cannot alter the deterministic plan. English, Marathi, and Hindi remain supported.  |
+| Testing                     | 277 tests across 49 files; 88.05% statements, 73.46% branches, 86.27% functions, and 89.58% lines; 4/4 Playwright browser journeys pass.                                                                                                                          |
 
 ## Newly verified test coverage
 
-- Workspace shell, responsive drawer, header menus, alert derivation, and all eight lazy routes.
+- Workspace shell, responsive drawer, header menus, alert derivation, and all eight lazy routes.\n- AQI-aware lower-emission travel advice, indoor air-quality habits, and sustainable mobility swaps localized across English, Marathi, and Hindi; walking/cycling advice is withheld for Moderate-or-worse or unavailable AQI, and impact is explicitly qualitative.
 - Household preference save, family-member add/edit/delete, and guided onboarding.
 - Routine creation/edit/delete/completion and schedule filters.
 - Preset/custom scenario runs, including stale-data and unavailable-data safeguards.
