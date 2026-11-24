@@ -23,7 +23,7 @@ afterEach(() => {
 });
 
 describe('frontend API client timeout and response hardening', () => {
-  it('aborts a request after the 15-second deadline and returns a stable timeout error', async () => {
+  it('aborts timed-out requests with a stable timeout error', async () => {
     vi.useFakeTimers();
 
     const fetchMock = vi.fn<typeof fetch>().mockImplementation(
@@ -62,7 +62,7 @@ describe('frontend API client timeout and response hardening', () => {
     await expect(ensureBrowserSession()).resolves.toEqual({});
   });
 
-  it('routes the remaining household, settings, provider, import, and scenario operations', async () => {
+  it('routes remaining API operations with expected methods and bodies', async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({}));
     vi.stubGlobal('fetch', fetchMock);
 
