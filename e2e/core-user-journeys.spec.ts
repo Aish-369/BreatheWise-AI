@@ -80,5 +80,4 @@ test.describe('BreatheWise AI browser journeys', () => {
       await expect(heading).toBeVisible();
     }
   });
-
 });
