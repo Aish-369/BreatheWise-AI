@@ -108,8 +108,8 @@ BreatheWise AI distinguishes five environmental data states and never disguises 
 The daily planner includes an optional Gemini explanation layer. The deterministic TypeScript engine remains the only source of AQI calculations, evidence validation, risk scoring, and recommendations; Gemini explains the already-generated plan in English, Marathi, or Hindi.
 
 - Gemini is called only from the Express server through Google's Interactions REST API. The API key is read from `GEMINI_API_KEY` and is never sent to the browser.
-- The request contains the city, validated AQI/pollutant provenance, age-group counts, and up to four existing recommendations. Member names, household names, and sensitivity tags are not sent.
-- Requests use `store: false`, strict request validation, a 12-second timeout, and a dedicated limit of 8 requests per 15 minutes.
+- The request contains AQI/pollutant provenance, aggregate age-group counts, and up to four existing recommendations. City, member names, household names, routine notes, and sensitivity tags are not sent.
+- Requests use `store: false`, strict request validation, a 12-second timeout, and a dedicated limit of 8 requests per 15 minutes. `store: false` does not override Google's free-tier data-use terms; review them before enabling real household data.
 - If the key is missing or Gemini is unavailable, the UI shows a deterministic rules-based explanation and a clear notice. No plan decision depends on Gemini output.
 - Configure `GEMINI_API_KEY` in the server environment (Render → service → Environment). Optionally set `GEMINI_MODEL`; the default is `gemini-3.8-flash`. Never use a `VITE_` prefix for the key.
 
