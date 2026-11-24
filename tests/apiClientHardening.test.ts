@@ -70,7 +70,7 @@ describe('frontend API client timeout and response hardening', () => {
   });
 
   it('routes remaining API operations with expected methods and bodies', async () => {
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({}));
+    const fetchMock = vi.fn<typeof fetch>().mockImplementation(async () => jsonResponse({}));
     vi.stubGlobal('fetch', fetchMock);
 
     await deleteMemberApi('member/2');
