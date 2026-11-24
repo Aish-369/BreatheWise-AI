@@ -263,9 +263,7 @@ export function clearLocalApi(): Promise<{ ok: boolean; cleared: boolean }> {
   return apiRequest('/api/local/clear', { method: 'DELETE' });
 }
 
-
 export interface AiPlanExplanationContext {
-  city: string;
   aqiValue: number | null;
   aqiBand: 'good' | 'satisfactory' | 'moderate' | 'poor' | 'very_poor' | 'severe' | 'unavailable';
   freshness: 'fresh' | 'aging' | 'stale' | 'unavailable';
