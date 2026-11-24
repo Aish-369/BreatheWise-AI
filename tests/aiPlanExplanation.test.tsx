@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FamilyMember, ProtectionPlanResult } from '../src/shared/types';
 import { AiPlanExplanationCard } from '../src/components/planner/AiPlanExplanationCard';
@@ -125,24 +125,29 @@ describe('AiPlanExplanationCard', () => {
     rerender(<AiPlanExplanationCard lang="en" plan={nextPlan} members={members} />);
     fireEvent.click(screen.getByRole('button', { name: 'Explain today’s plan' }));
 
-    resolveFirst({
-      provider: 'gemini',
-      aiEnabled: true,
-      model: 'gemini-3.8-flash',
-      explanation: 'Stale explanation from the previous plan.',
-      notice: null,
+    await act(async () => {
+      resolveFirst({
+        provider: 'gemini',
+        aiEnabled: true,
+        model: 'gemini-3.8-flash',
+        explanation: 'Stale explanation from the previous plan.',
+        notice: null,
+      });
+      await Promise.resolve();
     });
-    await waitFor(() => expect(explainPlanApi).toHaveBeenCalledTimes(2));
     expect(screen.queryByText('Stale explanation from the previous plan.')).toBeNull();
 
-    resolveSecond({
-      provider: 'gemini',
-      aiEnabled: true,
-      model: 'gemini-3.8-flash',
-      explanation: 'Current plan explanation.',
-      notice: null,
+    await act(async () => {
+      resolveSecond({
+        provider: 'gemini',
+        aiEnabled: true,
+        model: 'gemini-3.8-flash',
+        explanation: 'Current plan explanation.',
+        notice: null,
+      });
+      await Promise.resolve();
     });
-    expect(await screen.findByText('Current plan explanation.')).toBeTruthy();
+    expect(screen.getByText('Current plan explanation.')).toBeTruthy();
   });
 
   it('shows a safe error message when the API request fails', async () => {
