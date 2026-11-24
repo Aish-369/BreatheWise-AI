@@ -10,26 +10,26 @@ This document maps observable project evidence to the six categories in the prev
 
 ## Previous evaluator baseline
 
-| Category | Previous score |
-|---|---:|
-| Code Quality | 86 |
-| Security | 98 |
-| Efficiency | 100 |
-| Accessibility | 96 |
-| Problem Statement Alignment | 93 |
-| Testing | 78 |
-| **Overall** | **91.86/100** |
+| Category                    | Previous score |
+| --------------------------- | -------------: |
+| Code Quality                |             86 |
+| Security                    |             98 |
+| Efficiency                  |            100 |
+| Accessibility               |             96 |
+| Problem Statement Alignment |             93 |
+| Testing                     |             78 |
+| **Overall**                 |  **91.86/100** |
 
 ## Current engineering evidence
 
-| Category | Verifiable evidence |
-|---|---|
-| Code Quality | TypeScript strict/noImplicitAny/strictNullChecks; Prettier; ESLint with zero warnings; type-check; production build; explicit V8 coverage thresholds (85% statements / 70% branches / 80% functions / 88% lines). |
-| Security | Production dependency audit at high-severity threshold; API error-redaction tests; Zod request validation; rate-limit behavior and middleware headers; security-header assertions; read-only GitHub Actions token permissions. |
-| Efficiency | Deterministic recommendation engine and forecast-window logic remain covered by engine tests. The previous evaluator awarded 100 in this category; no new performance benchmark is claimed by this change. |
-| Accessibility | Existing axe-based primary-view checks remain in CI; new interaction tests exercise semantic buttons/dialogs, mobile navigation, active route state, and Escape-key dismissal. The previous evaluator score was 96; no new accessibility score has been measured. |
-| Problem Statement Alignment | Tests exercise household preferences and family members, AQI-aware routine planning, what-if scenarios, saved multi-city locations, CAMS forecast import, history/plan inspection, and multilingual PDF reporting. English, Marathi, and Hindi remain supported. |
-| Testing | 261 tests across 46 files; 87.98% statements, 73.48% branches, 86.03% functions, and 89.46% lines; 3/3 Playwright browser journeys pass. |
+| Category                    | Verifiable evidence                                                                                                                                                                                                                                               |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Code Quality                | TypeScript strict/noImplicitAny/strictNullChecks; Prettier; ESLint with zero warnings; type-check; production build; explicit V8 coverage thresholds (85% statements / 70% branches / 80% functions / 88% lines).                                                 |
+| Security                    | Production dependency audit at high-severity threshold; API error-redaction tests; Zod request validation; rate-limit behavior and middleware headers; security-header assertions; read-only GitHub Actions token permissions.                                    |
+| Efficiency                  | Deterministic recommendation engine and forecast-window logic remain covered by engine tests. The previous evaluator awarded 100 in this category; no new performance benchmark is claimed by this change.                                                        |
+| Accessibility               | Existing axe-based primary-view checks remain in CI; new interaction tests exercise semantic buttons/dialogs, mobile navigation, active route state, and Escape-key dismissal. The previous evaluator score was 96; no new accessibility score has been measured. |
+| Problem Statement Alignment | Tests exercise household preferences and family members, AQI-aware routine planning, what-if scenarios, saved multi-city locations, CAMS forecast import, history/plan inspection, and multilingual PDF reporting. English, Marathi, and Hindi remain supported.  |
+| Testing                     | 261 tests across 46 files; 87.98% statements, 73.48% branches, 86.03% functions, and 89.46% lines; 3/3 Playwright browser journeys pass.                                                                                                                          |
 
 ## Newly verified test coverage
 
