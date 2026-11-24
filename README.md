@@ -137,7 +137,7 @@ External API keys in `.env` are optional; local illustrative-data and CAMS-impor
 npm run lint           # ESLint (typescript-eslint + react-hooks + jsx-a11y recommended at error level, zero warnings)
 npm run typecheck      # TypeScript check (tsc --noEmit)
 npm run format:check   # Prettier formatting check
-npm test               # Vitest suite (151 tests across 30 files)
+npm test               # Vitest suite (191 tests across 37 files)
 npm run test:coverage  # Vitest + V8 coverage report across src/
 npm run build          # Production Vite client bundle
 ```
@@ -146,7 +146,7 @@ npm run build          # Production Vite client bundle
 
 ## Testing
 
-The automated Vitest suite contains **151 tests across 30 files**, verified by the GitHub Actions CI run:
+The automated Vitest suite contains **191 tests across 37 files**, verified by the GitHub Actions CI run:
 
 - **Protection & Quality Engine** (`tests/engine.test.ts`, `tests/unavailableProtectionPlan.test.ts`, and `tests/plan*.test.ts`): Freshness thresholds, NAQI sub-index derivation, provider conflict detection, confidence scoring, forecast window optimization, age/pollutant/sensitivity actions, daily schedule transitions, summary construction, and What-If scenario diffs.
 - **Server, Persistence & Security** (`tests/apiAndMigrations.test.ts`, `tests/dbAndAdapters.test.ts`, `tests/cpcbAdapter.test.ts`, `tests/errorsMiddleware.test.ts`, `tests/sessionCookieHelper.test.ts`, `tests/httpClient.test.ts`, `tests/rateLimit.test.ts`, `tests/rateLimitMiddleware.test.ts`, `tests/phase5And6.test.ts`): Versioned SQLite migrations, isolated browser sessions, Zod error mapping without stack leaks, retry/timeout/TTL caching, CAMS import sanitization, rate-limit headers, 429 responses, and per-client bucket isolation.
@@ -163,14 +163,14 @@ Measured V8 coverage from the latest successful CI run (`npm run test:coverage`)
 | `src/engine`       |      13 |     94.76% |     90.64% |    100.00% |     98.05% |
 | `src/i18n`         |      11 |    100.00% |     68.18% |    100.00% |    100.00% |
 | `src/shared`       |       4 |     97.36% |     76.92% |    100.00% |    100.00% |
-| `src/server`       |      44 |     79.25% |     60.16% |     80.00% |     85.79% |
-| `src/components`   |      80 |     51.06% |     52.75% |     53.57% |     52.67% |
-| `src/utils`        |       4 |     55.44% |     51.96% |     44.44% |     55.51% |
+| `src/server`       |      44 |     81.34% |     62.60% |     80.55% |     87.93% |
+| `src/components`   |      80 |     53.54% |     57.81% |     58.33% |     55.34% |
+| `src/utils`        |       4 |     94.05% |     72.44% |     95.55% |     94.82% |
 | `src/hooks`        |       5 |     94.37% |     82.60% |     96.36% |     93.61% |
 | `src` (`App.tsx`)  |       1 |    100.00% |    100.00% |    100.00% |    100.00% |
-| **Total (`src/`)** | **162** | **71.33%** | **61.06%** | **63.26%** | **72.57%** |
+| **Total (`src/`)** | **162** | **76.59%** | **64.45%** | **67.48%** | **78.08%** |
 
-The latest verified CI run passes production dependency audit, formatting, ESLint, TypeScript type-checking, all 151 tests, the production build, Chromium installation, and all 3 Playwright browser journeys. Coverage is reported transparently; the largest remaining gaps are UI components and utility modules. The root `App.tsx` and household mutation hook now have high measured coverage.
+The latest verified CI run passes production dependency audit, formatting, ESLint, TypeScript type-checking, all 191 tests, the production build, Chromium installation, and all 3 Playwright browser journeys. Coverage is reported transparently; the largest remaining gaps are selected UI components and `src/utils/pdfExport.ts` (59.25% statements). The API client now measures 98.07% statement coverage. The root `App.tsx` and household mutation hook now have high measured coverage.
 
 ---
 
