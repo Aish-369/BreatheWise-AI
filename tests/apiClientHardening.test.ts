@@ -28,11 +28,11 @@ describe('frontend API client timeout and response hardening', () => {
 
     const fetchMock = vi.fn<typeof fetch>().mockImplementation((_input, init) =>
       new Promise<Response>((_resolve, reject) => {
-          init?.signal?.addEventListener(
-            'abort',
-            () => reject(new DOMException('The request was aborted.', 'AbortError')),
-            { once: true }
-          );
+        init?.signal?.addEventListener(
+          'abort',
+          () => reject(new DOMException('The request was aborted.', 'AbortError')),
+          { once: true }
+        );
       })
     );
     vi.stubGlobal('fetch', fetchMock);
