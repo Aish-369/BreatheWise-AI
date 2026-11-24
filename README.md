@@ -149,7 +149,7 @@ External API keys in `.env` are optional; local illustrative-data and CAMS-impor
 npm run lint           # ESLint (typescript-eslint + react-hooks + jsx-a11y recommended at error level, zero warnings)
 npm run typecheck      # TypeScript check (tsc --noEmit)
 npm run format:check   # Prettier formatting check
-npm test               # Vitest suite (261 tests across 46 files)
+npm test               # Vitest suite (272 tests across 49 files)
 npm run test:coverage  # Vitest + V8 coverage report across src/
 npm run build          # Production Vite client bundle
 ```
@@ -158,7 +158,7 @@ npm run build          # Production Vite client bundle
 
 ## Testing
 
-The automated Vitest suite contains **261 tests across 46 files**, verified by the GitHub Actions CI run:
+The automated Vitest suite contains **272 tests across 49 files**, verified by the GitHub Actions CI run:
 
 - **Protection & Quality Engine** (`tests/engine.test.ts`, `tests/unavailableProtectionPlan.test.ts`, and `tests/plan*.test.ts`): Freshness thresholds, NAQI sub-index derivation, provider conflict detection, confidence scoring, forecast window optimization, age/pollutant/sensitivity actions, daily schedule transitions, summary construction, and What-If scenario diffs.
 - **Server, Persistence & Security** (`tests/apiAndMigrations.test.ts`, `tests/dbAndAdapters.test.ts`, `tests/cpcbAdapter.test.ts`, `tests/errorsMiddleware.test.ts`, `tests/sessionCookieHelper.test.ts`, `tests/httpClient.test.ts`, `tests/rateLimit.test.ts`, `tests/rateLimitMiddleware.test.ts`, `tests/phase5And6.test.ts`): Versioned SQLite migrations, isolated browser sessions, Zod error mapping without stack leaks, retry/timeout/TTL caching, CAMS import sanitization, rate-limit headers, 429 responses, and per-client bucket isolation.
@@ -188,9 +188,9 @@ Measured V8 coverage from the latest successful CI run (`npm run test:coverage`)
 | `src/utils`        |       4 |     97.68% |     82.67% |     97.77% |     98.62% |
 | `src/hooks`        |       5 |     94.37% |     82.60% |     96.36% |     93.61% |
 | `src` (`App.tsx`)  |       1 |    100.00% |    100.00% |    100.00% |    100.00% |
-| **Total (`src/`)** | **162** | **87.98%** | **73.48%** | **86.03%** | **89.46%** |
+| **Total (`src/`)** | **162** | **88.05%** | **73.41%** | **86.27%** | **89.58%** |
 
-The latest verified CI run [45338919290](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45338919290) passes production dependency audit, formatting, zero-warning ESLint, strict TypeScript, all 261 tests across 46 files, the production build, Chromium installation, and all 3 Playwright browser journeys. V8 coverage is 87.98% statements, 73.48% branches, 86.03% functions, and 89.46% lines. Component coverage is 90.42% statements; src/utils is 97.68%. The PDF report model/export utility is now 100% covered. Vitest enforces minimum global coverage thresholds of 85% statements, 70% branches, 80% functions, and 88% lines.
+The latest verified CI run [45343693980](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45343693980) passes production dependency audit, formatting, zero-warning ESLint, strict TypeScript, all 272 tests across 49 files, the production build, Chromium installation, and all 3 Playwright browser journeys. V8 coverage is 88.05% statements, 73.41% branches, 86.27% functions, and 89.58% lines. Component coverage is 90.42% statements. The PDF report model/export utility is now 100% covered. Vitest enforces minimum global coverage thresholds of 85% statements, 70% branches, 80% functions, and 88% lines.
 
 ---
 
