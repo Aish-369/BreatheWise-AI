@@ -89,7 +89,9 @@ describe('IndoorGuidanceView', () => {
   it.each(['en', 'mr', 'hi'] as const)('localizes sustainable guidance in %s', (lang) => {
     render(<IndoorGuidanceView lang={lang} currentBand="moderate" city="Pune" />);
 
-    expect(screen.getByRole('heading', { name: t(lang, 'sustainable_choices_title') })).toBeTruthy();
+    expect(
+      screen.getByRole('heading', { name: t(lang, 'sustainable_choices_title') })
+    ).toBeTruthy();
     expect(screen.getByRole('heading', { name: t(lang, 'sustainable_swaps_title') })).toBeTruthy();
   });
 });
