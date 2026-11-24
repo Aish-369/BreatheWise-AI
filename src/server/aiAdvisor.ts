@@ -10,7 +10,6 @@ const RecommendationContextSchema = z.object({
 });
 
 export const AiPlanContextSchema = z.object({
-  city: z.string().trim().min(1).max(80),
   aqiValue: z.number().min(0).max(500).nullable(),
   aqiBand: z.enum([
     'good',
@@ -63,7 +62,8 @@ export interface AiPlanExplanationResult {
 
 const notices = {
   en: {
-    notConfigured: 'Gemini is not configured. This explanation is generated from the verified rules-based plan.',
+    notConfigured:
+      'Gemini is not configured. This explanation is generated from the verified rules-based plan.',
     unavailable: 'Gemini is temporarily unavailable. Showing the rules-based explanation instead.',
   },
   mr: {
@@ -82,7 +82,10 @@ const languageNames = {
   hi: 'Hindi',
 } as const;
 
-function buildFallbackExplanation(context: AiPlanContext, lang: keyof typeof languageNames): string {
+function buildFallbackExplanation(
+  context: AiPlanContext,
+  lang: keyof typeof languageNames
+): string {
   if (!context.isAvailable || context.aqiBand === 'unavailable') {
     return lang === 'mr'
       ? 'सध्याची पर्यावरणीय माहिती उपलब्ध नाही. त्यामुळे योजना AQI किंवा प्रदूषणाबद्दल अंदाजे आकडे देत नाही. नवीन पडताळलेली माहिती उपलब्ध होईपर्यंत बाहेरील कृतींबाबत सावध रहा.'
