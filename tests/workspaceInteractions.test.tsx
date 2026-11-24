@@ -103,7 +103,7 @@ describe('WorkspaceSidebar', () => {
 
     expect(onNavigate).toHaveBeenCalledWith('family');
     expect(onChangeLang).toHaveBeenCalledWith('mr');
-    expect(onBackToLanding).toHaveBeenCalledTimes(2);
+    expect(onBackToLanding).toHaveBeenCalledTimes(1);
     expect(screen.getByText('Pawar Family')).toBeTruthy();
     expect(screen.getByText(/Pune · 3/)).toBeTruthy();
   });
@@ -121,7 +121,7 @@ describe('WorkspaceSidebar', () => {
       />
     );
 
-    expect(screen.getByText('BreatheWise AI')).toBeTruthy();
+    expect(screen.getAllByText('BreatheWise AI')).toHaveLength(2);
     expect(screen.getByText(/Pune · 0/)).toBeTruthy();
   });
 });
