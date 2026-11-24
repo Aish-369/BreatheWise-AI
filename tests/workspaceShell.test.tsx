@@ -114,7 +114,7 @@ describe('WorkspaceShell orchestration', () => {
   it('shows the bootstrap loading state when there is no data yet', () => {
     render(<Harness hh={makeHouseholdState({ loading: true })} />);
     expect(screen.getByText(t('en', 'loading'))).toBeTruthy();
-    expect(screen.getByText('BreatheWise AI')).toBeTruthy();
+    expect(screen.getAllByText('BreatheWise AI').length).toBeGreaterThan(1);
   });
 
   it('renders routed content and dismisses action errors', () => {
@@ -143,10 +143,14 @@ describe('WorkspaceShell orchestration', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Household profile and language menu' }));
     expect(screen.queryByText(t('en', 'ui_no_alerts'))).toBeNull();
-    expect(screen.getByText('Pawar Family')).toBeTruthy();
+    expect(screen.getAllByText('Pawar Family').length).toBeGreaterThan(1);
 
     fireEvent.keyDown(window, { key: 'Escape' });
-    expect(screen.queryByText('Pawar Family')).toBeNull();
+    expect(
+      screen
+        .getByRole('button', { name: 'Household profile and language menu' })
+        .getAttribute('aria-expanded')
+    ).toBe('false');
   });
 
   it('quick-switches household city using the saved location and closes the menu', async () => {
