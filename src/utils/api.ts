@@ -261,3 +261,47 @@ export function resetDemoApi(): Promise<BootstrapPayload> {
 export function clearLocalApi(): Promise<{ ok: boolean; cleared: boolean }> {
   return apiRequest('/api/local/clear', { method: 'DELETE' });
 }
+
+
+export interface AiPlanExplanationContext {
+  city: string;
+  aqiValue: number | null;
+  aqiBand: 'good' | 'satisfactory' | 'moderate' | 'poor' | 'very_poor' | 'severe' | 'unavailable';
+  freshness: 'fresh' | 'aging' | 'stale' | 'unavailable';
+  dominantPollutant: string | null;
+  dataType:
+    | 'physical_station'
+    | 'city_bulletin'
+    | 'modeled_estimate'
+    | 'forecast'
+    | 'hypothetical_scenario';
+  isAvailable: boolean;
+  isDemoFixture: boolean;
+  pollutants: { pm25: number | null; pm10: number | null };
+  householdGroups: { infants: number; children: number; adults: number; olderAdults: number };
+  recommendations: Array<{
+    title: string;
+    action: string;
+    reason: string;
+    evidence: string;
+    severity: 'nominal' | 'advisory' | 'caution' | 'elevated' | 'unavailable';
+  }>;
+}
+
+export interface AiPlanExplanationResponse {
+  provider: 'gemini' | 'rules_fallback';
+  aiEnabled: boolean;
+  model: string | null;
+  explanation: string;
+  notice: string | null;
+}
+
+export function explainPlanApi(
+  lang: LanguageCode,
+  context: AiPlanExplanationContext
+): Promise<AiPlanExplanationResponse> {
+  return apiRequest<AiPlanExplanationResponse>('/api/ai/explain-plan', {
+    method: 'POST',
+    body: JSON.stringify({ lang, context }),
+  });
+}
