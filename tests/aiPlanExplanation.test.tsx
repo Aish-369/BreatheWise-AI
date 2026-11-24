@@ -59,7 +59,9 @@ describe('AiPlanExplanationCard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Explain today’s plan' }));
 
     await waitFor(() =>
-      expect(screen.getByText('The supplied forecast supports moving the flexible walk.')).toBeTruthy()
+      expect(
+        screen.getByText('The supplied forecast supports moving the flexible walk.')
+      ).toBeTruthy()
     );
 
     const [lang, context] = vi.mocked(explainPlanApi).mock.calls[0];
