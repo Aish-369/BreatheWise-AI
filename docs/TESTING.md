@@ -2,18 +2,18 @@
 
 ## 1. Running the Automated Suite
 
-All automated checks run against isolated temporary or `:memory:` SQLite databases and never touch production data (`./data/breathewise.db`). The latest GitHub Actions CI run [45340249877](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45340249877) verified dependency audit, formatting, lint, type-check, coverage tests, production build, Chromium installation, and browser journeys:
+All automated checks run against isolated temporary or `:memory:` SQLite databases and never touch production data (`./data/breathewise.db`). The latest GitHub Actions CI run [45343693980](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45343693980) verified dependency audit, formatting, lint, type-check, coverage tests, production build, Chromium installation, and browser journeys:
 
 ```bash
 npm run format:check  # Prettier formatting verification
 npm run lint           # ESLint with zero warnings
 npm run typecheck      # TypeScript type-checking (tsc --noEmit)
-npm run test:coverage  # Vitest suite with V8 coverage (261 tests across 46 files)
+npm run test:coverage  # Vitest suite with V8 coverage (272 tests across 49 files)
 npm run build          # Vite 8 production bundle check
 npx playwright test    # Chromium browser-level core journeys
 ```
 
-## 2. Test Coverage Breakdown (261 Tests across 46 Files)
+## 2. Test Coverage Breakdown (272 Tests across 49 Files)
 
 1. **`tests/engine.test.ts` (22 tests)**
    - Freshness boundaries (`<= 2h` fresh, `2–6h` aging, `> 6h` stale, missing/future timestamps unavailable)
@@ -98,9 +98,13 @@ npx playwright test    # Chromium browser-level core journeys
 16. **PDF report model/export (`tests/pdfExportModel.test.ts`, 6 tests)**
     - Provenance and disclaimers, derived/unavailable AQI, member fallback, multilingual detection, standard/canvas renderer selection, and document-less fallback
 
+17. **Gemini AI advisor (`tests/aiAdvisor.test.ts`, `tests/aiAdvisorRoute.test.ts`, `tests/aiPlanExplanation.test.tsx`, 11 tests)**
+    - Server-side Gemini request configuration, `store: false`, key isolation, language handling, bounded context, and deterministic fallback when the key is absent or the provider fails
+    - API body validation, safe fallback responses, privacy-minimized context without city/member names, and stale-response protection when the plan changes
+
 ## 3. Latest Measured Coverage
 
-The latest successful GitHub Actions run [45340249877](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45340249877) reports 87.98% statement coverage, 73.48% branch coverage, 86.03% function coverage, and 89.46% line coverage across 162 source files. The App.tsx entry point is 100% covered, components are at 90.42% statements, utilities at 97.68%, and hooks at 94.37%. The PDF export utility is at 100%. vitest.config.ts enforces minimum thresholds of 85% statements, 70% branches, 80% functions, and 88% lines.
+The latest successful GitHub Actions run [45343693980](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45343693980) reports 88.05% statement coverage, 73.41% branch coverage, 86.27% function coverage, and 89.58% line coverage across 162 source files. The App.tsx entry point is 100% covered, components are at 90.42% statements. The PDF export utility is at 100%. vitest.config.ts enforces minimum thresholds of 85% statements, 70% branches, 80% functions, and 88% lines.
 
 **Health probe regression tests (`tests/healthCheck.test.ts`, 2 tests)** cover both successful database readiness without a session cookie and the generic 503 response when SQLite cannot answer.
 
