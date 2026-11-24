@@ -103,6 +103,18 @@ BreatheWise AI distinguishes five environmental data states and never disguises 
 
 ---
 
+## Grounded Gemini Explanation Layer
+
+The daily planner includes an optional Gemini explanation layer. The deterministic TypeScript engine remains the only source of AQI calculations, evidence validation, risk scoring, and recommendations; Gemini explains the already-generated plan in English, Marathi, or Hindi.
+
+- Gemini is called only from the Express server through Google's Interactions REST API. The API key is read from `GEMINI_API_KEY` and is never sent to the browser.
+- The request contains the city, validated AQI/pollutant provenance, age-group counts, and up to four existing recommendations. Member names, household names, and sensitivity tags are not sent.
+- Requests use `store: false`, strict request validation, a 12-second timeout, and a dedicated limit of 8 requests per 15 minutes.
+- If the key is missing or Gemini is unavailable, the UI shows a deterministic rules-based explanation and a clear notice. No plan decision depends on Gemini output.
+- Configure `GEMINI_API_KEY` in the server environment (Render → service → Environment). Optionally set `GEMINI_MODEL`; the default is `gemini-3.8-flash`. Never use a `VITE_` prefix for the key.
+
+See [docs/AI_ADVISOR.md](docs/AI_ADVISOR.md) for setup and verification.
+
 ## Key Capabilities
 
 - **Family Protection Planner:** Multi-member age profiles (`infant_toddler`, `school_child`, `adult`, `older_adult`), optional non-medical sensitivity tags, and fixed vs. flexible daily routine scheduling with completion tracking.
@@ -203,6 +215,7 @@ The latest verified CI run [45338919290](https://github.com/Aish-369/BreatheWise
 | `docs/USER_GUIDE.md`    | End-user workflows and workspace guide                      |
 | `docs/RELEASE_NOTES.md` | Release changelog                                           |
 | `docs/PROJECT_AUDIT.md` | Pre-refactor repository audit notes                         |
+| `docs/AI_ADVISOR.md`    | Gemini explanation design, privacy boundary, and setup      |
 
 ---
 
