@@ -262,6 +262,23 @@ export const enSections = {
   indoor_disclaimer:
     'Aligned with WHO, CPCB, and US EPA public health guidance. Informational daily planning aid only.',
 
+  sustainable_choices_title: 'Lower-Emission Daily Choices',
+  sustainable_choices_subtitle:
+    'Choose practical travel and home habits that reduce avoidable emissions without increasing outdoor exposure.',
+  low_emission_title: 'Lower-emission travel',
+  low_emission_clear:
+    'For short trips, consider walking or cycling only when a current verified AQI is Good or Satisfactory and the route avoids busy roads. Otherwise use public transport or carpool and combine errands.',
+  low_emission_caution:
+    'When AQI is Moderate or worse, or data is unavailable, do not recommend walking or cycling as the emissions swap. Prefer bus or metro, carpooling, combined trips, and switching off idling engines.',
+  indoor_hacks_title: 'Indoor air-quality habits',
+  indoor_hacks_desc:
+    'Run an exhaust fan vented outdoors while cooking; avoid incense, mosquito coils, candles, and indoor smoking; damp-mop instead of dry sweeping.',
+  sustainable_swaps_title: 'Sustainable swaps',
+  sustainable_swaps_desc:
+    'Choose bus or metro, shared rides, and combined errands over separate solo-car trips. Maintain vehicles, avoid engine idling, and never burn household or garden waste.',
+  sustainable_impact_note:
+    'Impact is qualitative guidance only; no CO₂ savings, exposure reduction, or health benefit is numerically estimated.',
+
   // Trust & Methodology Localized
   trust_tier_station: 'Physical Monitoring Station',
   trust_tier_station_scope: 'Station perimeter only',
