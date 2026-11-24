@@ -12,7 +12,6 @@ afterEach(() => {
 });
 
 const context: AiPlanContext = {
-  city: 'Pune',
   aqiValue: 82,
   aqiBand: 'satisfactory',
   freshness: 'fresh',
@@ -36,9 +35,7 @@ const context: AiPlanContext = {
 describe('AI plan explanation service', () => {
   it('rejects invalid or out-of-range client context before calling a model', () => {
     expect(AiPlanContextSchema.safeParse(context).success).toBe(true);
-    expect(
-      AiPlanContextSchema.safeParse({ ...context, aqiValue: 900 }).success
-    ).toBe(false);
+    expect(AiPlanContextSchema.safeParse({ ...context, aqiValue: 900 }).success).toBe(false);
     expect(
       AiPlanContextSchema.safeParse({
         ...context,
@@ -71,7 +68,12 @@ describe('AI plan explanation service', () => {
             { type: 'thought', content: [] },
             {
               type: 'model_output',
-              content: [{ type: 'text', text: 'The later window is preferable because the supplied forecast is cleaner.' }],
+              content: [
+                {
+                  type: 'text',
+                  text: 'The later window is preferable because the supplied forecast is cleaner.',
+                },
+              ],
             },
           ],
         }),
