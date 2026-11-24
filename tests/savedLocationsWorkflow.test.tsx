@@ -171,7 +171,9 @@ describe('SavedLocationsPanel add, edit, and primary-location workflows', () => 
       />
     );
 
-    expect(screen.getByText(/Saved Locations \(0\)/)).toBeTruthy();
+    expect(
+      screen.getByRole('heading', { name: `${t('en', 'ui_saved_locations_title')} (0)` })
+    ).toBeTruthy();
     expect(screen.getByRole('heading', { name: t('en', 'ui_add_location_title') })).toBeTruthy();
     expect(screen.getByRole('button', { name: t('en', 'action_add') })).toBeTruthy();
   });
