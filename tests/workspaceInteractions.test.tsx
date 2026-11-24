@@ -2,10 +2,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { t } from '../src/i18n/translations';
-import {
-  computeActiveAlerts,
-  getNavItems,
-} from '../src/components/workspace/navConfig';
+import { computeActiveAlerts, getNavItems } from '../src/components/workspace/navConfig';
 import { WorkspaceSidebar } from '../src/components/workspace/WorkspaceSidebar';
 import { WorkspaceMobileDrawer } from '../src/components/workspace/WorkspaceMobileDrawer';
 import { WorkspaceHeader } from '../src/components/workspace/WorkspaceHeader';
@@ -96,7 +93,9 @@ describe('WorkspaceSidebar', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: t('en', 'side_planner') }).getAttribute('aria-current')).toBe('page');
+    expect(
+      screen.getByRole('button', { name: t('en', 'side_planner') }).getAttribute('aria-current')
+    ).toBe('page');
     fireEvent.click(screen.getByRole('button', { name: t('en', 'side_family') }));
     fireEvent.click(screen.getByRole('button', { name: 'मराठी' }));
     fireEvent.click(screen.getByRole('button', { name: t('en', 'nav_backToSite') }));
@@ -161,7 +160,9 @@ describe('WorkspaceMobileDrawer', () => {
     );
 
     expect(screen.getByRole('dialog', { name: 'Workspace menu' })).toBeTruthy();
-    expect(screen.getByRole('button', { name: t('en', 'side_overview') }).getAttribute('aria-current')).toBe('page');
+    expect(
+      screen.getByRole('button', { name: t('en', 'side_overview') }).getAttribute('aria-current')
+    ).toBe('page');
     fireEvent.click(screen.getByRole('button', { name: t('en', 'side_planner') }));
     fireEvent.click(screen.getByRole('button', { name: 'हिन्दी' }));
 
@@ -199,14 +200,7 @@ describe('workspace status and error states', () => {
   });
 
   it('shows the empty onboarding state after local data is cleared', () => {
-    render(
-      <WorkspaceEmptyOrError
-        lang="en"
-        clearedEmpty
-        errorMsg={null}
-        onRetry={vi.fn()}
-      />
-    );
+    render(<WorkspaceEmptyOrError lang="en" clearedEmpty errorMsg={null} onRetry={vi.fn()} />);
 
     expect(screen.getByRole('heading', { name: t('en', 'action_clearLocal') })).toBeTruthy();
     expect(screen.getByRole('button', { name: t('en', 'action_startOnboarding') })).toBeTruthy();
@@ -214,12 +208,7 @@ describe('workspace status and error states', () => {
 
   it('shows a loading state when neither data nor an error is available', () => {
     render(
-      <WorkspaceEmptyOrError
-        lang="en"
-        clearedEmpty={false}
-        errorMsg={null}
-        onRetry={vi.fn()}
-      />
+      <WorkspaceEmptyOrError lang="en" clearedEmpty={false} errorMsg={null} onRetry={vi.fn()} />
     );
     expect(screen.getByText(t('en', 'loading'))).toBeTruthy();
   });
