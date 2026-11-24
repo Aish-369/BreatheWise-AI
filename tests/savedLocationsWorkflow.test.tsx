@@ -144,9 +144,7 @@ describe('SavedLocationsPanel add, edit, and primary-location workflows', () => 
       />
     );
 
-    fireEvent.click(
-      screen.getByRole('button', { name: `${t('en', 'action_delete')} Office` })
-    );
+    fireEvent.click(screen.getByRole('button', { name: `${t('en', 'action_delete')} Office` }));
     expect(onDeleteLocation).toHaveBeenCalledWith('location-office');
 
     rerender(
@@ -159,9 +157,7 @@ describe('SavedLocationsPanel add, edit, and primary-location workflows', () => 
       />
     );
 
-    expect(
-      screen.queryByRole('button', { name: `${t('en', 'action_delete')} Home` })
-    ).toBeNull();
+    expect(screen.queryByRole('button', { name: `${t('en', 'action_delete')} Home` })).toBeNull();
   });
 
   it('keeps the add-location form available when there are no saved locations', () => {
