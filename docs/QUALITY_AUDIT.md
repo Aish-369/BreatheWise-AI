@@ -279,6 +279,7 @@ The component layer improved to 51.06% statement coverage through behavior tests
 The previously supplied evaluator breakdown was 91.86/100: Code Quality 86, Security 98, Efficiency 100, Accessibility 96, Problem Statement Alignment 93, and Testing 78. This is the historical score, not a re-evaluation of the current commit.
 
 The current changes directly address the two weakest areas:
+
 - **Testing:** expanded from 191 to 261 tests; coverage rose from 76.59% to 87.98% statements and from 64.45% to 73.48% branches. Real user workflows now cover workspace navigation, household setup/member editing, planner, simulator, saved locations, CAMS import, dashboard snapshot/PDF actions, history inspection, and multilingual PDF export.
 - **Code Quality:** strict TypeScript is enabled (strict, noImplicitAny, and strictNullChecks); CI enforces formatting, zero-warning ESLint, type-checking, production build, and explicit coverage floors. The Vitest config import now includes its .ts extension.
 
