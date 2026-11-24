@@ -198,12 +198,15 @@ limitation. Consider a shared store only if multi-instance scaling is planned an
 `.github/workflows/ci.yml` runs:
 
 1. `npm ci --legacy-peer-deps`
-2. `npm audit --omit=dev --audit-level=high`
-3. `npm run format:check`
-4. `npm run lint` with zero warnings
-5. `npm run typecheck`
-6. `npm run test:coverage`
-7. `npm run build`
+2. Install Playwright test tooling without changing the application lockfile.
+3. `npm audit --omit=dev --audit-level=high`
+4. `npm run format:check`
+5. `npm run lint` with zero warnings
+6. `npm run typecheck`
+7. `npm run test:coverage`
+8. `npm run build`
+9. Install Chromium.
+10. Run 3 Playwright browser-level core user journeys.
 
 The latest run completed successfully. Note that dependency audit currently checks production
 dependencies only; decide separately whether full development dependency auditing is appropriate
@@ -220,7 +223,7 @@ for this project's toolchain and lockfile.
 - [x] Risks prioritized with file-level evidence.
 - [x] No production/runtime/database changes made.
 - [ ] Local clean-install test run: not executed in this connected GitHub audit environment.
-- [ ] Interactive browser/E2E validation: not executed.
+- [x] Playwright browser-level core user journeys: 3 passed.
 - [ ] Live app browser verification: not completed; direct page fetch was unavailable from the
       inspection environment.
 
@@ -258,3 +261,16 @@ Latest successful CI evidence:
 - Formatting, ESLint (zero warnings), TypeScript type-check, test suite, and production build all passed.
 
 The component layer improved to 51.06% statement coverage through behavior tests for indoor guidance, trust/provenance, and settings workflows. Utility coverage improved to 55.44%; the PDF standard renderer now has 98.23% statement coverage. Remaining utility risk is concentrated in the canvas PDF renderer (4.50%) and API client (69.23%). Browser-based end-to-end workflows have not yet been verified, and no Hack2Skill evaluation score has been re-run. These changes do not establish a new evaluator score.
+
+## Latest score-hardening evidence — 2026-11-24
+
+**Verified PR CI:** [Run 45334418916](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45334418916) — all 13 workflow steps passed.
+
+- 191 tests across 37 files passed.
+- V8 coverage: 76.59% statements, 64.45% branches, 67.48% functions, 78.08% lines.
+- `src/utils/api.ts`: 98.07% statement coverage; `src/utils`: 94.05%.
+- Formatting, ESLint with zero warnings, strict TypeScript, production dependency audit, production build, Chromium installation, and 3 Playwright journeys passed.
+- Main branch CI before this PR also passed all 13 steps with 176 tests and 3 Playwright journeys.
+- Render deployment for main commit `a51a972371a80c44125fee3de4fe1048c1873dce` is live. PR #19 has not yet been merged/deployed at the time of this report.
+
+**Still open before claiming full production persistence:** the app currently uses SQLite on Render's ephemeral filesystem; Supabase PostgreSQL is not connected to the runtime. The Render service is on the Free plan with no persistent disk and no configured health-check path. No paid upgrade, disk attachment, or secret/environment change was made. The external Hack2Skill evaluator has not been re-run, so 97+/100 is not verified.
