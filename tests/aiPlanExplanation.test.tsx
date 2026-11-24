@@ -93,6 +93,58 @@ describe('AiPlanExplanationCard', () => {
     expect(screen.getByText('Gemini is not configured.')).toBeTruthy();
   });
 
+  it('ignores a late response for a plan that is no longer displayed', async () => {
+    let resolveFirst!: (value: {
+      provider: 'gemini';
+      aiEnabled: boolean;
+      model: string;
+      explanation: string;
+      notice: null;
+    }) => void;
+    let resolveSecond!: (value: {
+      provider: 'gemini';
+      aiEnabled: boolean;
+      model: string;
+      explanation: string;
+      notice: null;
+    }) => void;
+    vi.mocked(explainPlanApi)
+      .mockImplementationOnce(
+        () => new Promise((resolve) => { resolveFirst = resolve; })
+      )
+      .mockImplementationOnce(
+        () => new Promise((resolve) => { resolveSecond = resolve; })
+      );
+
+    const { rerender } = render(
+      <AiPlanExplanationCard lang="en" plan={plan} members={members} />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Explain today’s plan' }));
+
+    const nextPlan = { ...plan, id: 'plan-2' } as ProtectionPlanResult;
+    rerender(<AiPlanExplanationCard lang="en" plan={nextPlan} members={members} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Explain today’s plan' }));
+
+    resolveFirst({
+      provider: 'gemini',
+      aiEnabled: true,
+      model: 'gemini-3.8-flash',
+      explanation: 'Stale explanation from the previous plan.',
+      notice: null,
+    });
+    await waitFor(() => expect(explainPlanApi).toHaveBeenCalledTimes(2));
+    expect(screen.queryByText('Stale explanation from the previous plan.')).toBeNull();
+
+    resolveSecond({
+      provider: 'gemini',
+      aiEnabled: true,
+      model: 'gemini-3.8-flash',
+      explanation: 'Current plan explanation.',
+      notice: null,
+    });
+    expect(await screen.findByText('Current plan explanation.')).toBeTruthy();
+  });
+
   it('shows a safe error message when the API request fails', async () => {
     vi.mocked(explainPlanApi).mockRejectedValue(new Error('SECRET_PROVIDER_ERROR'));
 
