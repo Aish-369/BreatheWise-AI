@@ -33,7 +33,8 @@ This document maps observable project evidence to the six categories in the prev
 
 ## Newly verified test coverage
 
-- Workspace shell, responsive drawer, header menus, alert derivation, and all eight lazy routes.\n- AQI-aware lower-emission travel advice, indoor air-quality habits, and sustainable mobility swaps localized across English, Marathi, and Hindi; walking/cycling advice is withheld for Moderate-or-worse or unavailable AQI, and impact is explicitly qualitative.
+- Workspace shell, responsive drawer, header menus, alert derivation, and all eight lazy routes.
+- AQI-aware lower-emission travel advice, indoor air-quality habits, and sustainable mobility swaps localized across English, Marathi, and Hindi; walking/cycling advice is withheld for Moderate-or-worse or unavailable AQI, and impact is explicitly qualitative.
 - Household preference save, family-member add/edit/delete, and guided onboarding.
 - Routine creation/edit/delete/completion and schedule filters.
 - Preset/custom scenario runs, including stale-data and unavailable-data safeguards.
