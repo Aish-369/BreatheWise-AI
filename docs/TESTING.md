@@ -70,7 +70,9 @@ npx playwright test    # Chromium browser-level core journeys
    - Household onboarding mode/step/field updates, sensitivity tag toggling, and member edit lifecycle
    - Planner member selection, templates, routine edit lifecycle, and reset behavior
    - Simulator defaults, numeric overrides, stale/unavailable flags, and omitted-value handling
-   - Saved-location field updates, edit loading, and add-form reset\n\n## 3. Latest Measured Coverage
+   - Saved-location field updates, edit loading, and add-form reset
+
+## 3. Latest Measured Coverage
 
 The latest successful GitHub Actions run reports 76.59% statement coverage, 64.45% branch coverage, 67.48% function coverage, and 78.08% line coverage across 162 source files. The `App.tsx` entry point is 100% covered, the custom hooks folder is at 94.37% statement coverage, and `src/utils/api.ts` is at 98.07% statement coverage. The largest remaining coverage gap is the component layer (53.54% statements).
 
