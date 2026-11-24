@@ -12,7 +12,7 @@
 | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Smart, dynamic environmental assistant** | Multi-tier data classification (`verified_live`, `historical_observation`, `forecast_only`, `demo_fixture`, `unavailable`), automatic CAMS & station ingestion, staleness detection, and fail-safe outage holdback                | `src/engine/quality.ts`, `src/server/service.ts`, `src/server/adapters/` (`cpcb.ts`, `openaq.ts`, `camsForecast.ts`, `camsImporter.ts`)                                                  |
 | **Logical context-driven decision making** | Deterministic rule engine scoring household age sensitivity, non-medical sensitivity tags, routine flexibility (`fixed` vs `flexible`), and CAMS time-window optimization with full evidence trails                               | `src/engine/intelligence.ts`, `src/engine/plan/` (`evidence.ts`, `riskScoring.ts`, `windowSelection.ts`, `actions.ts`, `contextActions.ts`, `dailyPlan.ts`, `summary.ts`, `scenario.ts`) |
-| **Practical real-world usability**         | Daily routine planner & completion tracking, What-If scenario simulator, multi-city compatibility comparison, Copernicus CAMS CSV/JSON import, offline PDF reports (Devanagari-safe), and 3-language UI (English, Marathi, Hindi) | `src/components/` (`DashboardView.tsx`, `PlannerView.tsx`, `SimulatorView.tsx`, `ComparisonView.tsx`, `EnvironmentView.tsx`), `src/i18n/`, `src/utils/pdfExport.ts`                      |
+| **Practical real-world usability**         | AQI-conditioned low-emission travel guidance, indoor air-quality practices, sustainable mobility swaps with qualitative impact caveats, daily routine planner, What-If simulator, multi-city comparison, CAMS import, Devanagari-safe PDF reports, and English/Marathi/Hindi UI | `src/components/` (`DashboardView.tsx`, `PlannerView.tsx`, `SimulatorView.tsx`, `ComparisonView.tsx`, `EnvironmentView.tsx`), `src/i18n/`, `src/utils/pdfExport.ts`                      |
 | **Clean, maintainable, modular codebase**  | Domain-split backend repositories, resource-scoped Express routers with Zod validation & session isolation, typed React hooks/reducers, ESLint + jsx-a11y + Prettier + Vitest CI pipeline                                         | `src/server/db/`, `src/server/routes/`, `src/hooks/`, `eslint.config.js`, `.github/workflows/ci.yml`                                                                                     |
 
 ---
@@ -42,6 +42,19 @@ Given a **Pune (Shivajinagar)** snapshot at **NAQI 127 (`moderate`)** with **PM2
    - Output status: **`proceed_with_precautions`** with route/exertion guidance and evidence metric `PM2.5 68 µg/m³ · NAQI 127`.
 3. **Outage / Stale Telemetry Fallback:**
    - If live station feeds are unavailable (`isAvailable === false`) or older than 6 hours (`stale`), outdoor recommendations switch to **`hold_pending_data`** instead of inventing numbers, while indoor routines continue unaffected.
+
+---
+
+## Lower-Emission and Sustainable Daily Choices
+
+The Indoor Protection view pairs indoor exposure-reduction practices with AQI-aware mobility choices:
+
+- **Lower-emission travel:** walking or cycling is suggested only when a current verified AQI is Good or Satisfactory and the route avoids busy roads. For Moderate-or-worse or unavailable conditions, guidance favors public transport, carpooling, combined trips, and avoiding engine idling.
+- **Indoor air-quality habits:** kitchen exhaust, avoiding indoor smoke sources, damp mopping, and ventilation only during a verified cleaner window.
+- **Sustainable swaps:** shared rides, bus/metro use, combined errands, vehicle maintenance, and no open waste burning.
+- **Impact integrity:** impact is qualitative. The app does not invent per-trip CO₂ savings, exposure reductions, or health-benefit estimates.
+
+The three guidance groups are localized in English, Marathi, and Hindi and are selected using the current AQI band.
 
 ---
 
