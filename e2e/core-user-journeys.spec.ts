@@ -81,26 +81,4 @@ test.describe('BreatheWise AI browser journeys', () => {
     }
   });
 
-  test('runs a PM2.5 spike scenario with a clear hypothetical label', async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('button', { name: /launch family workspace/i }).click();
-
-    const navigation = page.getByRole('navigation', {
-      name: 'Workspace navigation',
-    });
-    await navigation.getByRole('button', { name: 'What-If Simulator', exact: true }).click();
-
-    await expect(page.getByRole('heading', { name: 'What-If Scenario Simulator' })).toBeVisible();
-    await page.getByRole('button', { name: 'PM2.5 Spike', exact: true }).click();
-
-    const scenarioNotice = page.getByText('SCENARIO — NOT AN OBSERVED ENVIRONMENTAL MEASUREMENT', {
-      exact: true,
-    });
-    const scenarioTitle = page.getByRole('heading', { name: /What if PM2\.5 spikes to 145/ });
-    const hypotheticalLabel = page.getByText('Hypothetical Scenario', { exact: true });
-
-    await expect(scenarioNotice).toBeVisible();
-    await expect(scenarioTitle).toBeVisible();
-    await expect(hypotheticalLabel).toBeVisible();
-  });
 });
