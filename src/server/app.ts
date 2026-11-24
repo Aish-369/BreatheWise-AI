@@ -59,7 +59,10 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     '/api/session',
     createRateLimitMiddleware({ windowMs: 15 * 60 * 1000, max: 20, name: 'session' })
   );
-  app.use('/api/ai', createRateLimitMiddleware({ windowMs: 15 * 60 * 1000, max: 8, name: 'ai-advisor' }));
+  app.use(
+    '/api/ai',
+    createRateLimitMiddleware({ windowMs: 15 * 60 * 1000, max: 8, name: 'ai-advisor' })
+  );
   app.use('/api', createRateLimitMiddleware({ windowMs: 15 * 60 * 1000, max: 240, name: 'api' }));
 
   app.get('/api/session', handleGetSession(db));
