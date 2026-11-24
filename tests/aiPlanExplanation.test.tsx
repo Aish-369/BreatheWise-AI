@@ -110,15 +110,19 @@ describe('AiPlanExplanationCard', () => {
     }) => void;
     vi.mocked(explainPlanApi)
       .mockImplementationOnce(
-        () => new Promise((resolve) => { resolveFirst = resolve; })
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          })
       )
       .mockImplementationOnce(
-        () => new Promise((resolve) => { resolveSecond = resolve; })
+        () =>
+          new Promise((resolve) => {
+            resolveSecond = resolve;
+          })
       );
 
-    const { rerender } = render(
-      <AiPlanExplanationCard lang="en" plan={plan} members={members} />
-    );
+    const { rerender } = render(<AiPlanExplanationCard lang="en" plan={plan} members={members} />);
     fireEvent.click(screen.getByRole('button', { name: 'Explain today’s plan' }));
 
     const nextPlan = { ...plan, id: 'plan-2' } as ProtectionPlanResult;
