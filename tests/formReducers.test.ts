@@ -141,8 +141,7 @@ describe('planner form reducer', () => {
     });
     expect(withEditMember.editMemberIds).toEqual(['member-2']);
     expect(
-      plannerFormReducer(withEditMember, { type: 'toggleEditMember', id: 'member-2' })
-        .editMemberIds
+      plannerFormReducer(withEditMember, { type: 'toggleEditMember', id: 'member-2' }).editMemberIds
     ).toEqual([]);
 
     expect(
