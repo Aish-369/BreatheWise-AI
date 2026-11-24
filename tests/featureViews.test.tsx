@@ -72,6 +72,28 @@ describe('IndoorGuidanceView', () => {
     expect(screen.getByText(t('en', 'indoor_hero_mod'))).toBeTruthy();
     expect(screen.getByText(t('en', 'indoor_badge_nonpeak'))).toBeTruthy();
   });
+
+  it('avoids suggesting outdoor active travel when AQI is moderate or worse', () => {
+    render(<IndoorGuidanceView lang="en" currentBand="poor" city="Pune" />);
+
+    expect(screen.getByText(t('en', 'low_emission_caution'))).toBeTruthy();
+    expect(screen.getByText(t('en', 'sustainable_impact_note'))).toBeTruthy();
+  });
+
+  it('allows walking or cycling only with a verified lower-AQI condition', () => {
+    render(<IndoorGuidanceView lang="en" currentBand="good" city="Pune" />);
+
+    expect(screen.getByText(t('en', 'low_emission_clear'))).toBeTruthy();
+  });
+
+  it.each(['en', 'mr', 'hi'] as const)('localizes sustainable guidance in %s', (lang) => {
+    render(<IndoorGuidanceView lang={lang} currentBand="moderate" city="Pune" />);
+
+    expect(
+      screen.getByRole('heading', { name: t(lang, 'sustainable_choices_title') })
+    ).toBeTruthy();
+    expect(screen.getByRole('heading', { name: t(lang, 'sustainable_swaps_title') })).toBeTruthy();
+  });
 });
 
 describe('TrustView', () => {

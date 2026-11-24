@@ -55,4 +55,29 @@ test.describe('BreatheWise AI browser journeys', () => {
     await expect(language).toBeVisible();
     await expect(saveButton).toBeVisible();
   });
+
+  test('opens every primary workspace section', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: /launch family workspace/i }).click();
+
+    const navigation = page.getByRole('navigation', {
+      name: 'Workspace navigation',
+    });
+    const routes = [
+      { label: 'Family', heading: 'Family Onboarding & Local Profile' },
+      { label: 'Air Quality', heading: 'Environmental Intelligence & Providers' },
+      { label: 'Protection Planner', heading: 'Daily Protection Planner' },
+      { label: 'What-If Simulator', heading: 'What-If Scenario Simulator' },
+      { label: 'Locations', heading: 'Neighborhood & City Comparison' },
+      { label: 'Reports', heading: 'History & Printable Reports' },
+      { label: 'Settings', heading: 'Settings & Data Trust' },
+    ];
+
+    for (const route of routes) {
+      await navigation.getByRole('button', { name: route.label, exact: true }).click();
+      const main = page.getByRole('main');
+      const heading = main.getByRole('heading', { name: route.heading });
+      await expect(heading).toBeVisible();
+    }
+  });
 });

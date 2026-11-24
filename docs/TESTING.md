@@ -8,12 +8,12 @@ All automated checks run against isolated temporary or `:memory:` SQLite databas
 npm run format:check  # Prettier formatting verification
 npm run lint           # ESLint with zero warnings
 npm run typecheck      # TypeScript type-checking (tsc --noEmit)
-npm run test:coverage  # Vitest suite with V8 coverage (272 tests across 49 files)
+npm run test:coverage  # Vitest suite with V8 coverage (277 tests across 49 files)
 npm run build          # Vite 8 production bundle check
 npx playwright test    # Chromium browser-level core journeys
 ```
 
-## 2. Test Coverage Breakdown (272 Tests across 49 Files)
+## 2. Test Coverage Breakdown (277 Tests across 49 Files)
 
 1. **`tests/engine.test.ts` (22 tests)**
    - Freshness boundaries (`<= 2h` fresh, `2–6h` aging, `> 6h` stale, missing/future timestamps unavailable)
@@ -57,7 +57,7 @@ npx playwright test    # Chromium browser-level core journeys
    - Structured API errors, non-JSON server errors, network failure normalization, request timeout/abort behavior, safe HTTP fallbacks, and the remaining household/routine/location/settings/provider/import/scenario API operations
 
 7. **Feature views (`tests/featureViews.test.tsx`)**
-   - Indoor guidance behavior for unavailable, poor, and moderate outdoor conditions
+   - Indoor guidance for unavailable, poor, and moderate outdoor conditions; AQI-aware low-emission travel; indoor air-quality habits; sustainable swaps localized in English, Marathi, and Hindi; qualitative impact caveat
    - Trust/provenance tiers and safeguards
    - Settings tab navigation, preference callbacks, and clear-data confirmation/cancellation
 
@@ -116,7 +116,7 @@ Before relying on Render health monitoring, set the service's Health Check Path 
 
 ## 4. Browser-Level End-to-End Testing
 
-The CI workflow installs Playwright and Chromium as ephemeral test tooling (without changing the application lockfile), then runs `npx playwright test`. The browser suite starts the production-mode Express server against the CI workspace's isolated SQLite database and covers the public landing page, workspace entry/return navigation, and guided household onboarding entry. Failed tests retain traces and screenshots locally for diagnosis. These checks complement—not replace—the Vitest component, API, and engine tests.
+The CI workflow installs Playwright and Chromium as ephemeral test tooling (without changing the application lockfile), then runs `npx playwright test`. The browser suite starts the production-mode Express server against the CI workspace's isolated SQLite database and covers four journeys: public landing-page actions, workspace entry/return navigation, guided household onboarding entry, and navigation across all eight primary workspace sections. Failed tests retain traces and screenshots locally for diagnosis. These checks complement—not replace—the Vitest component, API, and engine tests.
 
 ## 6. Runtime Configuration and Persistence
 

@@ -8,12 +8,12 @@
 
 ## Requirement to Implementation Mapping
 
-| Hackathon Requirement                      | Implemented Feature                                                                                                                                                                                                               | Primary File(s) & Location                                                                                                                                                               |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Smart, dynamic environmental assistant** | Multi-tier data classification (`verified_live`, `historical_observation`, `forecast_only`, `demo_fixture`, `unavailable`), automatic CAMS & station ingestion, staleness detection, and fail-safe outage holdback                | `src/engine/quality.ts`, `src/server/service.ts`, `src/server/adapters/` (`cpcb.ts`, `openaq.ts`, `camsForecast.ts`, `camsImporter.ts`)                                                  |
-| **Logical context-driven decision making** | Deterministic rule engine scoring household age sensitivity, non-medical sensitivity tags, routine flexibility (`fixed` vs `flexible`), and CAMS time-window optimization with full evidence trails                               | `src/engine/intelligence.ts`, `src/engine/plan/` (`evidence.ts`, `riskScoring.ts`, `windowSelection.ts`, `actions.ts`, `contextActions.ts`, `dailyPlan.ts`, `summary.ts`, `scenario.ts`) |
-| **Practical real-world usability**         | Daily routine planner & completion tracking, What-If scenario simulator, multi-city compatibility comparison, Copernicus CAMS CSV/JSON import, offline PDF reports (Devanagari-safe), and 3-language UI (English, Marathi, Hindi) | `src/components/` (`DashboardView.tsx`, `PlannerView.tsx`, `SimulatorView.tsx`, `ComparisonView.tsx`, `EnvironmentView.tsx`), `src/i18n/`, `src/utils/pdfExport.ts`                      |
-| **Clean, maintainable, modular codebase**  | Domain-split backend repositories, resource-scoped Express routers with Zod validation & session isolation, typed React hooks/reducers, ESLint + jsx-a11y + Prettier + Vitest CI pipeline                                         | `src/server/db/`, `src/server/routes/`, `src/hooks/`, `eslint.config.js`, `.github/workflows/ci.yml`                                                                                     |
+| Hackathon Requirement                      | Implemented Feature                                                                                                                                                                                                                                                             | Primary File(s) & Location                                                                                                                                                                    |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Smart, dynamic environmental assistant** | Multi-tier data classification (`verified_live`, `historical_observation`, `forecast_only`, `demo_fixture`, `unavailable`), automatic CAMS & station ingestion, staleness detection, and fail-safe outage holdback                                                              | `src/engine/quality.ts`, `src/server/service.ts`, `src/server/adapters/` (`cpcb.ts`, `openaq.ts`, `camsForecast.ts`, `camsImporter.ts`)                                                       |
+| **Logical context-driven decision making** | Deterministic rule engine scoring household age sensitivity, non-medical sensitivity tags, routine flexibility (`fixed` vs `flexible`), and CAMS time-window optimization with full evidence trails                                                                             | `src/engine/intelligence.ts`, `src/engine/plan/` (`evidence.ts`, `riskScoring.ts`, `windowSelection.ts`, `actions.ts`, `contextActions.ts`, `dailyPlan.ts`, `summary.ts`, `scenario.ts`)      |
+| **Practical real-world usability**         | AQI-conditioned low-emission travel guidance, indoor air-quality practices, sustainable mobility swaps with qualitative impact caveats, daily routine planner, What-If simulator, multi-city comparison, CAMS import, Devanagari-safe PDF reports, and English/Marathi/Hindi UI | `src/components/` (`DashboardView.tsx`, `IndoorGuidanceView.tsx`, `PlannerView.tsx`, `SimulatorView.tsx`, `ComparisonView.tsx`, `EnvironmentView.tsx`), `src/i18n/`, `src/utils/pdfExport.ts` |
+| **Clean, maintainable, modular codebase**  | Domain-split backend repositories, resource-scoped Express routers with Zod validation & session isolation, typed React hooks/reducers, ESLint + jsx-a11y + Prettier + Vitest CI pipeline                                                                                       | `src/server/db/`, `src/server/routes/`, `src/hooks/`, `eslint.config.js`, `.github/workflows/ci.yml`                                                                                          |
 
 ---
 
@@ -42,6 +42,19 @@ Given a **Pune (Shivajinagar)** snapshot at **NAQI 127 (`moderate`)** with **PM2
    - Output status: **`proceed_with_precautions`** with route/exertion guidance and evidence metric `PM2.5 68 µg/m³ · NAQI 127`.
 3. **Outage / Stale Telemetry Fallback:**
    - If live station feeds are unavailable (`isAvailable === false`) or older than 6 hours (`stale`), outdoor recommendations switch to **`hold_pending_data`** instead of inventing numbers, while indoor routines continue unaffected.
+
+---
+
+## Lower-Emission and Sustainable Daily Choices
+
+The Indoor Protection view pairs indoor exposure-reduction practices with AQI-aware mobility choices:
+
+- **Lower-emission travel:** walking or cycling is suggested only when a current verified AQI is Good or Satisfactory and the route avoids busy roads. For Moderate-or-worse or unavailable conditions, guidance favors public transport, carpooling, combined trips, and avoiding engine idling.
+- **Indoor air-quality habits:** kitchen exhaust, avoiding indoor smoke sources, damp mopping, and ventilation only during a verified cleaner window.
+- **Sustainable swaps:** shared rides, bus/metro use, combined errands, vehicle maintenance, and no open waste burning.
+- **Impact integrity:** impact is qualitative. The app does not invent per-trip CO₂ savings, exposure reductions, or health-benefit estimates.
+
+The three guidance groups are localized in English, Marathi, and Hindi and are selected using the current AQI band.
 
 ---
 
@@ -158,14 +171,14 @@ npm run build          # Production Vite client bundle
 
 ## Testing
 
-The automated Vitest suite contains **272 tests across 49 files**, verified by the GitHub Actions CI run:
+The automated Vitest suite contains **277 tests across 49 files**, verified by the GitHub Actions CI run:
 
 - **Protection & Quality Engine** (`tests/engine.test.ts`, `tests/unavailableProtectionPlan.test.ts`, and `tests/plan*.test.ts`): Freshness thresholds, NAQI sub-index derivation, provider conflict detection, confidence scoring, forecast window optimization, age/pollutant/sensitivity actions, daily schedule transitions, summary construction, and What-If scenario diffs.
 - **Server, Persistence & Security** (`tests/apiAndMigrations.test.ts`, `tests/dbAndAdapters.test.ts`, `tests/cpcbAdapter.test.ts`, `tests/errorsMiddleware.test.ts`, `tests/sessionCookieHelper.test.ts`, `tests/httpClient.test.ts`, `tests/rateLimit.test.ts`, `tests/rateLimitMiddleware.test.ts`, `tests/phase5And6.test.ts`): Versioned SQLite migrations, isolated browser sessions, Zod error mapping without stack leaks, retry/timeout/TTL caching, CAMS import sanitization, rate-limit headers, 429 responses, and per-client bucket isolation.
 - **Localization & Accessibility** (`tests/i18nParity.test.ts`, `tests/frontendA11y.test.tsx`): Key parity across `en`/`hi`/`mr` and automated axe checks for primary views.
 - **Frontend state & recovery** (`tests/App.test.tsx`, `tests/useNavigationState.test.tsx`, `tests/useLocale.test.tsx`, `tests/useHouseholdData.test.tsx`, `tests/useHouseholdMutations.test.tsx`, `tests/useEntityCrudHandlers.test.tsx`, `tests/ErrorBoundary.test.tsx`): Root landing/workspace routing, bootstrap loading and failure recovery, household mutation workflows, navigation/deep-link state, locale persistence, CRUD delegation, and UI error recovery.
 - **Frontend API client** (`tests/apiClient.test.ts`, `tests/apiClientHardening.test.ts`): Request methods and headers, URL parameter encoding, identifier escaping, timeout/abort behavior, safe HTTP fallbacks, non-JSON responses, and household/routine/location/settings/provider/import/scenario operations.
-- **Feature views** (`tests/featureViews.test.tsx`): Indoor guidance for unavailable, poor, and moderate air-quality bands; provenance tiers and safeguards; settings tabs, preference callbacks, and clear-data confirmation.
+- **Feature views** (`tests/featureViews.test.tsx`): Indoor guidance, AQI-aware low-emission travel, indoor air-quality habits, sustainable swaps in English/Marathi/Hindi, qualitative impact caveats, provenance tiers, and settings safeguards.
 - **PDF rendering** (`tests/pdfStandardRenderer.test.ts`, `tests/pdfCanvasRenderer.test.ts`): WinAnsi glyph sanitization, DejaVu font embedding, Devanagari font loading, multilingual canvas rendering, and multi-page pagination.
 - **Form reducers** (`tests/formReducers.test.ts`, 11 tests): Household onboarding/member editing, planner routine state, simulator presets, and saved-location form state.
 - **Workspace navigation and shell** (`tests/workspaceInteractions.test.tsx`, `tests/workspaceViewRouter.test.tsx`, `tests/workspaceShell.test.tsx`, 31 tests): Header menus, alert derivation, responsive drawer navigation, Escape dismissal, all eight lazy routes, quick city switching, bootstrap/error/cleared states.
@@ -201,7 +214,7 @@ The latest verified CI run [45343693980](https://github.com/Aish-369/BreatheWise
 - **Local SQLite & Ephemeral Hosting Caveat:** The runtime stores data in local `node:sqlite`. `BREATHEWISE_DB_PATH` can point the SQLite file to a mounted persistent volume; when unset, the path remains `./data/breathewise.db`. This option does not attach storage or guarantee durability. Free/ephemeral hosting containers (such as Render Free) may reset local filesystems on redeploy or restart—do not store sensitive personal data on ephemeral public deployments. The current Render audit did not verify a persistent disk. `src/server/supabase/database.types.ts` documents the provisioned Supabase schema for a future async repository migration.
 - **Browser Session Isolation (Not Account Auth):** Production mode isolates households via a cryptographically random 256-bit `HttpOnly; SameSite=Lax; Secure` cookie (`breathewise_session`, SHA-256 hashed in SQLite, 30-day TTL), strict same-origin HTTPS CSRF checks on mutating routes, Zod request validation, API/session rate limiters, CSP/HSTS headers, and `no-store` API caching.
 - **Generated Artifacts & Offline Fonts:** `public/fonts/DejaVuSans*.ttf` (~1.4 MB combined) remain bundled so client-side Devanagari/Unicode PDF exports work offline without external font requests; UI images are WebP-compressed (~305 KB total).
-- **Testing Boundaries:** Vitest tests run using temporary SQLite databases, `jsdom` accessibility audits, and stubbed HTTP transport for retry/cache paths. CI also installs Chromium and runs the Playwright landing-page, workspace-navigation, and guided-onboarding journeys. Live external provider integration tests are not executed in CI.
+- **Testing Boundaries:** Vitest tests run using temporary SQLite databases, `jsdom` accessibility audits, and stubbed HTTP transport for retry/cache paths. CI also installs Chromium and runs four Playwright journeys, including a sweep across all eight workspace sections. Live external provider integration tests are not executed in CI.
 
 ---
 
