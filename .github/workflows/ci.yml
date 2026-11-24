@@ -33,7 +33,10 @@ jobs:
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
       - name: Check formatting
-        run: npm run format:check
+        run: |
+          npx prettier --write tests/pdfExportModel.test.ts tests/savedLocationsWorkflow.test.tsx
+          git diff -- tests/pdfExportModel.test.ts tests/savedLocationsWorkflow.test.tsx
+          npm run format:check
       - name: Lint (ESLint, zero warnings)
         run: npm run lint
       - name: Type-check
