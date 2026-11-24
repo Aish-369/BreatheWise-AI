@@ -2,18 +2,18 @@
 
 ## 1. Running the Automated Suite
 
-All automated checks run against isolated temporary or `:memory:` SQLite databases and never touch production data (`./data/breathewise.db`). The latest GitHub Actions CI run verified dependency audit, formatting, lint, type-check, coverage tests, production build, Chromium installation, and browser journeys:
+All automated checks run against isolated temporary or `:memory:` SQLite databases and never touch production data (`./data/breathewise.db`). The latest GitHub Actions CI run [45334418916](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45334418916) verified dependency audit, formatting, lint, type-check, coverage tests, production build, Chromium installation, and browser journeys:
 
 ```bash
 npm run format:check  # Prettier formatting verification
 npm run lint           # ESLint with zero warnings
 npm run typecheck      # TypeScript type-checking (tsc --noEmit)
-npm run test:coverage  # Vitest suite with V8 coverage (151 tests across 31 files)
+npm run test:coverage  # Vitest suite with V8 coverage (191 tests across 37 files)
 npm run build          # Vite 8 production bundle check
 npx playwright test    # Chromium browser-level core journeys
 ```
 
-## 2. Test Coverage Breakdown (151 Tests across 31 Files)
+## 2. Test Coverage Breakdown (191 Tests across 37 Files)
 
 1. **`tests/engine.test.ts` (22 tests)**
    - Freshness boundaries (`<= 2h` fresh, `2–6h` aging, `> 6h` stale, missing/future timestamps unavailable)
@@ -52,23 +52,23 @@ npx playwright test    # Chromium browser-level core journeys
    - Navigation defaults, valid/invalid deep links, sub-tab resets, header-menu dismissal, and Escape-key behavior
    - Locale persistence, CRUD handler delegation, and error-boundary recovery
 
-6. **Frontend API client (`tests/apiClient.test.ts`, 8 tests)**
+6. **Frontend API client (`tests/apiClient.test.ts`, `tests/apiClientHardening.test.ts`)**
    - Request methods and headers, bootstrap query parameters, URL encoding, and JSON body serialization
-   - Structured API errors, non-JSON server errors, and network failure normalization
+   - Structured API errors, non-JSON server errors, network failure normalization, request timeout/abort behavior, safe HTTP fallbacks, and the remaining household/routine/location/settings/provider/import/scenario API operations
 
 7. **Feature views (`tests/featureViews.test.tsx`)**
    - Indoor guidance behavior for unavailable, poor, and moderate outdoor conditions
    - Trust/provenance tiers and safeguards
    - Settings tab navigation, preference callbacks, and clear-data confirmation/cancellation
 
-8. **PDF rendering (`tests/pdfStandardRenderer.test.ts`)**
+8. **PDF rendering (`tests/pdfStandardRenderer.test.ts`, `tests/pdfCanvasRenderer.test.ts`)**
    - WinAnsi fallback glyph sanitization when bundled fonts are unavailable
    - DejaVu regular/bold font embedding when assets are available
    - Long-report pagination and multi-section rendering
 
-## 3. Latest Measured Coverage
+9. **Form reducers (`tests/formReducers.test.ts`, 11 tests)**\n   - Household onboarding mode/step/field updates, sensitivity tag toggling, and member edit lifecycle\n   - Planner member selection, templates, routine edit lifecycle, and reset behavior\n   - Simulator defaults, numeric overrides, stale/unavailable flags, and omitted-value handling\n   - Saved-location field updates, edit loading, and add-form reset\n\n## 3. Latest Measured Coverage
 
-The latest successful GitHub Actions run reports 71.33% statement coverage, 61.06% branch coverage, 63.26% function coverage, and 72.57% line coverage across 162 source files. The `App.tsx` entry point is 100% covered, and the custom hooks folder is at 94.37% statement coverage. The largest remaining coverage gap is the component layer (51.06% statements).
+The latest successful GitHub Actions run reports 76.59% statement coverage, 64.45% branch coverage, 67.48% function coverage, and 78.08% line coverage across 162 source files. The `App.tsx` entry point is 100% covered, the custom hooks folder is at 94.37% statement coverage, and `src/utils/api.ts` is at 98.07% statement coverage. The largest remaining coverage gap is the component layer (53.54% statements).
 
 **Health probe regression tests (`tests/healthCheck.test.ts`, 2 tests)** cover both successful database readiness without a session cookie and the generic 503 response when SQLite cannot answer.
 
