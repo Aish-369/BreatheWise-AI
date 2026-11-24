@@ -33,7 +33,6 @@ afterEach(async () => {
 const validBody = {
   lang: 'en',
   context: {
-    city: 'Pune',
     aqiValue: 82,
     aqiBand: 'satisfactory',
     freshness: 'fresh',
