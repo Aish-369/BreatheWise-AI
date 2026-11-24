@@ -88,10 +88,7 @@ test.describe('BreatheWise AI browser journeys', () => {
     const navigation = page.getByRole('navigation', {
       name: 'Workspace navigation',
     });
-    await navigation.getByRole('button', {
-      name: 'What-If Simulator',
-      exact: true,
-    }).click();
+    await navigation.getByRole('button', { name: 'What-If Simulator', exact: true }).click();
 
     await expect(
       page.getByRole('heading', { name: 'What-If Scenario Simulator' })
@@ -105,9 +102,7 @@ test.describe('BreatheWise AI browser journeys', () => {
     const scenarioTitle = page.getByRole('heading', {
       name: /What if PM2\.5 spikes to 145/,
     });
-    const hypotheticalLabel = page.getByText('Hypothetical Scenario', {
-      exact: true,
-    });
+    const hypotheticalLabel = page.getByText('Hypothetical Scenario', { exact: true });
 
     await expect(scenarioNotice).toBeVisible();
     await expect(scenarioTitle).toBeVisible();
