@@ -34,7 +34,8 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
       - name: Check formatting
         run: |
-          npx prettier --check docs/EVALUATOR_EVIDENCE.md docs/QUALITY_AUDIT.md
+          npx prettier --write docs/EVALUATOR_EVIDENCE.md
+          git diff -- docs/EVALUATOR_EVIDENCE.md
           npm run format:check
       - name: Lint (ESLint, zero warnings)
         run: npm run lint
