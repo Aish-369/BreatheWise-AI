@@ -137,7 +137,7 @@ External API keys in `.env` are optional; local illustrative-data and CAMS-impor
 npm run lint           # ESLint (typescript-eslint + react-hooks + jsx-a11y recommended at error level, zero warnings)
 npm run typecheck      # TypeScript check (tsc --noEmit)
 npm run format:check   # Prettier formatting check
-npm test               # Vitest suite (191 tests across 37 files)
+npm test               # Vitest suite (261 tests across 46 files)
 npm run test:coverage  # Vitest + V8 coverage report across src/
 npm run build          # Production Vite client bundle
 ```
@@ -146,7 +146,7 @@ npm run build          # Production Vite client bundle
 
 ## Testing
 
-The automated Vitest suite contains **191 tests across 37 files**, verified by the GitHub Actions CI run:
+The automated Vitest suite contains **261 tests across 46 files**, verified by the GitHub Actions CI run:
 
 - **Protection & Quality Engine** (`tests/engine.test.ts`, `tests/unavailableProtectionPlan.test.ts`, and `tests/plan*.test.ts`): Freshness thresholds, NAQI sub-index derivation, provider conflict detection, confidence scoring, forecast window optimization, age/pollutant/sensitivity actions, daily schedule transitions, summary construction, and What-If scenario diffs.
 - **Server, Persistence & Security** (`tests/apiAndMigrations.test.ts`, `tests/dbAndAdapters.test.ts`, `tests/cpcbAdapter.test.ts`, `tests/errorsMiddleware.test.ts`, `tests/sessionCookieHelper.test.ts`, `tests/httpClient.test.ts`, `tests/rateLimit.test.ts`, `tests/rateLimitMiddleware.test.ts`, `tests/phase5And6.test.ts`): Versioned SQLite migrations, isolated browser sessions, Zod error mapping without stack leaks, retry/timeout/TTL caching, CAMS import sanitization, rate-limit headers, 429 responses, and per-client bucket isolation.
@@ -156,6 +156,13 @@ The automated Vitest suite contains **191 tests across 37 files**, verified by t
 - **Feature views** (`tests/featureViews.test.tsx`): Indoor guidance for unavailable, poor, and moderate air-quality bands; provenance tiers and safeguards; settings tabs, preference callbacks, and clear-data confirmation.
 - **PDF rendering** (`tests/pdfStandardRenderer.test.ts`, `tests/pdfCanvasRenderer.test.ts`): WinAnsi glyph sanitization, DejaVu font embedding, Devanagari font loading, multilingual canvas rendering, and multi-page pagination.
 - **Form reducers** (`tests/formReducers.test.ts`, 11 tests): Household onboarding/member editing, planner routine state, simulator presets, and saved-location form state.
+- **Workspace navigation and shell** (`tests/workspaceInteractions.test.tsx`, `tests/workspaceViewRouter.test.tsx`, `tests/workspaceShell.test.tsx`, 31 tests): Header menus, alert derivation, responsive drawer navigation, Escape dismissal, all eight lazy routes, quick city switching, bootstrap/error/cleared states.
+- **Family, planner, and simulator workflows** (`tests/featureWorkflowViews.test.tsx`, 9 tests): Household preference save, sensitivity toggles, member add/edit/delete, guided onboarding completion, routine create/edit/delete/completion, schedule filters, and preset/custom what-if execution.
+- **Dashboard and reports** (`tests/dashboardAndHistoryWorkflows.test.tsx`, 7 tests): Snapshot save confirmation/timeout and failure recovery, PDF export success/failure, dashboard navigation, recommendation state, saved-plan inspection, and Escape dismissal.
+- **Saved locations** (`tests/savedLocationsWorkflow.test.tsx`, 5 tests): Indian city metadata selection, create/edit/delete, primary-location updates, and empty state.
+- **CAMS forecast UI** (`tests/camsForecastTab.test.tsx`, 6 tests): Pasted import success/failure, forecast rendering, oversized-file rejection, file loading, and pending state.
+- **Scenario and plan inspection UI** (`tests/scenarioAndHistoryComponents.test.tsx`, 6 tests): Schedule diffs, changed/unchanged items, scenario disclaimers, unavailable AQI, plan detail, and PDF callback.
+- **PDF report model/export** (`tests/pdfExportModel.test.ts`, 6 tests): Provenance/disclaimers, derived/unavailable AQI, member fallback, multilingual detection, standard/canvas renderer selection, and document-less fallback.
 
 Measured V8 coverage from the latest successful CI run (`npm run test:coverage`):
 
@@ -165,13 +172,13 @@ Measured V8 coverage from the latest successful CI run (`npm run test:coverage`)
 | `src/i18n`         |      11 |    100.00% |     68.18% |    100.00% |    100.00% |
 | `src/shared`       |       4 |     97.36% |     76.92% |    100.00% |    100.00% |
 | `src/server`       |      44 |     81.34% |     62.60% |     80.55% |     87.93% |
-| `src/components`   |      80 |     53.54% |     57.81% |     58.33% |     55.34% |
-| `src/utils`        |       4 |     94.05% |     72.44% |     95.55% |     94.82% |
+| `src/components`   |      80 |     90.42% |     76.17% |     94.04% |     91.98% |
+| `src/utils`        |       4 |     97.68% |     82.67% |     97.77% |     98.62% |
 | `src/hooks`        |       5 |     94.37% |     82.60% |     96.36% |     93.61% |
 | `src` (`App.tsx`)  |       1 |    100.00% |    100.00% |    100.00% |    100.00% |
-| **Total (`src/`)** | **162** | **76.59%** | **64.45%** | **67.48%** | **78.08%** |
+| **Total (`src/`)** | **162** | **87.98%** | **73.48%** | **86.03%** | **89.46%** |
 
-The latest verified CI run passes production dependency audit, formatting, ESLint, TypeScript type-checking, all 191 tests, the production build, Chromium installation, and all 3 Playwright browser journeys. Coverage is reported transparently; the largest remaining gaps are selected UI components and `src/utils/pdfExport.ts` (59.25% statements). The API client now measures 98.07% statement coverage. The root `App.tsx` and household mutation hook now have high measured coverage.
+The latest verified CI run [45338919290](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45338919290) passes production dependency audit, formatting, zero-warning ESLint, strict TypeScript, all 261 tests across 46 files, the production build, Chromium installation, and all 3 Playwright browser journeys. V8 coverage is 87.98% statements, 73.48% branches, 86.03% functions, and 89.46% lines. Component coverage is 90.42% statements; src/utils is 97.68%. The PDF report model/export utility is now 100% covered. Vitest enforces minimum global coverage thresholds of 85% statements, 70% branches, 80% functions, and 88% lines.
 
 ---
 
