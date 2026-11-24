@@ -99,9 +99,7 @@ test.describe('BreatheWise AI browser journeys', () => {
       'SCENARIO — NOT AN OBSERVED ENVIRONMENTAL MEASUREMENT',
       { exact: true }
     );
-    const scenarioTitle = page.getByRole('heading', {
-      name: /What if PM2\.5 spikes to 145/,
-    });
+    const scenarioTitle = page.getByRole('heading', { name: /What if PM2\.5 spikes to 145/ });
     const hypotheticalLabel = page.getByText('Hypothetical Scenario', { exact: true });
 
     await expect(scenarioNotice).toBeVisible();
