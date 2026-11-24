@@ -2,10 +2,7 @@ import { useEffect, useState } from 'react';
 import { LoaderCircle, Sparkles } from 'lucide-react';
 import type { FamilyMember, LanguageCode, ProtectionPlanResult } from '../../shared/types';
 import { t } from '../../i18n/translations';
-import {
-  explainPlanApi,
-  type AiPlanExplanationResponse,
-} from '../../utils/api';
+import { explainPlanApi, type AiPlanExplanationResponse } from '../../utils/api';
 
 interface AiPlanExplanationCardProps {
   lang: LanguageCode;
@@ -16,7 +13,8 @@ interface AiPlanExplanationCardProps {
 const copy = {
   en: {
     title: 'AI explanation',
-    description: 'Understand why today’s plan fits the air-quality evidence and your household mix.',
+    description:
+      'When configured, Gemini sends only AQI evidence, existing recommendations, and age-group counts to Google. Names, household labels, notes, and sensitivity tags are excluded.',
     action: 'Explain today’s plan',
     loading: 'Preparing explanation…',
     gemini: 'Gemini AI',
@@ -25,7 +23,8 @@ const copy = {
   },
   mr: {
     title: 'AI स्पष्टीकरण',
-    description: 'आजची योजना हवेच्या गुणवत्तेच्या पुराव्याशी आणि कुटुंबाच्या रचनेशी का जुळते ते समजून घ्या.',
+    description:
+      'Gemini configure असल्यास AQI पुरावा, आधीच्या शिफारसी आणि वयोगटांची संख्या Google कडे जाते. नावे, घराचे नाव, notes आणि sensitivity tags पाठवले जात नाहीत.',
     action: 'आजची योजना समजावून सांगा',
     loading: 'स्पष्टीकरण तयार होत आहे…',
     gemini: 'Gemini AI',
@@ -34,7 +33,8 @@ const copy = {
   },
   hi: {
     title: 'AI स्पष्टीकरण',
-    description: 'समझें कि आज की योजना वायु-गुणवत्ता के प्रमाण और आपके परिवार के अनुसार क्यों है।',
+    description:
+      'Gemini कॉन्फ़िगर होने पर केवल AQI प्रमाण, मौजूदा सुझाव और आयु-समूह की संख्या Google को भेजी जाती है। नाम, घर का नाम, नोट्स और sensitivity tags नहीं भेजे जाते।',
     action: 'आज की योजना समझाएँ',
     loading: 'स्पष्टीकरण तैयार हो रहा है…',
     gemini: 'Gemini AI',
@@ -59,7 +59,6 @@ export function AiPlanExplanationCard({ lang, plan, members }: AiPlanExplanation
     setError(null);
     try {
       const context = {
-        city: plan.city,
         aqiValue: plan.aqiValue,
         aqiBand: plan.aqiBand,
         freshness: plan.freshness,
@@ -107,9 +106,7 @@ export function AiPlanExplanationCard({ lang, plan, members }: AiPlanExplanation
             <h2 id="ai-plan-explanation-title" className="text-sm font-semibold text-[#252D28]">
               {labels.title}
             </h2>
-            <p className="mt-1 max-w-2xl text-xs leading-5 text-[#59645C]">
-              {labels.description}
-            </p>
+            <p className="mt-1 max-w-2xl text-xs leading-5 text-[#59645C]">{labels.description}</p>
           </div>
         </div>
         <button
@@ -128,7 +125,10 @@ export function AiPlanExplanationCard({ lang, plan, members }: AiPlanExplanation
       </div>
 
       {error && (
-        <p role="alert" className="mt-4 rounded-lg border border-[#B33A2E]/30 bg-white px-3 py-2 text-xs text-[#9A2E24]">
+        <p
+          role="alert"
+          className="mt-4 rounded-lg border border-[#B33A2E]/30 bg-white px-3 py-2 text-xs text-[#9A2E24]"
+        >
           {error}
         </p>
       )}
@@ -139,9 +139,7 @@ export function AiPlanExplanationCard({ lang, plan, members }: AiPlanExplanation
             <span className="rounded-full bg-[#E5EFE4] px-2.5 py-1 text-[10px] font-semibold text-[#263C32]">
               {result.provider === 'gemini' ? labels.gemini : labels.rules}
             </span>
-            {result.model && (
-              <span className="text-[10px] text-[#667168]">{result.model}</span>
-            )}
+            {result.model && <span className="text-[10px] text-[#667168]">{result.model}</span>}
           </div>
           <p className="whitespace-pre-line text-sm leading-6 text-[#344239]">
             {result.explanation}
