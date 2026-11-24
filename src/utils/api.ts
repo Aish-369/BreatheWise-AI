@@ -9,6 +9,7 @@ import type {
   HouseholdInput,
   HouseholdProfile,
   LocationInput,
+  LanguageCode,
   ProtectionPlanResult,
   ProviderAdapterStatus,
   SavedLocation,
