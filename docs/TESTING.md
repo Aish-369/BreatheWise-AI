@@ -2,7 +2,7 @@
 
 ## 1. Running the Automated Suite
 
-All automated checks run against isolated temporary or `:memory:` SQLite databases and never touch production data (`./data/breathewise.db`). The latest GitHub Actions CI run [45338919290](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45334418916) verified dependency audit, formatting, lint, type-check, coverage tests, production build, Chromium installation, and browser journeys:
+All automated checks run against isolated temporary or `:memory:` SQLite databases and never touch production data (`./data/breathewise.db`). The latest GitHub Actions CI run [45339668342](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45339668342) verified dependency audit, formatting, lint, type-check, coverage tests, production build, Chromium installation, and browser journeys:
 
 ```bash
 npm run format:check  # Prettier formatting verification
