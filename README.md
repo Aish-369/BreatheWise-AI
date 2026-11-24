@@ -65,14 +65,14 @@ src/
 │   │   └── *.ts                  # httpClient (retry/TTL cache), cpcb (+ cpcbMapper), openaq (+ openaqMapper), camsForecast, camsImporter, fixtures
 │   ├── db/                       # SQLite repositories (connection, demoSeed, households, members, routines, locations, settings, snapshots, plans, sessions)
 │   ├── migrations/               # Ordered schema migrations (helpers, 001–006, index)
-│   ├── routes/                   # Resource-scoped Express routers (session, healthAndBootstrap, household, members, routines, locations, environment, local)
+│   ├── routes/                   # Resource-scoped Express routers (session, healthAndBootstrap, household, members, routines, locations, environment, aiAdvisor, local)
 │   └── supabase/                 # Generated Supabase Postgres schema types (excluded from manual edits/lint)
 ├── hooks/                        # Memoized React hooks (useHouseholdData, useHouseholdMutations, useEntityCrudHandlers, useNavigationState, useLocale)
 ├── components/
 │   ├── workspace/                # WorkspaceShell, WorkspaceHeader, WorkspaceSidebar, WorkspaceMobileDrawer, HeaderDropdownMenus, WorkspaceStatusBanner, WorkspaceViewRouter, navConfig
 │   ├── dashboard/                # DashboardHeroCard, DashboardSummaryCard, DashboardHeaderBanners, DashboardTimelineCard, FamilyMemberCards, RecommendationsList, RecommendationCard, dashboardHelpers
 │   ├── family/                   # GuidedOnboardingWizard, OnboardingWizardSteps, HouseholdPreferencesForm, MemberProfileCard, MemberEditForm, AddMemberForm, FamilyViewHeader, FamilyViewBody, FamilyOverviewBanner, familyFormReducer
-│   ├── planner/                  # PlannerHeaderBar, DayPartSummaryStrip, RoutineTimelineCard, RoutineDisplayCard, RoutineEditForm, RoutineFormFields, AddRoutineForm, plannerFormReducer
+│   ├── planner/                  # PlannerHeaderBar, DayPartSummaryStrip, AiPlanExplanationCard, RoutineTimelineCard, RoutineDisplayCard, RoutineEditForm, RoutineFormFields, AddRoutineForm, plannerFormReducer
 │   ├── simulator/                # ScenarioPresets, ScenarioParametersForm, OverrideSlidersSection, RoutineOverrideSection, ScenarioResultPanel, ScenarioScheduleDiffList, simulatorReducer
 │   ├── comparison/               # SavedLocationsPanel, SavedLocationRow, AddLocationForm, CityComparisonPanel, MetricComparisonGrid, CityDetailCard, locationsFormReducer
 │   ├── environment/              # TelemetryStationTab, CamsForecastTab, StationSnapshotCard, DataAvailabilityBanner
@@ -122,7 +122,7 @@ See [docs/AI_ADVISOR.md](docs/AI_ADVISOR.md) for setup and verification.
 - **Multi-Location Comparison:** Side-by-side city comparison with automatic compatibility warnings for mixed data tiers, missing pollutants, or >3h timestamp skew.
 - **Copernicus CAMS Forecast Import:** Validated JSON and CSV import (`parseCamsImport`) with CSV formula-injection defense and household-scoped persistence.
 - **Multilingual & Offline PDF Reports:** Complete English, Marathi (मराठी), and Hindi (हिन्दी) parity enforced at compile time, plus Devanagari-capable client PDF export.
-- **Privacy-First Local Storage:** Local `node:sqlite` persistence with zero paid AI/LLM API dependencies.
+- **Privacy-First Local Storage:** Local `node:sqlite` persistence; optional server-side Gemini explanations with a deterministic fallback when no API key is configured.
 
 ---
 
