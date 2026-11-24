@@ -38,7 +38,7 @@ describe('frontend API client timeout and response hardening', () => {
   it('returns an empty object for a successful non-JSON response', async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
       new Response('ready', {
-        status: 204,
+        status: 200,
         headers: { 'content-type': 'text/plain' },
       })
     );
