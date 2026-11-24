@@ -3,8 +3,9 @@
 **Evidence snapshot:** 2026-11-24  
 **Repository:** Aish-369/BreatheWise-AI  
 **Verified branch:** main  
-**Verified commit:** 9b2d9264626a803f292b2db43323640d9ce9ec8d  
-**CI:** [Run 45343693980](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45343693980)
+**Merged PR:** [#25](https://github.com/Aish-369/BreatheWise-AI/pull/25)  
+**Merged commit:** 5b369a469651505e59777aa59e8405aa4cf1f16b  
+**CI:** [Run 45349430675](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45349430675) — passed on the PR head before squash merge
 
 This document maps observable project evidence to the six categories in the previous evaluator report. It is not a substitute for a new evaluator run and does not claim a 97+ score.
 
