@@ -2,7 +2,7 @@
 
 ## 1. Running the Automated Suite
 
-All automated checks run against isolated temporary or `:memory:` SQLite databases and never touch production data (`./data/breathewise.db`). The latest GitHub Actions CI run [45339668342](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45339668342) verified dependency audit, formatting, lint, type-check, coverage tests, production build, Chromium installation, and browser journeys:
+All automated checks run against isolated temporary or `:memory:` SQLite databases and never touch production data (`./data/breathewise.db`). The latest GitHub Actions CI run [45340249877](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45340249877) verified dependency audit, formatting, lint, type-check, coverage tests, production build, Chromium installation, and browser journeys:
 
 ```bash
 npm run format:check  # Prettier formatting verification
@@ -100,7 +100,7 @@ npx playwright test    # Chromium browser-level core journeys
 
 ## 3. Latest Measured Coverage
 
-The latest successful GitHub Actions run [45338919290](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45338919290) reports 87.98% statement coverage, 73.48% branch coverage, 86.03% function coverage, and 89.46% line coverage across 162 source files. The App.tsx entry point is 100% covered, components are at 90.42% statements, utilities at 97.68%, and hooks at 94.37%. The PDF export utility is at 100%. vitest.config.ts enforces minimum thresholds of 85% statements, 70% branches, 80% functions, and 88% lines.
+The latest successful GitHub Actions run [45340249877](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45340249877) reports 87.98% statement coverage, 73.48% branch coverage, 86.03% function coverage, and 89.46% line coverage across 162 source files. The App.tsx entry point is 100% covered, components are at 90.42% statements, utilities at 97.68%, and hooks at 94.37%. The PDF export utility is at 100%. vitest.config.ts enforces minimum thresholds of 85% statements, 70% branches, 80% functions, and 88% lines.
 
 **Health probe regression tests (`tests/healthCheck.test.ts`, 2 tests)** cover both successful database readiness without a session cookie and the generic 503 response when SQLite cannot answer.
 
