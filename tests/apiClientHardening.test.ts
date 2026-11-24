@@ -1,5 +1,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ensureBrowserSession } from '../src/utils/api';
+import {
+  addRoutineApi,
+  clearLocalApi,
+  createLocationApi,
+  deleteLocationApi,
+  deleteMemberApi,
+  deleteRoutineApi,
+  ensureBrowserSession,
+  fetchProvidersApi,
+  importCamsApi,
+  resetDemoApi,
+  runScenarioApi,
+  updateLocationApi,
+  updateRoutineApi,
+  updateSettingsApi,
+} from '../src/utils/api';
 
 afterEach(() => {
   vi.useRealTimers();
@@ -45,6 +60,52 @@ describe('frontend API client timeout and response hardening', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     await expect(ensureBrowserSession()).resolves.toEqual({});
+  });
+
+  it('routes the remaining household, settings, provider, import, and scenario operations', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(jsonResponse({}));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await deleteMemberApi('member/2');
+    await addRoutineApi({} as never);
+    await updateRoutineApi('routine/2', {} as never);
+    await deleteRoutineApi('routine/2');
+    await createLocationApi({} as never);
+    await updateLocationApi('location/2', {} as never);
+    await deleteLocationApi('location/2');
+    await updateSettingsApi({} as never);
+    await fetchProvidersApi();
+    await importCamsApi('city,timeWindow,expectedPm25');
+    await runScenarioApi({} as never, { simulateOutage: true, useFixtures: false });
+    await resetDemoApi();
+    await clearLocalApi();
+
+    expect(
+      fetchMock.mock.calls.map(([url, init]) => [url, init?.method ?? 'GET'])
+    ).toEqual([
+      ['/api/members/member%2F2', 'DELETE'],
+      ['/api/routines', 'POST'],
+      ['/api/routines/routine%2F2', 'PUT'],
+      ['/api/routines/routine%2F2', 'DELETE'],
+      ['/api/locations', 'POST'],
+      ['/api/locations/location%2F2', 'PUT'],
+      ['/api/locations/location%2F2', 'DELETE'],
+      ['/api/settings', 'PUT'],
+      ['/api/providers', 'GET'],
+      ['/api/environment/import-cams', 'POST'],
+      ['/api/scenarios/run', 'POST'],
+      ['/api/local/reset-demo', 'POST'],
+      ['/api/local/clear', 'DELETE'],
+    ]);
+
+    expect(JSON.parse(String(fetchMock.mock.calls[9][1]?.body))).toEqual({
+      rawText: 'city,timeWindow,expectedPm25',
+    });
+    expect(JSON.parse(String(fetchMock.mock.calls[10][1]?.body))).toEqual({
+      modification: {},
+      simulateOutage: true,
+      useFixtures: false,
+    });
   });
 
   it('uses safe HTTP fallback details when a JSON error omits message and code', async () => {
