@@ -65,14 +65,14 @@ src/
 │   │   └── *.ts                  # httpClient (retry/TTL cache), cpcb (+ cpcbMapper), openaq (+ openaqMapper), camsForecast, camsImporter, fixtures
 │   ├── db/                       # SQLite repositories (connection, demoSeed, households, members, routines, locations, settings, snapshots, plans, sessions)
 │   ├── migrations/               # Ordered schema migrations (helpers, 001–006, index)
-│   ├── routes/                   # Resource-scoped Express routers (session, healthAndBootstrap, household, members, routines, locations, environment, local)
+│   ├── routes/                   # Resource-scoped Express routers (session, healthAndBootstrap, household, members, routines, locations, environment, aiAdvisor, local)
 │   └── supabase/                 # Generated Supabase Postgres schema types (excluded from manual edits/lint)
 ├── hooks/                        # Memoized React hooks (useHouseholdData, useHouseholdMutations, useEntityCrudHandlers, useNavigationState, useLocale)
 ├── components/
 │   ├── workspace/                # WorkspaceShell, WorkspaceHeader, WorkspaceSidebar, WorkspaceMobileDrawer, HeaderDropdownMenus, WorkspaceStatusBanner, WorkspaceViewRouter, navConfig
 │   ├── dashboard/                # DashboardHeroCard, DashboardSummaryCard, DashboardHeaderBanners, DashboardTimelineCard, FamilyMemberCards, RecommendationsList, RecommendationCard, dashboardHelpers
 │   ├── family/                   # GuidedOnboardingWizard, OnboardingWizardSteps, HouseholdPreferencesForm, MemberProfileCard, MemberEditForm, AddMemberForm, FamilyViewHeader, FamilyViewBody, FamilyOverviewBanner, familyFormReducer
-│   ├── planner/                  # PlannerHeaderBar, DayPartSummaryStrip, RoutineTimelineCard, RoutineDisplayCard, RoutineEditForm, RoutineFormFields, AddRoutineForm, plannerFormReducer
+│   ├── planner/                  # PlannerHeaderBar, DayPartSummaryStrip, AiPlanExplanationCard, RoutineTimelineCard, RoutineDisplayCard, RoutineEditForm, RoutineFormFields, AddRoutineForm, plannerFormReducer
 │   ├── simulator/                # ScenarioPresets, ScenarioParametersForm, OverrideSlidersSection, RoutineOverrideSection, ScenarioResultPanel, ScenarioScheduleDiffList, simulatorReducer
 │   ├── comparison/               # SavedLocationsPanel, SavedLocationRow, AddLocationForm, CityComparisonPanel, MetricComparisonGrid, CityDetailCard, locationsFormReducer
 │   ├── environment/              # TelemetryStationTab, CamsForecastTab, StationSnapshotCard, DataAvailabilityBanner
@@ -103,6 +103,18 @@ BreatheWise AI distinguishes five environmental data states and never disguises 
 
 ---
 
+## Grounded Gemini Explanation Layer
+
+The daily planner includes an optional Gemini explanation layer. The deterministic TypeScript engine remains the only source of AQI calculations, evidence validation, risk scoring, and recommendations; Gemini explains the already-generated plan in English, Marathi, or Hindi.
+
+- Gemini is called only from the Express server through Google's Interactions REST API. The API key is read from `GEMINI_API_KEY` and is never sent to the browser.
+- The request contains AQI/pollutant provenance, aggregate age-group counts, and up to four existing recommendations. City, member names, household names, routine notes, and sensitivity tags are not sent.
+- Requests use `store: false`, strict request validation, a 12-second timeout, and a dedicated limit of 8 requests per 15 minutes. `store: false` does not override Google's free-tier data-use terms; review them before enabling real household data.
+- If the key is missing or Gemini is unavailable, the UI shows a deterministic rules-based explanation and a clear notice. No plan decision depends on Gemini output.
+- Configure `GEMINI_API_KEY` in the server environment (Render → service → Environment). Optionally set `GEMINI_MODEL`; the default is `gemini-3.8-flash`. Never use a `VITE_` prefix for the key.
+
+See [docs/AI_ADVISOR.md](docs/AI_ADVISOR.md) for setup and verification.
+
 ## Key Capabilities
 
 - **Family Protection Planner:** Multi-member age profiles (`infant_toddler`, `school_child`, `adult`, `older_adult`), optional non-medical sensitivity tags, and fixed vs. flexible daily routine scheduling with completion tracking.
@@ -110,7 +122,7 @@ BreatheWise AI distinguishes five environmental data states and never disguises 
 - **Multi-Location Comparison:** Side-by-side city comparison with automatic compatibility warnings for mixed data tiers, missing pollutants, or >3h timestamp skew.
 - **Copernicus CAMS Forecast Import:** Validated JSON and CSV import (`parseCamsImport`) with CSV formula-injection defense and household-scoped persistence.
 - **Multilingual & Offline PDF Reports:** Complete English, Marathi (मराठी), and Hindi (हिन्दी) parity enforced at compile time, plus Devanagari-capable client PDF export.
-- **Privacy-First Local Storage:** Local `node:sqlite` persistence with zero paid AI/LLM API dependencies.
+- **Privacy-First Local Storage:** Local `node:sqlite` persistence; optional server-side Gemini explanations with a deterministic fallback when no API key is configured.
 
 ---
 
@@ -203,6 +215,7 @@ The latest verified CI run [45338919290](https://github.com/Aish-369/BreatheWise
 | `docs/USER_GUIDE.md`    | End-user workflows and workspace guide                      |
 | `docs/RELEASE_NOTES.md` | Release changelog                                           |
 | `docs/PROJECT_AUDIT.md` | Pre-refactor repository audit notes                         |
+| `docs/AI_ADVISOR.md`    | Gemini explanation design, privacy boundary, and setup      |
 
 ---
 

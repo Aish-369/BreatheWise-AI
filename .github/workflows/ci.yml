@@ -45,6 +45,6 @@ jobs:
       - name: Production build
         run: npm run build
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium
       - name: Run browser-level core user journeys
         run: npx playwright test

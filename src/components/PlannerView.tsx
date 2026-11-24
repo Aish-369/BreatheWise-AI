@@ -13,6 +13,7 @@ import { PlannerHeaderBar } from './planner/PlannerHeaderBar';
 import { DayPartSummaryStrip } from './planner/DayPartSummaryStrip';
 import { RoutineTimelineCard } from './planner/RoutineTimelineCard';
 import { AddRoutineForm } from './planner/AddRoutineForm';
+import { AiPlanExplanationCard } from './planner/AiPlanExplanationCard';
 
 interface PlannerViewProps {
   lang: LanguageCode;
@@ -100,6 +101,8 @@ export function PlannerView({
       />
 
       <DayPartSummaryStrip lang={lang} dailyPlan={plan.dailyPlan} forecasts={forecasts} />
+
+      <AiPlanExplanationCard lang={lang} plan={plan} members={members} />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <RoutineTimelineCard

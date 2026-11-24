@@ -2,6 +2,7 @@ import express from 'express';
 import type { DatabaseSync } from 'node:sqlite';
 import { errorMiddleware, notFoundApiHandler } from './errors';
 import { createRateLimitMiddleware } from './rateLimit';
+import { createAiAdvisorRouter } from './routes/aiAdvisor';
 import { createEnvironmentRouter } from './routes/environment';
 import { createHealthAndBootstrapRouter } from './routes/healthAndBootstrap';
 import { createHouseholdRouter } from './routes/household';
@@ -58,6 +59,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
     '/api/session',
     createRateLimitMiddleware({ windowMs: 15 * 60 * 1000, max: 20, name: 'session' })
   );
+  app.use('/api/ai', createRateLimitMiddleware({ windowMs: 15 * 60 * 1000, max: 8, name: 'ai-advisor' }));
   app.use('/api', createRateLimitMiddleware({ windowMs: 15 * 60 * 1000, max: 240, name: 'api' }));
 
   app.get('/api/session', handleGetSession(db));
@@ -69,6 +71,7 @@ export function createApp(db: DatabaseSync, options: CreateAppOptions = {}): exp
   app.use('/api', createRoutinesRouter(db));
   app.use('/api', createLocationsRouter(db));
   app.use('/api', createEnvironmentRouter(db));
+  app.use('/api', createAiAdvisorRouter());
   app.use('/api', createLocalMaintenanceRouter(db));
 
   app.use('/api', notFoundApiHandler);
