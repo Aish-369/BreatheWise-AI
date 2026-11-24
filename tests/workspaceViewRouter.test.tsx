@@ -119,5 +119,4 @@ describe('WorkspaceViewRouter', () => {
     render(<WorkspaceViewRouter {...makeProps(activeTab)} />);
     expect(await screen.findByText(expectedContent)).toBeTruthy();
   });
-
 });
