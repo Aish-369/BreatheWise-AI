@@ -40,13 +40,17 @@ describe('CamsForecastTab', () => {
       />
     );
 
-    expect(screen.getByRole('heading', { name: 'Copernicus CAMS Manual Importer (CSV / JSON)' })).toBeTruthy();
+    expect(
+      screen.getByRole('heading', { name: 'Copernicus CAMS Manual Importer (CSV / JSON)' })
+    ).toBeTruthy();
     expect(screen.getByLabelText('Copernicus CAMS CSV or JSON input')).toBeTruthy();
     expect(screen.getByText(t('en', 'ui_chart_import_cams_hint'))).toBeTruthy();
   });
 
   it('submits pasted data and exposes a successful import status', async () => {
-    const onImportCams = vi.fn().mockResolvedValue({ ok: true, message: 'Imported 4 forecast slots.' });
+    const onImportCams = vi
+      .fn()
+      .mockResolvedValue({ ok: true, message: 'Imported 4 forecast slots.' });
     render(
       <CamsForecastTab lang="en" city="Pune" forecasts={forecasts} onImportCams={onImportCams} />
     );
@@ -64,7 +68,9 @@ describe('CamsForecastTab', () => {
   });
 
   it('surfaces validation failures returned by the import handler', async () => {
-    const onImportCams = vi.fn().mockResolvedValue({ ok: false, message: 'Unsupported time window.' });
+    const onImportCams = vi
+      .fn()
+      .mockResolvedValue({ ok: false, message: 'Unsupported time window.' });
     render(<CamsForecastTab lang="en" city="Pune" forecasts={[]} onImportCams={onImportCams} />);
 
     fireEvent.change(screen.getByLabelText('Copernicus CAMS CSV or JSON input'), {
@@ -105,7 +111,9 @@ describe('CamsForecastTab', () => {
     fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() =>
-      expect((screen.getByLabelText('Copernicus CAMS CSV or JSON input') as HTMLTextAreaElement).value).toBe('city,timeWindow')
+      expect(
+        (screen.getByLabelText('Copernicus CAMS CSV or JSON input') as HTMLTextAreaElement).value
+      ).toBe('city,timeWindow')
     );
     expect(input.value).toBe('');
   });
