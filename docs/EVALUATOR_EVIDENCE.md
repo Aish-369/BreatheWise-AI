@@ -3,8 +3,8 @@
 **Evidence snapshot:** 2026-11-24  
 **Repository:** Aish-369/BreatheWise-AI  
 **Verified branch:** quality/evaluator-97-component-coverage  
-**Verified commit:** 0c6bf6ffb457c1d866985ab2caffec6a4167b14c  
-**CI:** [Run 45339668342](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45339668342)
+**Verified commit:** 291481936358e1149249fb6f0df9c76f7e59414a  
+**CI:** [Run 45340249877](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45340249877)
 
 This document maps observable project evidence to the six categories in the previous evaluator report. It is not a substitute for a new evaluator run and does not claim a 97+ score.
 
