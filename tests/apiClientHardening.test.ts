@@ -39,14 +39,14 @@ describe('frontend API client timeout and response hardening', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     const request = ensureBrowserSession();
-    await vi.advanceTimersByTimeAsync(15_000);
-
-    await expect(request).rejects.toMatchObject({
+    const timeoutAssertion = expect(request).rejects.toMatchObject({
       name: 'ApiError',
       status: 408,
       code: 'TIMEOUT',
       message: 'Request timed out while contacting local server.',
     });
+    await vi.advanceTimersByTimeAsync(15_000);
+    await timeoutAssertion;
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
