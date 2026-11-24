@@ -264,10 +264,10 @@ The component layer improved to 51.06% statement coverage through behavior tests
 
 ## Latest evaluator-targeted evidence — 2026-11-24
 
-**Verified PR CI:** [Run 45340249877](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45340249877) — all 13 workflow steps passed.
+**Verified PR CI:** [Run 45343693980](https://github.com/Aish-369/BreatheWise-AI/actions/runs/45343693980) — all 13 workflow steps passed.
 
-- **261 tests across 46 files** passed.
-- V8 coverage: **87.98% statements, 73.48% branches, 86.03% functions, 89.46% lines**.
+- **272 tests across 49 files** passed.
+- V8 coverage: **88.05% statements, 73.41% branches, 86.27% functions, 89.58% lines**.
 - Component coverage: **90.42% statements**; utility coverage: **97.68%**; hooks: **94.37%**.
 - The PDF report/export utility has 100% statement, branch, function, and line coverage.
 - Formatting, ESLint with zero warnings, strict TypeScript, production dependency audit, production build, Chromium installation, and 3 Playwright browser journeys passed.
@@ -280,7 +280,7 @@ The previously supplied evaluator breakdown was 91.86/100: Code Quality 86, Secu
 
 The current changes directly address the two weakest areas:
 
-- **Testing:** expanded from 191 to 261 tests; coverage rose from 76.59% to 87.98% statements and from 64.45% to 73.48% branches. Real user workflows now cover workspace navigation, household setup/member editing, planner, simulator, saved locations, CAMS import, dashboard snapshot/PDF actions, history inspection, and multilingual PDF export.
+- **Testing:** expanded from 191 to 272 tests; coverage rose from 76.59% to 87.98% statements and from 64.45% to 73.48% branches. Real user workflows now cover workspace navigation, household setup/member editing, planner, simulator, saved locations, CAMS import, dashboard snapshot/PDF actions, history inspection, multilingual PDF export, and Gemini explanation/fallback behavior.
 - **Code Quality:** strict TypeScript is enabled (strict, noImplicitAny, and strictNullChecks); CI enforces formatting, zero-warning ESLint, type-checking, production build, and explicit coverage floors. The Vitest config import now includes its .ts extension.
 
 ### Remaining production and evaluator limitations
@@ -288,4 +288,4 @@ The current changes directly address the two weakest areas:
 - The production runtime still uses SQLite on Render's ephemeral filesystem. The connected Render service is on the Free plan, has no persistent disk, and its health-check path is unset.
 - Supabase PostgreSQL is not integrated into the application runtime. A durable PostgreSQL migration is a separate project requiring repository-layer changes, migration/rollback planning, household-isolation tests, restart/persistence tests, and a controlled deployment.
 - No paid Render upgrade, persistent disk attachment, production secret, or environment variable was changed.
-- The external evaluator has **not** been re-run. The 97+/100 target is not verified and must not be claimed until the evaluator produces a new result.
+- The external evaluator has **not** been re-run. The 97+/100 target is not verified and must not be claimed until the evaluator produces a new result.\n- Gemini remains in deterministic fallback mode until `GEMINI_API_KEY` is configured in Render. Google's free-tier data-use terms may allow prompts to improve its products; `store: false` does not override those terms.
