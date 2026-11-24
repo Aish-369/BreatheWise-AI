@@ -11,19 +11,19 @@ Set these variables on the Express server only:
 - `GEMINI_API_KEY`: API key created in Google AI Studio.
 - `GEMINI_MODEL`: optional model override; default `gemini-3.8-flash`.
 
-For Render, open the BreatheWise web service → **Environment** → add the variables → save changes. Keep the key out of Git, frontend variables, screenshots, and chat messages. The repository's `.env.example` contains blank placeholders only.
+For Render, open the BreatheWise web service → **Environment** → add the variables → save changes. Keep the key out of Git, frontend variables, screenshots, and chat messages. The repository's `.env.example` contains no secret values.
 
 ## Request and privacy boundary
 
 The browser sends a validated explanation context containing:
 
-- City, AQI band/value, freshness, data type, demo/live classification, PM2.5 and PM10.
+- AQI band/value, freshness, data type, demo/live classification, PM2.5 and PM10 (no city field).
 - Counts of household age groups.
 - At most four existing recommendations with translated titles, actions, reasons, and evidence metrics.
 
-Member names, household names, free-text routine notes, and sensitivity tags are not included. The server validates the body with Zod and applies a separate 8-request/15-minute IP limit to `/api/ai/*`.
+City, member names, household names, free-text routine notes, and sensitivity tags are not included. The server validates the body with Zod and applies a separate 8-request/15-minute IP limit to `/api/ai/*`.
 
-The server calls Google's Gemini Interactions API with `store: false`, a 12-second timeout, a bounded output budget, and a server-only `x-goog-api-key` header. The key is never returned to the client or logged.
+The server calls Google's Gemini Interactions API with `store: false`, a 12-second timeout, a bounded output budget, and a server-only `x-goog-api-key` header. The key is never returned to the client or logged. `store: false` controls interaction storage; it does not change Google's separate free-tier data-use terms. Google's pricing documentation says free-tier content may be used to improve products, while paid-tier content is not. Review current provider terms before enabling real household data.
 
 ## Safety and fallback
 
