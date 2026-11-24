@@ -347,7 +347,8 @@ describe('PlannerView routine workflows', () => {
       })
     );
 
-    fireEvent.click(screen.getByRole('button', { name: t('en', 'ui_mark_completed') }));
+    const markDoneButtons = screen.getAllByRole('button', { name: t('en', 'ui_mark_completed') });
+    fireEvent.click(markDoneButtons[0]);
     fireEvent.click(screen.getByRole('button', { name: 'Remove Morning walk' }));
     expect(onToggleCompletion).toHaveBeenCalledWith('routine-1', true);
     expect(onDeleteRoutine).toHaveBeenCalledWith('routine-1');
